@@ -7,4 +7,8 @@
     <string name="file_select">open</string>
     <string name="title_activity_display_message">MyMessage</string>
     <string name="show_text">here</string>
+    <string name="player_start">start</string>
+    <string name="player_pause">pause</string>
+    <string name="player_resume">resume</string>
+    <string name="player_stop">stop</string>
 </resources>

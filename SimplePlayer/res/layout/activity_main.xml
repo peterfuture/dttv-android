@@ -4,16 +4,34 @@
     android:layout_height="match_parent"
     android:orientation="horizontal" >
     
- <!--   <EditText android:id="@+id/edit_message"
-        android:layout_weight="1"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="@string/edit_message" />
-	 -->     
 	<Button android:id="@+id/file_browser"
     	android:layout_width="wrap_content"
     	android:layout_height="wrap_content"
     	android:text="@string/file_select"
     	android:onClick="ChooseFile" />
+	
+	<Button android:id="@+id/player_start"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"
+    	android:text="@string/player_start"
+    	android:onClick="PlayerStart" />
+		
+	<Button android:id="@+id/player_pause"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"
+    	android:text="@string/player_pause"
+    	android:onClick="PlayerPause" />
+				
+	<Button android:id="@+id/player_resume"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"
+    	android:text="@string/player_resume"
+    	android:onClick="PlayerResume" />
+					
+	<Button android:id="@+id/player_stop"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"
+    	android:text="@string/player_stop"
+    	android:onClick="PlayerStop" />
     
 </LinearLayout>

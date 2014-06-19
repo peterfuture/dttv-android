@@ -50,4 +50,24 @@ public class MainActivity extends Activity {
 		startActivityForResult(fileExploreIntent,REQUEST_CODE_PICK_FILE);		
     }
     
+    public void PlayerStart(View view) {
+    	Log.d(LOGTAG, "Start play");
+    		
+    }
+    
+    public void PlayerPause(View view) {
+    	Log.d(LOGTAG, "Pause play");
+    		
+    }
+    
+    public void PlayerResume(View view) {
+    	Log.d(LOGTAG, "Resume play");
+    		
+    }
+    
+    public void PlayerStop(View view) {
+    	Log.d(LOGTAG, "Stop play");
+    		
+    }
+    
 }

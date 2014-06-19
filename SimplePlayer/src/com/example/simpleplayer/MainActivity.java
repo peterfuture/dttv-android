@@ -3,19 +3,23 @@ package com.example.simpleplayer;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.EditText;
 
 public class MainActivity extends Activity {
 	public final static String EXTRA_MESSAGE = "com.example.simpleplayer.MESSAGE";
+	
+	private final String LOGTAG = "DTTV-FileBrowser";
+	private final int REQUEST_CODE_PICK_DIR = 1;
+	private final int REQUEST_CODE_PICK_FILE = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main);        
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -24,15 +28,26 @@ public class MainActivity extends Activity {
         return true;
     }
     
-    public void sendMessage(View view) {
-    	
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        String result = data.getExtras().getString("com.example.simpleplayer.filePathRet");
+        Log.d(LOGTAG, result);
+        
+        //here to start playing
+    }
+    
+    //Choose file to play
+    public void ChooseFile(View view) {
+    	Log.d(LOGTAG, "Start Chooseing File to play");
     	// do something
-    	Intent intent = new Intent(this, DisplayMessageActivity.class);
-    	EditText editText = (EditText) findViewById(R.id.edit_message);
-    	String message = editText.getText().toString();
-    	intent.putExtra(EXTRA_MESSAGE, message);
-    	startActivity(intent);
-    	
+    	Intent fileExploreIntent = new Intent(
+				com.example.simpleplayer.FileBrowserActivity.INTENT_ACTION_SELECT_FILE,
+				null,
+				this,
+				com.example.simpleplayer.FileBrowserActivity.class
+				);
+		fileExploreIntent.putExtra(com.example.simpleplayer.FileBrowserActivity.startDirectoryParameter, Environment.getExternalStorageDirectory());
+		startActivityForResult(fileExploreIntent,REQUEST_CODE_PICK_FILE);		
     }
     
 }

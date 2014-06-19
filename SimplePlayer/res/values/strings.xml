@@ -4,7 +4,7 @@
     <string name="app_name">SimplePlayer</string>
     <string name="action_settings">Settings</string>
     <string name="edit_message">Enter a Message</string>
-    <string name="button_send">Send</string>
+    <string name="file_select">open</string>
     <string name="title_activity_display_message">MyMessage</string>
     <string name="show_text">here</string>
 </resources>

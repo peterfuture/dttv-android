@@ -14,8 +14,15 @@ public class MainActivity extends Activity {
 	private final String LOGTAG = "DTTV-FileBrowser";
 	private final int REQUEST_CODE_PICK_DIR = 1;
 	private final int REQUEST_CODE_PICK_FILE = 2;
-
-    @Override
+	
+	//Native API declare
+	private native int playerStart(String url);
+	private native int playerPause();
+	private native int playerResume();
+	private native int playerStop();
+	private native int playerSeek(int pos);
+    
+	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);        
@@ -34,6 +41,7 @@ public class MainActivity extends Activity {
         Log.d(LOGTAG, result);
         
         //here to start playing
+        playerStart(result);
     }
     
     //Choose file to play
@@ -57,17 +65,24 @@ public class MainActivity extends Activity {
     
     public void PlayerPause(View view) {
     	Log.d(LOGTAG, "Pause play");
+    	playerPause();
     		
     }
     
     public void PlayerResume(View view) {
     	Log.d(LOGTAG, "Resume play");
+    	playerResume();
     		
     }
     
     public void PlayerStop(View view) {
     	Log.d(LOGTAG, "Stop play");
+    	playerStop();
     		
+    }
+    
+    static {
+        System.loadLibrary("dtp_jni");
     }
     
 }

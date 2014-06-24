@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
 				com.example.simpleplayer.FileBrowserActivity.class
 				);
 		fileExploreIntent.putExtra(com.example.simpleplayer.FileBrowserActivity.startDirectoryParameter, Environment.getExternalStorageDirectory());
-		startActivityForResult(fileExploreIntent,REQUEST_CODE_PICK_FILE);		
+		startActivityForResult(fileExploreIntent,REQUEST_CODE_PICK_FILE);	
     }
     
     public void PlayerStart(View view) {

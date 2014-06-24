@@ -2,9 +2,11 @@
 #include <string.h>
 #include <android/log.h>
 
+#include "dtplayer_api.h"
+
 #define DEBUG_TAG "dttvJni"
 
-//static void *handle;
+static void *handle;
 
 void Java_com_example_simpleplayer_MainActivity_helloLog(JNIEnv * env, jobject this, jstring logThis)
 {
@@ -17,8 +19,26 @@ void Java_com_example_simpleplayer_MainActivity_helloLog(JNIEnv * env, jobject t
 jint Java_com_example_simpleplayer_MainActivity_playerStart(JNIEnv * env, jobject this, jstring url)
 {
     jboolean isCopy;
-    const char * file_name = (*env)->GetStringUTFChars(env, url, &isCopy);
-    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Receive start cmd, file [%s]",file_name);
+    char * file_name = (*env)->GetStringUTFChars(env, url, &isCopy);
+    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Receive start cmd, file [%s] size:%d ",file_name,strlen(file_name));
+
+    dtplayer_para_t para;
+
+    para.no_audio = para.no_video = para.no_sub = -1;
+	para.height = para.width = -1;
+	para.loop_mode = 0;
+	para.audio_index = para.video_index = para.sub_index = -1;
+	para.update_cb = NULL;
+	para.sync_enable = -1;
+
+	para.file_name = file_name;
+	//para.update_cb = (void *) update_cb;
+	//para.no_audio=1;
+	//para.no_video=1;
+	para.width = 720;
+	para.height = 480;
+
+    handle = dtplayer_init(&para);
     return 0;
 }
 

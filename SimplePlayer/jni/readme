@@ -1,0 +1,4 @@
+set environment first
+AOSP_TREE
+AOSP_OUT
+AOSP_INCLUDE

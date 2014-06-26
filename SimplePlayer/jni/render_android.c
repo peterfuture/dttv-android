@@ -5,13 +5,14 @@
 #include "dtvideo_android.h"
 
 #include <android/log.h>
-#define DEBUG_TAG "RENDER_WRAPPER"
+
+#define TAG "RENDER_WRAPPER"
 /*---------------------------------------------------------- */
 #ifdef ENABLE_VO_SDL2
 extern vo_wrapper_t vo_sdl2_ops;
 #endif
 
-vo_wrapper_t vo_ex_ops;
+//vo_wrapper_t vo_ex_ops;
 
 static int vo_ex_init ()
 {
@@ -55,15 +56,16 @@ vo_wrapper_t vo_ex_ops = {
 extern ao_wrapper_t ao_sdl2_ops;
 #endif
 
-ao_wrapper_t ao_ex_ops;
-ao_wrapper_t *ao_wrapper = &ao_ex_ops;
+//ao_wrapper_t ao_ex_ops;
+//ao_wrapper_t *ao_wrapper = &ao_ex_ops;
+
 static int ao_ex_init (dtaudio_para_t *para)
 {
     int ret = 0;
 #ifdef ENABLE_VO_SDL2
     ret = ao_sdl2_ops.ao_init(para);
 #endif
-    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "AO Render Init OK");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "AO Render Init OK");
     return ret;
 }
 
@@ -133,17 +135,19 @@ ao_wrapper_t ao_ex_ops = {
     .ao_latency = ao_ex_get_latency,
 };
 
+extern void android_ops_init(); // setup android audio render
 
 int render_init()
 {
+	android_ops_init();
     register_ext_ao(&ao_ex_ops);
     register_ext_vo(&vo_ex_ops);
-    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Render Init OK");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "Render Init OK");
     return  0;
 }
 
 int render_stop()
 {
-	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Render Stop OK");
+	__android_log_print(ANDROID_LOG_INFO, TAG, "Render Stop OK");
     return 0;
 }

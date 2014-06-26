@@ -8,6 +8,7 @@
 #define DEBUG_TAG "dttvJni"
 
 static void *handle;
+extern int android_audio_init(int channels, int samplerate);
 
 void Java_com_example_simpleplayer_MainActivity_helloLog(JNIEnv * env, jobject this, jstring logThis)
 {
@@ -55,7 +56,8 @@ jint Java_com_example_simpleplayer_MainActivity_playerStart(JNIEnv * env, jobjec
 		return -1;
 	}
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Get Media Info Ok,filesize:%lld fulltime:%lld S \n",info.file_size,info.duration);
-	dtplayer_start (handle);
+
+	//dtplayer_start (handle);
     return 0;
 }
 

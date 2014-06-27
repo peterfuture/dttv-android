@@ -52,19 +52,12 @@ vo_wrapper_t vo_ex_ops = {
 
 
 /*---------------------------------------------------------- */
-#ifdef ENABLE_VO_SDL2
-extern ao_wrapper_t ao_sdl2_ops;
-#endif
-
-//ao_wrapper_t ao_ex_ops;
-//ao_wrapper_t *ao_wrapper = &ao_ex_ops;
+extern ao_wrapper_t ao_android_ops;
 
 static int ao_ex_init (dtaudio_para_t *para)
 {
     int ret = 0;
-#ifdef ENABLE_VO_SDL2
-    ret = ao_sdl2_ops.ao_init(para);
-#endif
+    ret = ao_android_ops.ao_init(para);
     __android_log_print(ANDROID_LOG_INFO, TAG, "AO Render Init OK");
     return ret;
 }
@@ -72,54 +65,42 @@ static int ao_ex_init (dtaudio_para_t *para)
 static int ao_ex_play (uint8_t * buf, int size)
 {
     int ret = 0;
-#ifdef ENABLE_VO_SDL2
-    ret = ao_sdl2_ops.ao_write(buf,size);
-#endif
+    ret = ao_android_ops.ao_write(buf,size);
     return ret;
 }
 
 static int ao_ex_pause ()
 {
     int ret = 0;
-#ifdef ENABLE_VO_SDL2
-    ret = ao_sdl2_ops.ao_pause();
-#endif
+    ret = ao_android_ops.ao_pause();
     return ret;
 }
 
 static int ao_ex_resume ()
 {
     int ret = 0;
-#ifdef ENABLE_VO_SDL2
-    ret = ao_sdl2_ops.ao_resume();
-#endif
+    ret = ao_android_ops.ao_resume();
     return ret;
 }
 
 static int ao_ex_level()
 {
     int ret = 0;
-#ifdef ENABLE_VO_SDL2
-    ret = ao_sdl2_ops.ao_level();
-#endif
+    ret = ao_android_ops.ao_level();
     return ret;
 }
 
 static int64_t ao_ex_get_latency ()
 {
     int ret = 0;
-#ifdef ENABLE_VO_SDL2
-    ret = ao_sdl2_ops.ao_latency();
-#endif
+    ret = ao_android_ops.ao_latency();
     return ret;
 }
 
 static int ao_ex_stop ()
 {
     int ret = 0;
-#ifdef ENABLE_VO_SDL2
-    ret = ao_sdl2_ops.ao_stop();
-#endif
+    ret = ao_android_ops.ao_stop();
     return ret;
 }
 

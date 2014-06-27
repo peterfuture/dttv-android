@@ -14,6 +14,6 @@ LOCAL_C_INCLUDES += $(AOSP_TREE)/system/core/include          #cutils
 LOCAL_C_INCLUDES += $(AOSP_TREE)/hardware/libhardware/include #hardware
 LOCAL_C_INCLUDES += $(AOSP_TREE)/frameworks/native/include    #utils
 
-LOCAL_LDLIBS     += -L$(AOSP_OUT)/system/lib -lmedia
+LOCAL_LDLIBS     += -L$(AOSP_OUT)/system/lib -lmedia  -lutils
 
 include $(BUILD_SHARED_LIBRARY)

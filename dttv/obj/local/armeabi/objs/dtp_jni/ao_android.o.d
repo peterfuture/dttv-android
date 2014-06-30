@@ -1,4 +1,5 @@
-obj/local/armeabi/objs/dtp_jni/ao_android.o: jni/ao_android.cpp \
+/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/obj/local/armeabi/objs/dtp_jni/ao_android.o: \
+ /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/ao_android.cpp \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/jni.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/string.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/cdefs.h \
@@ -99,11 +100,12 @@ obj/local/armeabi/objs/dtp_jni/ao_android.o: jni/ao_android.cpp \
  /home/sunjiwei/Amlogic/server/droid_03/m8_mbx_reference_karkit/system/core/include/utils/Timers.h \
  /home/sunjiwei/Amlogic/server/droid_03/m8_mbx_reference_karkit/system/core/include/utils/RWLock.h \
  /home/sunjiwei/Amlogic/server/droid_03/m8_mbx_reference_karkit/system/core/include/utils/Thread.h \
- jni/include/dtaudio_android.h jni/include/dt_buffer.h \
- jni/include/dt_lock.h \
+ /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dtaudio_android.h \
+ /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_buffer.h \
+ /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_lock.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/pthread.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sched.h \
- jni/include/dt_macro.h
+ /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_macro.h
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/jni.h:
 
@@ -305,14 +307,14 @@ obj/local/armeabi/objs/dtp_jni/ao_android.o: jni/ao_android.cpp \
 
 /home/sunjiwei/Amlogic/server/droid_03/m8_mbx_reference_karkit/system/core/include/utils/Thread.h:
 
-jni/include/dtaudio_android.h:
+/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dtaudio_android.h:
 
-jni/include/dt_buffer.h:
+/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_buffer.h:
 
-jni/include/dt_lock.h:
+/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_lock.h:
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/pthread.h:
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sched.h:
 
-jni/include/dt_macro.h:
+/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_macro.h:

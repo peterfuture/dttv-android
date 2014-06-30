@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">SimplePlayer</string>
+    <string name="app_name">DTTV</string>
     <string name="action_settings">Settings</string>
     <string name="edit_message">Enter a Message</string>
     <string name="file_select">open</string>
@@ -11,4 +11,7 @@
     <string name="player_pause">pause</string>
     <string name="player_resume">resume</string>
     <string name="player_stop">stop</string>
+    <string name="title_activity_play">PlayActivity</string>
+    <string name="hello_world">Hello world!</string>
+
 </resources>

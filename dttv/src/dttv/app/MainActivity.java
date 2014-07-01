@@ -16,11 +16,11 @@ public class MainActivity extends Activity {
 	private final int REQUEST_CODE_PICK_FILE = 2;
 	
 	//Native API declare
-	private native int playerStart(String url);
-	private native int playerPause();
-	private native int playerResume();
-	private native int playerStop();
-	private native int playerSeek(int pos);
+	private native int native_playerStart(String url);
+	private native int native_playerPause();
+	private native int native_playerResume();
+	private native int native_playerStop();
+	private native int native_playerSeekTo(int pos);
     
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,9 +41,10 @@ public class MainActivity extends Activity {
         Log.d(LOGTAG, result);
         
         //here to start playing
-        //playerStart(result);
+        //native_playerStart(result);
         
         //call playactivity
+        /*
     	Intent fileExploreIntent = new Intent(
     			dttv.app.PlayActivity,
 				null,
@@ -51,7 +52,7 @@ public class MainActivity extends Activity {
 				dttv.app.PlayActivity.class
 				);
 		fileExploreIntent.putExtra(dttv.app.FileBrowserActivity.startDirectoryParameter, Environment.getExternalStorageDirectory());
-		startActivityForResult(fileExploreIntent,REQUEST_CODE_PICK_FILE);	
+		startActivityForResult(fileExploreIntent,REQUEST_CODE_PICK_FILE);	*/
     }
     
     //Choose file to play
@@ -75,19 +76,19 @@ public class MainActivity extends Activity {
     
     public void PlayerPause(View view) {
     	Log.d(LOGTAG, "Pause play");
-    	playerPause();
+    	native_playerPause();
     		
     }
     
     public void PlayerResume(View view) {
     	Log.d(LOGTAG, "Resume play");
-    	playerResume();
+    	native_playerResume();
     		
     }
     
     public void PlayerStop(View view) {
     	Log.d(LOGTAG, "Stop play");
-    	playerStop();
+    	native_playerStop();
     		
     }
     

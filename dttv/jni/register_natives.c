@@ -7,15 +7,16 @@
 #define NELEM(x) ((int)(sizeof(x) / sizeof((x)[0])))
 #endif
 
-static const char *s_class_path_name = "dttv/app/GlBufferView";
+static const char *s_class_path_name = "dttv/app/MainActivity";
 
 static JNINativeMethod s_methods[] = {
-	{"native_playerStart", "()V", (void*) native_playerStart},
-	{"native_playerPause", "(II)V", (void*) native_playerPause},
-	{"native_playerResume", "()V", (void*) native_playerResume},
-	{"native_playerSeekTo", "()V", (void*) native_playerSeekTo},
-	{"native_playerStop", "()V", (void*) native_playerStop},
+	{"native_playerStart", "(Ljava/lang/String;)I", (void*) native_playerStart},
+	{"native_playerPause", "()I", (void*) native_playerPause},
+	{"native_playerResume", "()I", (void*) native_playerResume},
+	{"native_playerSeekTo", "(I)I", (void*) native_playerSeekTo},
+	{"native_playerStop", "()I", (void*) native_playerStop},
 };
+
 
 static int register_native_methods(JNIEnv* env,
 		const char* class_name,
@@ -37,6 +38,7 @@ static int register_native_methods(JNIEnv* env,
 
 	return JNI_TRUE;
 }
+
 
 static int register_natives(JNIEnv *env)
 {

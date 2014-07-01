@@ -11,13 +11,6 @@ import android.util.AttributeSet;
 import android.view.Menu;
 
 public class PlayActivity extends Activity {
-	
-	//Native API declare
-	private native int playerStart(String url);
-	private native int playerPause();
-	private native int playerResume();
-	private native int playerStop();
-	private native int playerSeek(int pos);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

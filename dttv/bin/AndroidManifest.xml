@@ -35,7 +35,7 @@
             android:configChanges="orientation|keyboardHidden"
             android:label="File browser" >
             <intent-filter>
-                <action android:name="com.example.simpleplayer.SELECT_DIRECTORY_ACTION" >
+                <action android:name="dttv.app.SELECT_DIRECTORY_ACTION" >
                 </action>
             </intent-filter>
         </activity>

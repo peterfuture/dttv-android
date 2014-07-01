@@ -10,18 +10,12 @@ import android.view.View;
 
 public class MainActivity extends Activity {
 	public final static String EXTRA_MESSAGE = "com.example.simpleplayer.MESSAGE";
-	
+	public final static String FILE_MSG = "dttp.app.MainActivity.URL";
 	private final String LOGTAG = "DTTV-FileBrowser";
+	
 	private final int REQUEST_CODE_PICK_DIR = 1;
 	private final int REQUEST_CODE_PICK_FILE = 2;
 	
-	//Native API declare
-	private native int native_playerStart(String url);
-	private native int native_playerPause();
-	private native int native_playerResume();
-	private native int native_playerStop();
-	private native int native_playerSeekTo(int pos);
-    
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,19 +34,10 @@ public class MainActivity extends Activity {
         String result = data.getExtras().getString("com.example.simpleplayer.filePathRet");
         Log.d(LOGTAG, result);
         
-        //here to start playing
-        //native_playerStart(result);
-        
-        //call playactivity
-        /*
-    	Intent fileExploreIntent = new Intent(
-    			dttv.app.PlayActivity,
-				null,
-				this,
-				dttv.app.PlayActivity.class
-				);
-		fileExploreIntent.putExtra(dttv.app.FileBrowserActivity.startDirectoryParameter, Environment.getExternalStorageDirectory());
-		startActivityForResult(fileExploreIntent,REQUEST_CODE_PICK_FILE);	*/
+        //call playactivity  
+        Intent intent = new Intent(this, PlayActivity.class);
+        intent.putExtra(FILE_MSG, result);
+        startActivity(intent);
     }
     
     //Choose file to play
@@ -76,24 +61,18 @@ public class MainActivity extends Activity {
     
     public void PlayerPause(View view) {
     	Log.d(LOGTAG, "Pause play");
-    	native_playerPause();
     		
     }
     
     public void PlayerResume(View view) {
     	Log.d(LOGTAG, "Resume play");
-    	native_playerResume();
     		
     }
     
     public void PlayerStop(View view) {
     	Log.d(LOGTAG, "Stop play");
-    	native_playerStop();
     		
     }
-    
-    static {
-        System.loadLibrary("dtp_jni");
-    }
+  
     
 }

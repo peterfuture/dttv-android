@@ -7,7 +7,7 @@
 #define NELEM(x) ((int)(sizeof(x) / sizeof((x)[0])))
 #endif
 
-static const char *s_class_path_name = "dttv/app/MainActivity";
+static const char *s_class_path_name = "dttv/app/PlayActivity";
 
 static JNINativeMethod s_methods[] = {
 	{"native_playerStart", "(Ljava/lang/String;)I", (void*) native_playerStart},

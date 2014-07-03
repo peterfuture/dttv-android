@@ -23,7 +23,7 @@ typedef struct{
 }android_ao_ctx_t;
 
 ao_wrapper_t ao_android_ops;
-static char *ao_android_name = "android ao";
+static char *ao_android_name = "ao android";
 static ao_wrapper_t *wrapper = &ao_android_ops;
 
 static void audioCallback(int event, void* user, void *info)
@@ -180,7 +180,7 @@ static int android_audio_stop()
 
 void android_ops_init()
 {
-	ao_android_ops.id = 0x100;
+	ao_android_ops.id = 0x100;//AO_ID_ANDROID
     ao_android_ops.name = ao_android_name;
     ao_android_ops.ao_init = android_audio_init;
     ao_android_ops.ao_pause = android_audio_pause;

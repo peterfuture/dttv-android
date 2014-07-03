@@ -1,14 +1,96 @@
 #include <jni.h>
 #include <string.h>
 #include <android/log.h>
+#include <stdlib.h>
+
+#include <GLES/gl.h>
+#include <GLES/glext.h>
 
 #include "dtplayer_api.h"
 #include "render_android.h"
+#include "dt_lock.h"
 
 #define DEBUG_TAG "dttvJni"
 
 static void *handle;
 extern int android_audio_init(int channels, int samplerate);
+
+#define GLRENDER_STATUS_IDLE 0
+#define GLRENDER_STATUS_RUNNING 1
+#define GLRENDER_STATUS_QUIT 2
+
+typedef struct{
+	uint8_t *frame;
+    int frame_size;
+	int width;
+	int height;
+	int status;
+    int invalid_frame;
+    dt_lock_t mutex;
+}gl_ctx_t;
+
+static gl_ctx_t gl_ctx;
+
+int native_ui_init(JNIEnv * env, jobject this, jint w, jint h)
+{
+	memset(&gl_ctx,0,sizeof(gl_ctx_t));
+	gl_ctx.width = w;
+	gl_ctx.height = h;
+	gl_ctx.frame_size = w*h*2;
+	gl_ctx.frame = (uint8_t *)malloc(gl_ctx.frame_size); // rgb565
+	if(gl_ctx.frame == NULL)
+		return -1;
+    
+    dt_lock_init (&gl_ctx.mutex, NULL);
+
+	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Native UI Init OK \n");
+    return 0;
+}
+
+int update_frame(uint8_t *buf,int size)
+{
+    if(size > gl_ctx.frame_size)
+        return 0;
+
+    dt_lock (&gl_ctx.mutex);
+    //memcpy(&gl_ctx.frame,buf,size);
+    memcpy(&gl_ctx.frame,buf,gl_ctx.frame_size);
+    dt_unlock (&gl_ctx.mutex);
+}
+
+int native_disp_frame(JNIEnv * env, jobject this)
+{
+    if(gl_ctx.status == GLRENDER_STATUS_IDLE)
+        return 0;
+    if(gl_ctx.invalid_frame == 0)
+        return 0;
+    //display one frame
+    dt_lock (&gl_ctx.mutex);
+    
+	glClear(GL_COLOR_BUFFER_BIT);
+	glTexImage2D(GL_TEXTURE_2D,		/* target */
+			0,			/* level */
+			GL_RGB,			/* internal format */
+			gl_ctx.width,		/* width */
+			gl_ctx.height,		/* height */
+			0,			/* border */
+			GL_RGB,			/* format */
+			GL_UNSIGNED_SHORT_5_6_5,/* type */
+			gl_ctx.frame);		/* pixels */
+	glDrawTexiOES(0, 0, 0, gl_ctx.width, gl_ctx.height);
+    gl_ctx.invalid_frame = 0;
+    
+    dt_unlock (&gl_ctx.mutex);
+}
+
+int native_ui_stop(JNIEnv * env, jobject this)
+{
+	if(gl_ctx.frame)
+		free(gl_ctx.frame);
+	memset(&gl_ctx,0,sizeof(gl_ctx_t));
+	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Native UI Stop OK \n");
+    return 0;
+}
 
 int native_playerStart(JNIEnv * env, jobject this, jstring url)
 {
@@ -32,8 +114,8 @@ int native_playerStart(JNIEnv * env, jobject this, jstring url)
 	//para.update_cb = (void *) update_cb;
 	//para.no_audio=1;
 	para.no_video=1;
-	para.width = 720;
-	para.height = 480;
+	para.width = gl_ctx.width;
+	para.height = gl_ctx.height;
 
     handle = dtplayer_init(&para);
     if (!handle)

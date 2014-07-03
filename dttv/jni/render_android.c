@@ -8,36 +8,28 @@
 
 #define TAG "RENDER_WRAPPER"
 /*---------------------------------------------------------- */
-#ifdef ENABLE_VO_SDL2
-extern vo_wrapper_t vo_sdl2_ops;
-#endif
+extern vo_wrapper_t vo_android_ops;
 
 //vo_wrapper_t vo_ex_ops;
 
 static int vo_ex_init ()
 {
     int ret = 0;
-#ifdef ENABLE_VO_SDL2
-    ret = vo_sdl2_ops.vo_init();
-#endif
+    ret = vo_android_ops.vo_init();
     return ret;
 }
 
 static int vo_ex_render (AVPicture_t * pict)
 {
     int ret = 0;
-#ifdef ENABLE_VO_SDL2
-    ret = vo_sdl2_ops.vo_render(pict);
-#endif
+    ret = vo_android_ops.vo_render(pict);
     return ret;
 }
 
 static int vo_ex_stop ()
 {
     int ret = 0;
-#ifdef ENABLE_VO_SDL2
-    ret = vo_sdl2_ops.vo_stop();
-#endif
+    ret = vo_android_ops.vo_stop();
     return ret;
 }
 

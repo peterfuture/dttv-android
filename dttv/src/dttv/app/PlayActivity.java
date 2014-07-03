@@ -16,11 +16,17 @@ public class PlayActivity extends Activity {
 	private final String TAG = "DT-PLAYING";
 	
 	//Native API declare
+	private native int native_ui_init(int w, int h);
+	private native int native_dispframe();
+	private native int native_ui_stop();
+	
 	private native int native_playerStart(String url);
 	private native int native_playerPause();
 	private native int native_playerResume();
 	private native int native_playerStop();
 	private native int native_playerSeekTo(int pos);
+	
+
 	
 	private GLSurfaceView glSurefaceView;  
 
@@ -38,6 +44,9 @@ public class PlayActivity extends Activity {
         glSurefaceView.setRenderer(new GLSurfaceViewRender());  
         glSurefaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         this.setContentView(glSurefaceView); 
+        
+        native_ui_init(720,480);
+        native_playerStart(file_name);
 	}
 
 	@Override
@@ -70,7 +79,9 @@ public class PlayActivity extends Activity {
             Log.i(TAG, "onDrawFrame");  
             // 清除屏幕和深度缓存(如果不调用该代码, 将不显示glClearColor设置的颜色)  
             // 同样如果将该代码放到 onSurfaceCreated 中屏幕会一直闪动  
-            gl.glClear(GL10.GL_COLOR_BUFFER_BIT);  
+            
+            //gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+            
   
         }  
   

@@ -13,7 +13,6 @@
 vo_wrapper_t vo_android_ops;
 
 typedef struct{
-	uint8_t *buf; //buffer provider for surfaceview
     dt_lock_t vo_mutex;
     int dx,dy,dw,dh;
     int sdl_inited;
@@ -28,6 +27,10 @@ static int vo_android_init ()
     vo_wrapper_t *wrap = &vo_android_ops;
     wrap->handle = (void *)&vo_android_ctx;
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "android vo init OK\n");
+    vo_android_ctx.dx = 0;
+    vo_android_ctx.dy = 0;
+    vo_android_ctx.dw = 320;
+    vo_android_ctx.dh = 240;
     return 0;
 }
 
@@ -38,6 +41,7 @@ static int vo_android_render (AVPicture_t * pict)
     
     dt_lock (&ctx->vo_mutex);
     update_frame(pict->data[0],ctx->dw*ctx->dh*2);
+    __android_log_print(ANDROID_LOG_DEBUG,TAG,"render one frame ok\n");
     dt_unlock (&ctx->vo_mutex);
     return 0;
 }

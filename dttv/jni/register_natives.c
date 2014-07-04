@@ -11,6 +11,9 @@ static const char *s_class_path_name = "dttv/app/PlayActivity";
 
 static JNINativeMethod s_methods[] = {
 	{"native_ui_init", "(II)I", (void*) native_ui_init},
+	{"native_disp_frame", "()I", (void*) native_disp_frame},
+	{"native_ui_stop", "()I", (void*) native_ui_stop},
+
 	{"native_playerStart", "(Ljava/lang/String;)I", (void*) native_playerStart},
 	{"native_playerPause", "()I", (void*) native_playerPause},
 	{"native_playerResume", "()I", (void*) native_playerResume},

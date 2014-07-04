@@ -19,13 +19,30 @@ extern int android_audio_init(int channels, int samplerate);
 #define GLRENDER_STATUS_RUNNING 1
 #define GLRENDER_STATUS_QUIT 2
 
+/* disable these capabilities. */
+static GLuint s_disable_caps[] = {
+	GL_FOG,
+	GL_LIGHTING,
+	GL_CULL_FACE,
+	GL_ALPHA_TEST,
+	GL_BLEND,
+	GL_COLOR_LOGIC_OP,
+	GL_DITHER,
+	GL_STENCIL_TEST,
+	GL_DEPTH_TEST,
+	GL_COLOR_MATERIAL,
+	0
+};
+
 typedef struct{
-	uint8_t *frame;
+	uint16_t *frame;
     int frame_size;
 	int width;
 	int height;
 	int status;
     int invalid_frame;
+
+    GLuint s_texture;
     dt_lock_t mutex;
 }gl_ctx_t;
 
@@ -37,13 +54,32 @@ int native_ui_init(JNIEnv * env, jobject this, jint w, jint h)
 	gl_ctx.width = w;
 	gl_ctx.height = h;
 	gl_ctx.frame_size = w*h*2;
-	gl_ctx.frame = (uint8_t *)malloc(gl_ctx.frame_size); // rgb565
+	gl_ctx.frame = (uint16_t *)malloc(gl_ctx.frame_size); // rgb565
 	if(gl_ctx.frame == NULL)
 		return -1;
     
     dt_lock_init (&gl_ctx.mutex, NULL);
+    gl_ctx.status = GLRENDER_STATUS_RUNNING;
 
-	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Native UI Init OK \n");
+	glDeleteTextures(1, &gl_ctx.s_texture);
+	GLuint *start = s_disable_caps;
+	while (*start)
+		glDisable(*start++);
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &gl_ctx.s_texture);
+	glBindTexture(GL_TEXTURE_2D, gl_ctx.s_texture);
+	glTexParameterf(GL_TEXTURE_2D,
+			GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D,
+			GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glShadeModel(GL_FLAT);
+
+	glColor4x(0x10000, 0x10000, 0x10000, 0x10000);
+
+	int rect[4] = {0, h, w, -h};
+	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_CROP_RECT_OES, rect);
+
+	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Native UI Init OK, size:%d \n",gl_ctx.frame_size);
     return 0;
 }
 
@@ -52,9 +88,11 @@ int update_frame(uint8_t *buf,int size)
     if(size > gl_ctx.frame_size)
         return 0;
 
+    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "update_frame, size:%d \n",gl_ctx.frame_size);
     dt_lock (&gl_ctx.mutex);
     //memcpy(&gl_ctx.frame,buf,size);
-    memcpy(&gl_ctx.frame,buf,gl_ctx.frame_size);
+    memcpy(gl_ctx.frame,buf,gl_ctx.frame_size);
+    gl_ctx.invalid_frame = 1;
     dt_unlock (&gl_ctx.mutex);
 }
 
@@ -64,6 +102,8 @@ int native_disp_frame(JNIEnv * env, jobject this)
         return 0;
     if(gl_ctx.invalid_frame == 0)
         return 0;
+
+    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "start disp frame\n");
     //display one frame
     dt_lock (&gl_ctx.mutex);
     
@@ -112,8 +152,8 @@ int native_playerStart(JNIEnv * env, jobject this, jstring url)
 
 	para.file_name = file_name;
 	//para.update_cb = (void *) update_cb;
-	//para.no_audio=1;
-	para.no_video=1;
+	para.no_audio=1;
+	//para.no_video=1;
 	para.width = gl_ctx.width;
 	para.height = gl_ctx.height;
 

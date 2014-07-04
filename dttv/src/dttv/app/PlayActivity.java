@@ -17,7 +17,7 @@ public class PlayActivity extends Activity {
 	
 	//Native API declare
 	private native int native_ui_init(int w, int h);
-	private native int native_dispframe();
+	private native int native_disp_frame();
 	private native int native_ui_stop();
 	
 	private native int native_playerStart(String url);
@@ -42,13 +42,13 @@ public class PlayActivity extends Activity {
 		
 		glSurefaceView = new GLSurfaceView(this);		
         glSurefaceView.setRenderer(new GLSurfaceViewRender());  
-        glSurefaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        glSurefaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         this.setContentView(glSurefaceView); 
         
-        native_ui_init(720,480);
+        native_ui_init(320,240);
         native_playerStart(file_name);
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -63,7 +63,7 @@ public class PlayActivity extends Activity {
             Log.i(TAG, "onSurfaceCreated");  
   
             // 设置背景颜色  
-            gl.glClearColor(0.0f, 0f, 1f, 0.5f);
+            //gl.glClearColor(0.0f, 0f, 1f, 0.5f);
         }  
   
         @Override  
@@ -76,12 +76,12 @@ public class PlayActivity extends Activity {
   
         @Override  
         public void onDrawFrame(GL10 gl) {  
-            Log.i(TAG, "onDrawFrame");  
+            //Log.i(TAG, "onDrawFrame");  
             // 清除屏幕和深度缓存(如果不调用该代码, 将不显示glClearColor设置的颜色)  
             // 同样如果将该代码放到 onSurfaceCreated 中屏幕会一直闪动  
             
             //gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-            
+            native_disp_frame();
   
         }  
   

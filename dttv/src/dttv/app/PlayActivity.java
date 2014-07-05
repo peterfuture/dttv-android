@@ -14,7 +14,9 @@ import android.view.Menu;
 public class PlayActivity extends Activity {
 	
 	private final String TAG = "DT-PLAYING";
-	
+    private int surface_width = 320;
+    private int surface_height = 240;
+        
 	//Native API declare
 	private native int native_ui_init(int w, int h);
 	private native int native_disp_frame();
@@ -45,7 +47,7 @@ public class PlayActivity extends Activity {
         glSurefaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         this.setContentView(glSurefaceView); 
         
-        native_ui_init(320,240);
+        native_ui_init(surface_width,surface_height);
         native_playerStart(file_name);
 	}
 	
@@ -62,17 +64,18 @@ public class PlayActivity extends Activity {
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {  
             Log.i(TAG, "onSurfaceCreated");  
   
-            // 设置背景颜色  
+            // 设置背景颜色 - load backgroud picture 
             //gl.glClearColor(0.0f, 0f, 1f, 0.5f);
         }  
   
         @Override  
         public void onSurfaceChanged(GL10 gl, int width, int height) {  
-            // 设置输出屏幕大小  
+            // 设置输出屏幕大小 
+            surface_width = width;
+            surface_height = height; 
             gl.glViewport(0, 0, width, height);  
-            Log.i(TAG, "onSurfaceChanged");  
-        }  
-  
+            Log.i(TAG, "onSurfaceChanged width:"+width +" height:"+height);  
+        }
   
         @Override  
         public void onDrawFrame(GL10 gl) {  

@@ -19,6 +19,8 @@ extern int android_audio_init(int channels, int samplerate);
 #define GLRENDER_STATUS_RUNNING 1
 #define GLRENDER_STATUS_QUIT 2
 
+#define S_PIXELS_SIZE (sizeof(s_pixels[0]) * TEXTURE_WIDTH * TEXTURE_HEIGHT)
+#define RGB565(r, g, b)  (((r) << (5+6)) | ((g) << 6) | (b))
 /* disable these capabilities. */
 static GLuint s_disable_caps[] = {
 	GL_FOG,
@@ -83,6 +85,16 @@ int native_ui_init(JNIEnv * env, jobject this, jint w, jint h)
     return 0;
 }
 
+int getActivityWidth()
+{
+    return gl_ctx.width;
+}
+
+int getActivityHeight()
+{
+    return gl_ctx.height;
+}
+
 int update_frame(uint8_t *buf,int size)
 {
     if(size > gl_ctx.frame_size)
@@ -90,10 +102,24 @@ int update_frame(uint8_t *buf,int size)
 
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "update_frame, size:%d \n",gl_ctx.frame_size);
     dt_lock (&gl_ctx.mutex);
-    //memcpy(&gl_ctx.frame,buf,size);
-    memcpy(gl_ctx.frame,buf,gl_ctx.frame_size);
+    memcpy((uint8_t *)gl_ctx.frame,buf,gl_ctx.frame_size);
     gl_ctx.invalid_frame = 1;
     dt_unlock (&gl_ctx.mutex);
+}
+
+static update_pixel_test()
+{
+    uint16_t *pixels = gl_ctx.frame;
+    int x, y;
+    int s_x = 50;
+    int s_y = 100;
+	/* fill in a square of 5 x 5 at s_x, s_y */
+	for (y = s_y; y < s_y + 5; y++) {
+		for (x = s_x; x < s_x + 5; x++) {
+			int idx = x + y * gl_ctx.width;
+			pixels[idx++] = RGB565(31, 31, 0);
+		}
+	}
 }
 
 int native_disp_frame(JNIEnv * env, jobject this)
@@ -106,8 +132,9 @@ int native_disp_frame(JNIEnv * env, jobject this)
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "start disp frame\n");
     //display one frame
     dt_lock (&gl_ctx.mutex);
-    
-	glClear(GL_COLOR_BUFFER_BIT);
+	
+    glClear(GL_COLOR_BUFFER_BIT);
+    update_pixel_test();
 	glTexImage2D(GL_TEXTURE_2D,		/* target */
 			0,			/* level */
 			GL_RGB,			/* internal format */

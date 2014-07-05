@@ -1,4 +1,5 @@
-obj/local/armeabi/objs/dtp_jni/vo_android.o: jni/vo_android.c \
+/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/obj/local/armeabi/objs/dtp_jni/vo_android.o: \
+ /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/vo_android.c \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/jni.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/string.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/cdefs.h \
@@ -9,7 +10,8 @@ obj/local/armeabi/objs/dtp_jni/vo_android.o: jni/vo_android.c \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/stdint.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/_types.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/machine/_types.h \
- jni/include/dtvideo_android.h jni/include/dt_lock.h \
+ /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dtvideo_android.h \
+ /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_lock.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/pthread.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/time.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/time.h \
@@ -58,9 +60,9 @@ obj/local/armeabi/objs/dtp_jni/vo_android.o: jni/vo_android.c \
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/machine/_types.h:
 
-jni/include/dtvideo_android.h:
+/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dtvideo_android.h:
 
-jni/include/dt_lock.h:
+/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_lock.h:
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/pthread.h:
 

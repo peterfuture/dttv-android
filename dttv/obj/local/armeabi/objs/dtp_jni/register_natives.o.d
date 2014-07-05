@@ -1,4 +1,5 @@
-obj/local/armeabi/objs/dtp_jni/register_natives.o: jni/register_natives.c \
+/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/obj/local/armeabi/objs/dtp_jni/register_natives.o: \
+ /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/register_natives.c \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/stdlib.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/cdefs.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/cdefs_elf.h \
@@ -22,7 +23,7 @@ obj/local/armeabi/objs/dtp_jni/register_natives.o: jni/register_natives.c \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/memory.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/stdio.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/assert.h \
- jni/dtp_native.h \
+ /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/dtp_native.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/jni.h
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/stdlib.h:
@@ -71,6 +72,6 @@ obj/local/armeabi/objs/dtp_jni/register_natives.o: jni/register_natives.c \
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/assert.h:
 
-jni/dtp_native.h:
+/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/dtp_native.h:
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/jni.h:

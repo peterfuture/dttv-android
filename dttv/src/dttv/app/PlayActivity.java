@@ -9,6 +9,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.ViewGroup;
 
 
 public class PlayActivity extends Activity {
@@ -30,7 +31,7 @@ public class PlayActivity extends Activity {
 	
 
 	
-	private GLSurfaceView glSurefaceView;  
+	private GLSurfaceView glSurfaceView;  
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -42,12 +43,21 @@ public class PlayActivity extends Activity {
 		String file_name = intent.getStringExtra(MainActivity.FILE_MSG);
 		Log.d(TAG, "Start playing "+file_name);
 		
-		glSurefaceView = new GLSurfaceView(this);		
-        glSurefaceView.setRenderer(new GLSurfaceViewRender());  
-        glSurefaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        this.setContentView(glSurefaceView); 
+		glSurfaceView = new GLSurfaceView(this);		
+        glSurfaceView.setRenderer(new GLSurfaceViewRender());  
+        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        this.setContentView(glSurfaceView); 
         
-        native_ui_init(surface_width,surface_height);
+        //SurfaceHolder holder = glSurfaceView.getHolder();
+        //holder.setFixedSize(320,240);
+
+        ViewGroup.LayoutParams layoutParams=glSurfaceView.getLayoutParams();
+        layoutParams.width=surface_width;
+        layoutParams.height=surface_height;
+        glSurfaceView.setLayoutParams(layoutParams);
+
+        native_ui_init(surface_width,surface_height); 
+
         native_playerStart(file_name);
 	}
 	
@@ -63,9 +73,11 @@ public class PlayActivity extends Activity {
         @Override  
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {  
             Log.i(TAG, "onSurfaceCreated");  
-  
+             
             // 设置背景颜色 - load backgroud picture 
-            //gl.glClearColor(0.0f, 0f, 1f, 0.5f);
+            gl.glClearColor(0.0f, 0f, 1f, 0.5f);
+
+            //load picture
         }  
   
         @Override  

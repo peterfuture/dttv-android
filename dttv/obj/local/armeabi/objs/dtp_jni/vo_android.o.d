@@ -1,5 +1,4 @@
-/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/obj/local/armeabi/objs/dtp_jni/vo_android.o: \
- /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/vo_android.c \
+obj/local/armeabi/objs/dtp_jni/vo_android.o: jni/vo_android.c \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/jni.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/string.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/cdefs.h \
@@ -7,15 +6,11 @@
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/android/api-level.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/malloc.h \
  /home/sunjiwei/Amlogic/server/droid_03/m8_mbx_reference_karkit/system/core/include/android/log.h \
+ /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/stdio.h \
+ /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/types.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/stdint.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/_types.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/machine/_types.h \
- /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dtvideo_android.h \
- /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_lock.h \
- /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/pthread.h \
- /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/time.h \
- /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/time.h \
- /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/types.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/linux/posix_types.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/linux/stddef.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/linux/compiler.h \
@@ -24,6 +19,10 @@
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/linux/types.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/machine/kernel.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/sysmacros.h \
+ jni/include/dtvideo_android.h jni/include/dt_lock.h \
+ /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/pthread.h \
+ /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/time.h \
+ /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/time.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/linux/time.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/asm/siginfo.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/asm-generic/siginfo.h \
@@ -54,23 +53,15 @@
 
 /home/sunjiwei/Amlogic/server/droid_03/m8_mbx_reference_karkit/system/core/include/android/log.h:
 
+/home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/stdio.h:
+
+/home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/types.h:
+
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/stdint.h:
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/_types.h:
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/machine/_types.h:
-
-/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dtvideo_android.h:
-
-/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_lock.h:
-
-/home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/pthread.h:
-
-/home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/time.h:
-
-/home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/time.h:
-
-/home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/types.h:
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/linux/posix_types.h:
 
@@ -87,6 +78,16 @@
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/machine/kernel.h:
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/sysmacros.h:
+
+jni/include/dtvideo_android.h:
+
+jni/include/dt_lock.h:
+
+/home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/pthread.h:
+
+/home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/time.h:
+
+/home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/time.h:
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/linux/time.h:
 

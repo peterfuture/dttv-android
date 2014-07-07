@@ -3,6 +3,7 @@
 #include <jni.h>
 #include <string.h>
 #include <android/log.h>
+#include <stdio.h>
 #include <stdint.h>
 
 #include "dtvideo_android.h"
@@ -21,6 +22,30 @@ typedef struct{
 static vo_android_ctx_t vo_android_ctx;
 
 int update_frame(uint8_t *buf,int size);
+
+static void SaveFrame (AVPicture_t * pFrame, int width, int height, int iFrame)
+{
+    FILE *pFile;
+    char szFilename[32];
+    int y;
+
+    // Open file
+    sprintf (szFilename, "/data/frame%d.ppm", iFrame);
+    pFile = fopen (szFilename, "wb");
+    if (pFile == NULL)
+        return;
+
+    // Write header
+    fprintf (pFile, "P6\n%d %d\n255\n", width, height);
+
+    
+    // Write pixel data
+    for (y = 0; y < height; y++)
+        fwrite (pFrame->data[0] + y * pFrame->linesize[0], 1, width * 3, pFile);
+    
+    // Close file
+    fclose (pFile);
+}
 
 static int vo_android_init ()
 {

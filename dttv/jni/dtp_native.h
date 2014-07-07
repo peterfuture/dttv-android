@@ -4,6 +4,7 @@
 #include <jni.h>
 #include <string.h>
 
+void native_gl_resize(JNIEnv *env, jclass clazz, jint w, jint h);
 int native_ui_init(JNIEnv * env, jobject this, jint w, jint h);
 int native_disp_frame(JNIEnv * env, jobject this);
 int native_ui_stop(JNIEnv * env, jobject this);

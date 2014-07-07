@@ -19,6 +19,9 @@ extern int android_audio_init(int channels, int samplerate);
 #define GLRENDER_STATUS_RUNNING 1
 #define GLRENDER_STATUS_QUIT 2
 
+#define TEXTURE_WIDTH 320
+#define TEXTURE_HEIGHT 240
+
 #define S_PIXELS_SIZE (sizeof(s_pixels[0]) * TEXTURE_WIDTH * TEXTURE_HEIGHT)
 #define RGB565(r, g, b)  (((r) << (5+6)) | ((g) << 6) | (b))
 /* disable these capabilities. */
@@ -63,24 +66,6 @@ int native_ui_init(JNIEnv * env, jobject this, jint w, jint h)
     dt_lock_init (&gl_ctx.mutex, NULL);
     gl_ctx.status = GLRENDER_STATUS_RUNNING;
 
-	glDeleteTextures(1, &gl_ctx.s_texture);
-	GLuint *start = s_disable_caps;
-	while (*start)
-		glDisable(*start++);
-	glEnable(GL_TEXTURE_2D);
-	glGenTextures(1, &gl_ctx.s_texture);
-	glBindTexture(GL_TEXTURE_2D, gl_ctx.s_texture);
-	glTexParameterf(GL_TEXTURE_2D,
-			GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D,
-			GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glShadeModel(GL_FLAT);
-
-	glColor4x(0x10000, 0x10000, 0x10000, 0x10000);
-
-	int rect[4] = {0, h, w, -h};
-	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_CROP_RECT_OES, rect);
-
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Native UI Init OK, size:%d \n",gl_ctx.frame_size);
     return 0;
 }
@@ -95,6 +80,13 @@ int getActivityHeight()
     return gl_ctx.height;
 }
 
+static void check_gl_error(const char* op)
+{
+	GLint error;
+	for (error = glGetError(); error; error = glGetError())
+		__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG,"after %s() glError (0x%x)\n", op, error);
+}
+
 int update_frame(uint8_t *buf,int size)
 {
     if(size > gl_ctx.frame_size)
@@ -107,12 +99,37 @@ int update_frame(uint8_t *buf,int size)
     dt_unlock (&gl_ctx.mutex);
 }
 
+
+void native_gl_resize(JNIEnv *env, jclass clazz, jint w, jint h)
+{
+	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG,"native_gl_resize %d %d", w, h);
+	glDeleteTextures(1, &gl_ctx.s_texture);
+	GLuint *start = s_disable_caps;
+	while (*start)
+		glDisable(*start++);
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &gl_ctx.s_texture);
+	glBindTexture(GL_TEXTURE_2D, gl_ctx.s_texture);
+	glTexParameterf(GL_TEXTURE_2D,
+			GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D,
+			GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glShadeModel(GL_FLAT);
+	check_gl_error("glShadeModel");
+	glColor4x(0x10000, 0x10000, 0x10000, 0x10000);
+	check_gl_error("glColor4x");
+	int rect[4] = {0, TEXTURE_HEIGHT, TEXTURE_WIDTH, -TEXTURE_HEIGHT};
+	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_CROP_RECT_OES, rect);
+	check_gl_error("glTexParameteriv");
+}
+
 static update_pixel_test()
 {
     uint16_t *pixels = gl_ctx.frame;
     int x, y;
     int s_x = 50;
     int s_y = 100;
+    memset(pixels, 0, 320*240*2);
 	/* fill in a square of 5 x 5 at s_x, s_y */
 	for (y = s_y; y < s_y + 5; y++) {
 		for (x = s_x; x < s_x + 5; x++) {
@@ -134,7 +151,7 @@ int native_disp_frame(JNIEnv * env, jobject this)
     dt_lock (&gl_ctx.mutex);
 	
     glClear(GL_COLOR_BUFFER_BIT);
-    update_pixel_test();
+    //update_pixel_test();
 	glTexImage2D(GL_TEXTURE_2D,		/* target */
 			0,			/* level */
 			GL_RGB,			/* internal format */

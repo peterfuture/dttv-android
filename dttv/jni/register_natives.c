@@ -10,6 +10,7 @@
 static const char *s_class_path_name = "dttv/app/PlayActivity";
 
 static JNINativeMethod s_methods[] = {
+	{"native_gl_resize", "(II)V", (void*) native_gl_resize},
 	{"native_ui_init", "(II)I", (void*) native_ui_init},
 	{"native_disp_frame", "()I", (void*) native_disp_frame},
 	{"native_ui_stop", "()I", (void*) native_ui_stop},

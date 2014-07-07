@@ -1,5 +1,4 @@
-/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/obj/local/armeabi/objs/dtp_jni/dtp_native.o: \
- /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/dtp_native.c \
+obj/local/armeabi/objs/dtp_jni/dtp_native.o: jni/dtp_native.c \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/jni.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/string.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/cdefs.h \
@@ -27,12 +26,9 @@
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/GLES/glplatform.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/KHR/khrplatform.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/GLES/glext.h \
- /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dtplayer_api.h \
- /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_media_info.h \
- /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_type.h \
- /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_macro.h \
- /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/render_android.h \
- /home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_lock.h \
+ jni/include/dtplayer_api.h jni/include/dt_media_info.h \
+ jni/include/dt_type.h jni/include/dt_macro.h jni/render_android.h \
+ jni/include/dt_lock.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/pthread.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/time.h \
  /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/sys/time.h \
@@ -106,17 +102,17 @@
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/GLES/glext.h:
 
-/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dtplayer_api.h:
+jni/include/dtplayer_api.h:
 
-/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_media_info.h:
+jni/include/dt_media_info.h:
 
-/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_type.h:
+jni/include/dt_type.h:
 
-/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_macro.h:
+jni/include/dt_macro.h:
 
-/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/render_android.h:
+jni/render_android.h:
 
-/home/sunjiwei/dtsoft/workspace/github/dttv-android/dttv/jni/include/dt_lock.h:
+jni/include/dt_lock.h:
 
 /home/sunjiwei/Amlogic/env_install/android-ndk-r9/platforms/android-18/arch-arm/usr/include/pthread.h:
 

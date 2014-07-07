@@ -19,6 +19,7 @@ public class PlayActivity extends Activity {
     private int surface_height = 240;
         
 	//Native API declare
+    private static native void native_gl_resize(int w, int h);
 	private native int native_ui_init(int w, int h);
 	private native int native_disp_frame();
 	private native int native_ui_stop();
@@ -47,14 +48,6 @@ public class PlayActivity extends Activity {
         glSurfaceView.setRenderer(new GLSurfaceViewRender());  
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         this.setContentView(glSurfaceView); 
-        
-        //SurfaceHolder holder = glSurfaceView.getHolder();
-        //holder.setFixedSize(320,240);
-
-        ViewGroup.LayoutParams layoutParams=glSurfaceView.getLayoutParams();
-        layoutParams.width=surface_width;
-        layoutParams.height=surface_height;
-        glSurfaceView.setLayoutParams(layoutParams);
 
         native_ui_init(surface_width,surface_height); 
 
@@ -75,18 +68,13 @@ public class PlayActivity extends Activity {
             Log.i(TAG, "onSurfaceCreated");  
              
             // 设置背景颜色 - load backgroud picture 
-            gl.glClearColor(0.0f, 0f, 1f, 0.5f);
-
-            //load picture
+            //gl.glClearColor(0.0f, 0f, 1f, 0.5f);
         }  
   
         @Override  
         public void onSurfaceChanged(GL10 gl, int width, int height) {  
             // 设置输出屏幕大小 
-            surface_width = width;
-            surface_height = height; 
-            gl.glViewport(0, 0, width, height);  
-            Log.i(TAG, "onSurfaceChanged width:"+width +" height:"+height);  
+        	native_gl_resize(width, height);
         }
   
         @Override  

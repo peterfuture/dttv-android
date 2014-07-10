@@ -66,7 +66,28 @@ public class PlayActivity extends Activity {
 		getMenuInflater().inflate(R.menu.play, menu);
 		return true;
 	}
-	
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        Log.d(TAG,"--PAUSE--");    
+    }
+    
+    @Override
+    public void onDestroy()
+    {
+        super.onDestroy();
+        Log.d(TAG,"--DESTROY--");
+
+        if(playerStatus != PLAYER_STATUS_IDLE)
+        {
+            native_playerStop();
+            playerStatus = PLAYER_STATUS_IDLE;
+        }
+    }
+
+
 	class GLSurfaceViewRender implements GLSurfaceView.Renderer {  
 		  
         @Override  
@@ -89,6 +110,7 @@ public class PlayActivity extends Activity {
                 Log.i(TAG, "surface changed, start play:"+strFileName);  
                 native_ui_init(surface_width,surface_height); 
                 native_playerStart(strFileName);
+                playerStatus = PLAYER_STATUS_RUNNING;
             }
             
             //other case

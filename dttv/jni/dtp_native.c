@@ -118,7 +118,8 @@ void native_gl_resize(JNIEnv *env, jclass clazz, jint w, jint h)
 	check_gl_error("glShadeModel");
 	glColor4x(0x10000, 0x10000, 0x10000, 0x10000);
 	check_gl_error("glColor4x");
-	int rect[4] = {0, TEXTURE_HEIGHT, TEXTURE_WIDTH, -TEXTURE_HEIGHT};
+	//int rect[4] = {0, TEXTURE_HEIGHT, TEXTURE_WIDTH, -TEXTURE_HEIGHT};
+	int rect[4] = {0, h, w, -h};
 	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_CROP_RECT_OES, rect);
 	check_gl_error("glTexParameteriv");
 }

@@ -17,6 +17,14 @@ public class PlayActivity extends Activity {
 	private final String TAG = "DT-PLAYING";
     private int surface_width = 320;
     private int surface_height = 240;
+    
+    private final int PLAYER_STATUS_IDLE=0;
+    private final int PLAYER_STATUS_RUNNING=1;
+    private final int PLAYER_STATUS_PAUSED=2;
+    private final int PLAYER_STATUS_QUIT=3;
+    
+    private String strFileName;
+    private int playerStatus=PLAYER_STATUS_IDLE;
         
 	//Native API declare
     private static native void native_gl_resize(int w, int h);
@@ -41,17 +49,15 @@ public class PlayActivity extends Activity {
 		
 		//start playing video
 		Intent intent = getIntent();
-		String file_name = intent.getStringExtra(MainActivity.FILE_MSG);
-		Log.d(TAG, "Start playing "+file_name);
+		strFileName = intent.getStringExtra(MainActivity.FILE_MSG);
+		Log.d(TAG, "Start playing "+strFileName);
+		
 		
 		glSurfaceView = new GLSurfaceView(this);		
         glSurfaceView.setRenderer(new GLSurfaceViewRender());  
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        this.setContentView(glSurfaceView); 
+        this.setContentView(glSurfaceView);
 
-        native_ui_init(surface_width,surface_height); 
-
-        native_playerStart(file_name);
 	}
 	
 	@Override
@@ -75,6 +81,17 @@ public class PlayActivity extends Activity {
         public void onSurfaceChanged(GL10 gl, int width, int height) {  
             // 设置输出屏幕大小 
         	native_gl_resize(width, height);
+        	surface_width = width;
+        	surface_height = height;
+
+            if(playerStatus == PLAYER_STATUS_IDLE)
+            {
+                Log.i(TAG, "surface changed, start play:"+strFileName);  
+                native_ui_init(surface_width,surface_height); 
+                native_playerStart(strFileName);
+            }
+            
+            //other case
         }
   
         @Override  

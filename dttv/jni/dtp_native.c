@@ -197,7 +197,7 @@ int native_playerStart(JNIEnv * env, jobject this, jstring url)
 
 	para.file_name = file_name;
 	//para.update_cb = (void *) update_cb;
-	para.no_audio=1;
+	//para.no_audio=1;
 	//para.no_video=1;
 	para.width = gl_ctx.width;
 	para.height = gl_ctx.height;

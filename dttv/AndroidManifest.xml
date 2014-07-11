@@ -41,7 +41,8 @@
         </activity>
         <activity
             android:name="dttv.app.PlayActivity"
-            android:label="@string/title_activity_play" >
+            android:label="@string/title_activity_play"
+	    android:launchMode="singleTask" >
         </activity>
     </application>
 

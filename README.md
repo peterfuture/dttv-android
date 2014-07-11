@@ -28,6 +28,7 @@ export PATH=$PATH:$ANDROID_NDK
 $ANDROID_NDK/build/tools/make-standalone-toolchain.sh --platform=android-14 --install-dir=$ANDROID_TOOL_CHAIN
 
 2 Setup AOSP
+
 export AOSP_TREE = /PATH/TO/AOSP
 export AOSP_OUT = $(AOSP_TREE)/out/target/product/platform/
 

@@ -1,4 +1,11 @@
-set environment first
-AOSP_TREE
-AOSP_OUT
-AOSP_INCLUDE
+1 prebuild lib
+
+libs/libdtp.a --> refer to https://github.com/peterfuture/dtplayer_c
+libs/libamffmpeg.a --> refer to https://github.com/peterfuture/FFmpeg-Android
+
+2 env setup
+
+export AOSP_TREE = /PATH/TO/AOSP
+export AOSP_OUT = $(AOSP_TREE)/out/target/product/***/
+
+3 ndk-build

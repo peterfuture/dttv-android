@@ -3,6 +3,7 @@
 #include <android/log.h>
 
 #include <media/AudioTrack.h>
+//#include "/home/shihx1/androidSystem/frameworks/av/include/media/AudioTrack.h"
 
 extern "C"{
 

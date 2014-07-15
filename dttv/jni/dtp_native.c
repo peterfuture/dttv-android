@@ -52,6 +52,8 @@ typedef struct{
 }gl_ctx_t;
 
 static gl_ctx_t gl_ctx;
+static player_state_t player_state;
+dt_media_info_t player_info;
 
 int native_ui_init(JNIEnv * env, jobject this, jint w, jint h)
 {
@@ -177,6 +179,34 @@ int native_ui_stop(JNIEnv * env, jobject this)
     return 0;
 }
 
+int native_getCurrentPostion(JNIEnv * env, jobject this)
+{
+	return player_state.cur_time;
+}
+
+int native_getDuration(JNIEnv * env, jobject this)
+{
+	return player_state.full_time;
+}
+
+int native_getPlayerStatus(JNIEnv * env, jobject this)
+{
+	return player_state.cur_status;
+}
+
+static int update_cb (player_state_t * state)
+{
+	memcpy(&player_state,state,sizeof(player_state_t));
+    if (state->cur_status == PLAYER_STATUS_EXIT)
+    {
+    	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "RECEIVE EXIT CMD\n");
+    }
+
+    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "UPDATECB CURSTATUS:%x \n", state->cur_status);
+    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "CUR TIME %lld S  FULL TIME:%lld  \n",state->cur_time,state->full_time);
+    return 0;
+}
+
 int native_playerStart(JNIEnv * env, jobject this, jstring url)
 {
     jboolean isCopy;
@@ -196,7 +226,7 @@ int native_playerStart(JNIEnv * env, jobject this, jstring url)
 	para.sync_enable = -1;
 
 	para.file_name = file_name;
-	//para.update_cb = (void *) update_cb;
+	para.update_cb = (void *) update_cb;
 	//para.no_audio=1;
 	//para.no_video=1;
 	para.width = gl_ctx.width;
@@ -214,6 +244,7 @@ int native_playerStart(JNIEnv * env, jobject this, jstring url)
 	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Get mediainfo failed, quit \n");
 		return -1;
 	}
+	memcpy(&player_info,&info,sizeof(dt_media_info_t));
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Get Media Info Ok,filesize:%lld fulltime:%lld S \n",info.file_size,info.duration);
 
 	dtplayer_start (handle);

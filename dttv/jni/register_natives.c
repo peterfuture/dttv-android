@@ -20,6 +20,10 @@ static JNINativeMethod s_methods[] = {
 	{"native_playerResume", "()I", (void*) native_playerResume},
 	{"native_playerSeekTo", "(I)I", (void*) native_playerSeekTo},
 	{"native_playerStop", "()I", (void*) native_playerStop},
+
+	{"native_getCurrentPostion", "()I", (void*) native_getCurrentPostion},
+	{"native_getDuration", "()I", (void*) native_getDuration},
+	{"native_getPlayerStatus", "()I", (void*) native_getPlayerStatus},
 };
 
 

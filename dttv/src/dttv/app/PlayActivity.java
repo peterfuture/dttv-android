@@ -38,7 +38,9 @@ public class PlayActivity extends Activity {
 	private native int native_playerStop();
 	private native int native_playerSeekTo(int pos);
 	
-
+	private native int native_getCurrentPostion();
+	private native int native_getDuration();
+	private native int native_getPlayerStatus();
 	
 	private GLSurfaceView glSurfaceView;  
 
@@ -124,7 +126,7 @@ public class PlayActivity extends Activity {
             
             //gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
             native_disp_frame();
-  
+            //Log.i(TAG, "cur time:"+native_getCurrentPostion() +"full_time:"+native_getDuration());  
         }  
   
     }  

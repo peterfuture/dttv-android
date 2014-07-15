@@ -3,20 +3,16 @@ package dttv.app;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import dttv.app.widget.GlVideoView;
 import android.app.Activity;
 import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.SeekBar;
-import android.widget.TextView;
+import android.view.ViewGroup;
 
 
-public class PlayActivity extends Activity implements OnClickListener{
+public class PlayActivity extends Activity {
 	
 	private final String TAG = "DT-PLAYING";
     private int surface_width = 320;
@@ -44,9 +40,7 @@ public class PlayActivity extends Activity implements OnClickListener{
 	
 
 	
-	private GlVideoView glSurfaceView;
-	private SeekBar playerBar;
-	private TextView currentPositionTxt,totalTimeTxt;
+	private GLSurfaceView glSurfaceView;  
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -58,20 +52,12 @@ public class PlayActivity extends Activity implements OnClickListener{
 		strFileName = intent.getStringExtra(MainActivity.FILE_MSG);
 		Log.d(TAG, "Start playing "+strFileName);
 		
-		initWidget();
-		//glSurfaceView = new GLSurfaceView(this);
 		
-		glSurfaceView = (GlVideoView)findViewById(R.id.glvideo_view);
+		glSurfaceView = new GLSurfaceView(this);		
         glSurfaceView.setRenderer(new GLSurfaceViewRender());  
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         this.setContentView(glSurfaceView);
 
-	}
-	
-	private void initWidget(){
-		playerBar = (SeekBar)findViewById(R.id.dt_play_progress_seekbar);
-		currentPositionTxt = (TextView)findViewById(R.id.dt_play_current_time);
-		totalTimeTxt = (TextView)findViewById(R.id.dt_play_total_time);
 	}
 	
 	@Override
@@ -145,22 +131,6 @@ public class PlayActivity extends Activity implements OnClickListener{
 	
 	static {
 		System.loadLibrary("dtp_jni");
-	}
-
-	@Override
-	public void onClick(View v) {
-		// TODO Auto-generated method stub
-		switch(v.getId()){
-		case R.id.dt_play_pause_btn:
-			
-			break;
-		case R.id.dt_play_next_btn:
-			
-			break;
-		case R.id.dt_play_prev_btn:
-			
-			break;
-		}
 	}
 
 }

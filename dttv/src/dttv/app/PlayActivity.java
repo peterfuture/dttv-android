@@ -1,18 +1,33 @@
 package dttv.app;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import dttv.app.utils.TimesUtil;
+import dttv.app.widget.GlVideoView;
 import android.app.Activity;
 import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
-import android.view.ViewGroup;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
+import android.widget.ImageButton;
+import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.TextView;
 
 
-public class PlayActivity extends Activity {
+public class PlayActivity extends Activity implements OnClickListener, OnTouchListener{
 	
 	private final String TAG = "DT-PLAYING";
     private int surface_width = 320;
@@ -22,6 +37,13 @@ public class PlayActivity extends Activity {
     private final int PLAYER_STATUS_RUNNING=1;
     private final int PLAYER_STATUS_PAUSED=2;
     private final int PLAYER_STATUS_QUIT=3;
+    
+    private final int REFRESH_TIME_MSG = 0x1000;
+    private final int BEGIN_MEDIA_MSG = REFRESH_TIME_MSG + 1;
+    private final int HIDE_OPREATE_BAR_MSG = BEGIN_MEDIA_MSG + 1;
+    private final int REFRESH_TIME = 1000;
+    
+    private boolean isEnableTime = false;
     
     private String strFileName;
     private int playerStatus=PLAYER_STATUS_IDLE;
@@ -42,7 +64,11 @@ public class PlayActivity extends Activity {
 	private native int native_getDuration();
 	private native int native_getPlayerStatus();
 	
-	private GLSurfaceView glSurfaceView;  
+	private GlVideoView glSurfaceView;
+	private SeekBar playerBar;
+	private TextView currentTimeTxt,totalTimeTxt;
+	private ImageButton pauseBtn,nextBtn,preBtn;
+	private RelativeLayout opreateLay;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -54,12 +80,58 @@ public class PlayActivity extends Activity {
 		strFileName = intent.getStringExtra(MainActivity.FILE_MSG);
 		Log.d(TAG, "Start playing "+strFileName);
 		
+		initWidget();
 		
-		glSurfaceView = new GLSurfaceView(this);		
-        glSurfaceView.setRenderer(new GLSurfaceViewRender());  
+		//glSurfaceView = new GLSurfaceView(this);
+        //glSurfaceView.setRenderer(new GLSurfaceViewRender());  
+        //glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        //this.setContentView(glSurfaceView);
+        initListener();
+	}
+	
+	private void initWidget(){
+		playerBar = (SeekBar)findViewById(R.id.dt_play_progress_seekbar);
+		glSurfaceView = (GlVideoView)findViewById(R.id.glvideo_view);
+		glSurfaceView.setRenderer(new GLSurfaceViewRender());  
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        this.setContentView(glSurfaceView);
+        glSurfaceView.setOnTouchListener(this);
+		currentTimeTxt = (TextView)findViewById(R.id.dt_play_current_time);
+		totalTimeTxt = (TextView)findViewById(R.id.dt_play_total_time);
+		pauseBtn = (ImageButton)findViewById(R.id.dt_play_pause_btn);
+		nextBtn = (ImageButton)findViewById(R.id.dt_play_next_btn);
+		preBtn = (ImageButton)findViewById(R.id.dt_play_prev_btn);
+		opreateLay = (RelativeLayout)findViewById(R.id.dt_play_bar_lay);
+	}
+	
+	private void initListener(){
+		pauseBtn.setOnClickListener(this);
+		nextBtn.setOnClickListener(this);
+		preBtn.setOnClickListener(this);
+		playerBar.setOnSeekBarChangeListener(new SeekChangeListener());
+	}
+	
+	
+	private class SeekChangeListener implements OnSeekBarChangeListener{
 
+		@Override
+		public void onProgressChanged(SeekBar bar, int arg1, boolean arg2) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onStartTrackingTouch(SeekBar bar) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onStopTrackingTouch(SeekBar bar) {
+			// TODO Auto-generated method stub
+			int currentPosition = bar.getProgress();
+			Log.i(TAG, "----currentPosition is:"+currentPosition);
+			native_playerSeekTo(currentPosition);
+		}
 	}
 	
 	@Override
@@ -68,10 +140,57 @@ public class PlayActivity extends Activity {
 		getMenuInflater().inflate(R.menu.play, menu);
 		return true;
 	}
+	
+	Handler doActionHandler = new Handler(Looper.getMainLooper()){
+		public void handleMessage(android.os.Message msg) {
+			int msgId = msg.what;
+			switch(msgId){
+			case REFRESH_TIME_MSG:
+				int duration = native_getDuration();
+	            if(duration>0){
+	            	totalTimeTxt.setText(TimesUtil.getTime(duration));
+	            	playerBar.setMax(duration);
+	            }
+				int currentTime = native_getCurrentPostion();
+				Log.i(TAG, "currentTime is:"+currentTime+" duration is:"+duration);
+				currentTimeTxt.setText(TimesUtil.getTime(currentTime));
+				playerBar.setProgress(currentTime);
+				break;
+			case BEGIN_MEDIA_MSG:
+				
+	            //startTimerTask();
+				break;
+			case HIDE_OPREATE_BAR_MSG:
+				opreateLay.setVisibility(View.GONE);
+				break;
+			}
+		};
+	};
+	
+	private Timer mTimer;
+	private void startTimerTask(){
+		mTimer = new Timer();
+		mTimer.schedule(new TimerTask() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				doActionHandler.sendEmptyMessage(REFRESH_TIME_MSG);
+			}
+		}, REFRESH_TIME, REFRESH_TIME);
+	}
+	
+	private void releaseTimerAndHandler(){
+		isEnableTime = false;
+		if(mTimer!=null)
+			mTimer.cancel();
+		doActionHandler.removeCallbacksAndMessages(null);
+	}
 
     @Override
     public void onPause()
     {
+    	releaseTimerAndHandler();
         super.onPause();
         Log.d(TAG,"--PAUSE--");    
     }
@@ -87,6 +206,7 @@ public class PlayActivity extends Activity {
             native_playerStop();
             playerStatus = PLAYER_STATUS_IDLE;
         }
+        releaseTimerAndHandler();
     }
 
 
@@ -114,7 +234,9 @@ public class PlayActivity extends Activity {
                 native_playerStart(strFileName);
                 playerStatus = PLAYER_STATUS_RUNNING;
             }
-            
+            startTimerTask();
+            Log.i(TAG, "enter onSurfaceChanged");
+            Log.i(TAG, "cur time:"+native_getCurrentPostion() +"full_time:"+native_getDuration());
             //other case
         }
   
@@ -123,7 +245,7 @@ public class PlayActivity extends Activity {
             //Log.i(TAG, "onDrawFrame");  
             // 清除屏幕和深度缓存(如果不调用该代码, 将不显示glClearColor设置的颜色)  
             // 同样如果将该代码放到 onSurfaceCreated 中屏幕会一直闪动  
-            
+        	isEnableTime = true;
             //gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
             native_disp_frame();
             //Log.i(TAG, "cur time:"+native_getCurrentPostion() +"full_time:"+native_getDuration());  
@@ -135,41 +257,42 @@ public class PlayActivity extends Activity {
 		System.loadLibrary("dtp_jni");
 	}
 
-}
-
-/*
-class GlBufferView extends GLSurfaceView {
-
-	public GlBufferView(Context context, AttributeSet attrs) {
-		super(context, attrs);
-
-		setRenderer(new MyRenderer());
-		requestFocus();
-		setFocusableInTouchMode(true);
-		setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);   // render on demand
-		//setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);//continue render  
-	}
-
-	class MyRenderer implements GLSurfaceView.Renderer {
-		@Override
-		public void onSurfaceCreated(GL10 gl, EGLConfig c) { 
-		// do nothing 
-		}
-
-		@Override
-		public void onSurfaceChanged(GL10 gl, int w, int h) {
-			//native_gl_resize(w, h);
-			//do nothing too
-		}
-
-		@Override
-		public void onDrawFrame(GL10 gl) {
-			//native_gl_render();
-			//draw frame
+	@Override
+	public void onClick(View v) {
+		// TODO Auto-generated method stub
+		switch(v.getId()){
+		case R.id.dt_play_pause_btn:
+			handlePausePlay();
+			break;
+		case R.id.dt_play_prev_btn:
+			break;
+		case R.id.dt_play_next_btn:
+			break;
 		}
 	}
-
-
 	
+	private void handlePausePlay(){
+		switch(playerStatus){
+		case PLAYER_STATUS_RUNNING:
+			native_playerPause();
+			pauseBtn.setBackgroundResource(R.drawable.btn_mu_play);
+			playerStatus = PLAYER_STATUS_PAUSED;
+			break;
+		case PLAYER_STATUS_PAUSED:
+			native_playerResume();
+			pauseBtn.setBackgroundResource(R.drawable.btn_mu_pause);
+			playerStatus = PLAYER_STATUS_RUNNING;
+			break;
+		}
+	}
+	@Override
+	public boolean onTouch(View v, MotionEvent motionEvent) {
+		// TODO Auto-generated method stub
+		Log.i(TAG, "enter onTouch");
+		opreateLay.setVisibility(View.VISIBLE);
+		doActionHandler.removeMessages(HIDE_OPREATE_BAR_MSG);
+		doActionHandler.sendEmptyMessageDelayed(HIDE_OPREATE_BAR_MSG, 5*REFRESH_TIME);
+		return false;
+	}
+
 }
-*/

@@ -3,37 +3,54 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
-    <dttv.app.widget.GlVideoView
-        android:id="@+id/glvideo_view"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent" >
+	    <dttv.app.widget.GlVideoView
+	        android:id="@+id/glvideo_view"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"/>
+    </LinearLayout>
     <!-- player opration bar -->
     <RelativeLayout
         android:id="@+id/dt_play_bar_lay"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentBottom="true" >
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:visibility="gone"
+        android:background="@color/opreate_bar_bg_color"
+         >
         <!-- time and progressbar -->
-        <LinearLayout
+        <RelativeLayout
             android:id="@+id/dt_play_pro_lay"
-            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical" >
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_horizontal"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp" >
             <TextView
                 android:id="@+id/dt_play_current_time"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:textColor="@color/txt_color"
+                android:text="@string/time_default_show"
+                android:layout_centerVertical="true" />
             <SeekBar
                 android:id="@+id/dt_play_progress_seekbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:progressDrawable="@drawable/seekbar_progress_style" />
+                android:layout_toRightOf="@+id/dt_play_current_time"
+                android:layout_toLeftOf="@+id/dt_play_total_time" />
             <TextView
                 android:id="@+id/dt_play_total_time"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:textColor="@color/txt_color"
+                android:layout_centerVertical="true"
+                android:text="@string/time_default_show" />
+        </RelativeLayout>
         <RelativeLayout
             android:id="@+id/dt_play_operate_lay"
             android:layout_width="match_parent"
@@ -54,11 +71,13 @@
                     android:id="@+id/dt_play_pause_btn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="100dp"
                     android:background="@drawable/btn_mu_pause" />
                 <ImageButton
                     android:id="@+id/dt_play_next_btn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="100dp"
                     android:background="@drawable/btn_mu_next" />
             </LinearLayout>
         </RelativeLayout>

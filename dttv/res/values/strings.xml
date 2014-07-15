@@ -13,5 +13,5 @@
     <string name="player_stop">stop</string>
     <string name="title_activity_play">PlayActivity</string>
     <string name="hello_world">Hello world!</string>
-
+	<string name="time_default_show">00:00:00</string>
 </resources>

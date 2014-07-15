@@ -267,6 +267,7 @@ int native_playerResume(JNIEnv * env, jobject this)
 int native_playerSeekTo(JNIEnv * env, jobject this, jint pos)
 {
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Receive seek cmd, seek to %d ",pos);
+    dtplayer_seekto(handle,pos);
     return 0;
 }
 

@@ -1,10 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     >
-    <!--  <dttv.app.GlBufferView
-        android:id="@+id/glbuffer_view"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"/>-->
-</FrameLayout>
+    <dttv.app.widget.GlVideoView
+        android:id="@+id/glvideo_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <!-- player opration bar -->
+    <RelativeLayout
+        android:id="@+id/dt_play_bar_lay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true" >
+        <!-- time and progressbar -->
+        <LinearLayout
+            android:id="@+id/dt_play_pro_lay"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical" >
+            <TextView
+                android:id="@+id/dt_play_current_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <SeekBar
+                android:id="@+id/dt_play_progress_seekbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progressDrawable="@drawable/seekbar_progress_style" />
+            <TextView
+                android:id="@+id/dt_play_total_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+        <RelativeLayout
+            android:id="@+id/dt_play_operate_lay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/dt_play_pro_lay"
+            android:gravity="center_horizontal" >
+            <LinearLayout
+                android:id="@+id/dt_play_operate_btns_lay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" >
+                <ImageButton
+                    android:id="@+id/dt_play_prev_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/btn_mu_pre" />
+                <ImageButton
+                    android:id="@+id/dt_play_pause_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/btn_mu_pause" />
+                <ImageButton
+                    android:id="@+id/dt_play_next_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/btn_mu_next" />
+            </LinearLayout>
+        </RelativeLayout>
+    </RelativeLayout>
+</RelativeLayout>

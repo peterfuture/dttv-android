@@ -64,6 +64,6 @@ Test
 
 Email: peter_future@outlook.com  shihuaxian001@126.com
 
-QQ: peter_future@outlook.com
+QQ Group: 229224768
 
 blog: http://blog.csdn.net/dtplayer

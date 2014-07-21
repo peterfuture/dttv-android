@@ -9,7 +9,7 @@
 #include <binder/ProcessState.h>
 #include <media/stagefright/MetaData.h>
 #include <media/stagefright/MediaBufferGroup.h>
-#include <media/stagefright/MediaDebug.h>
+//#include <media/stagefright/MediaDebug.h>
 #include <media/stagefright/MediaDefs.h>
 #include <media/stagefright/OMXClient.h>
 #include <media/stagefright/OMXCodec.h>
@@ -18,12 +18,19 @@
 #include <map>
 
 extern "C" {
-#include "avcodec.h"
+#include "libavcodec/avcodec.h"
 #include "libavutil/imgutils.h"
-#include "internal.h"
+#include "libavcodec/internal.h"
+
+#include "vd_wrapper.h"
 }
 
 #define OMX_QCOM_COLOR_FormatYVU420SemiPlanar 0x7FA30C00
+#define FF_INPUT_BUFFER_PADDING_SIZE 32
+#define TAG "VD-STAGEFRIGHT"
+
+#define av_freep free
+#define av_mallocz malloc
 
 using namespace android;
 
@@ -33,7 +40,6 @@ struct Frame {
     int64_t time;
     int key;
     uint8_t *buffer;
-    //dt_av_frame_t *vframe;
     AVFrame *vframe;
 };
 
@@ -137,8 +143,8 @@ private:
 
 void* decode_thread(void *arg)
 {
-    AVCodecContext *avctx = (AVCodecContext*)arg;
-    StagefrightContext *s = (StagefrightContext*)avctx->priv_data;
+    vd_wrapper_t *wrapper = (vd_wrapper_t*)arg;
+    StagefrightContext *s = (StagefrightContext*)wrapper->vd_priv;
     const AVPixFmtDescriptor *pix_desc = av_pix_fmt_desc_get(avctx->pix_fmt);
     Frame* frame;
     MediaBuffer *buffer;
@@ -238,48 +244,50 @@ push_frame:
     return 0;
 }
 
+
 static av_cold int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
 {
     dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)parent;
     wrapper->parent = decoder;
 
-    StagefrightContext *ctx = malloc(sizeof(StagefrightContext));
-    AVCodecContext *avctx = (AVCodecContext *)decoder->decoder_priv;
-    avctx->priv_data = ctx; 
+    StagefrightContext *s = malloc(sizeof(StagefrightContext));
+    wrapper->vd_priv = s;
 
-    StagefrightContext *s = (StagefrightContext*)avctx->priv_data;
+    dtvideo_para_t *vd_para = &(decoder->para);
+
     sp<MetaData> meta, outFormat;
     int32_t colorFormat = 0;
     int ret;
 
-    if (!avctx->extradata || !avctx->extradata_size || avctx->extradata[0] != 1)
+    if (!vd_para->extradata || !vd_para->extradata_size || vd_para->extradata[0] != 1)
         return -1;
 
+#if 0 // here maybe have err
     s->avctx = avctx;
     s->bsfc  = av_bitstream_filter_init("h264_mp4toannexb");
     if (!s->bsfc) {
-        av_log(avctx, AV_LOG_ERROR, "Cannot open the h264_mp4toannexb BSF!\n");
+    	__android_log_print(ANDROID_LOG_DEBUG,TAG,"Cannot open the h264_mp4toannexb BSF!\n");
         return -1;
     }
-
-    s->orig_extradata_size = avctx->extradata_size;
-    s->orig_extradata = (uint8_t*) av_mallocz(avctx->extradata_size +
+#endif
+    s->orig_extradata_size = vd_para->extradata_size;
+    s->orig_extradata = (uint8_t*) malloc(vd_para->extradata_size +
                                               FF_INPUT_BUFFER_PADDING_SIZE);
     if (!s->orig_extradata) {
-        ret = AVERROR(ENOMEM);
+        ret = -1;
         goto fail;
     }
-    memcpy(s->orig_extradata, avctx->extradata, avctx->extradata_size);
+    memcpy(s->orig_extradata, vd_para->extradata, vd_para->extradata_size);
 
     meta = new MetaData;
     if (meta == NULL) {
-        ret = AVERROR(ENOMEM);
+        ret = -1;
         goto fail;
     }
     meta->setCString(kKeyMIMEType, MEDIA_MIMETYPE_VIDEO_AVC);
-    meta->setInt32(kKeyWidth, avctx->width);
-    meta->setInt32(kKeyHeight, avctx->height);
-    meta->setData(kKeyAVCC, kTypeAVCC, avctx->extradata, avctx->extradata_size);
+    meta->setInt32(kKeyWidth, vd_para->s_width);
+    meta->setInt32(kKeyHeight, vd_para->s_height);
+    meta->setData(kKeyAVCC, kTypeAVCC, vd_para->extradata, vd_para->extradata_size);
 
     android::ProcessState::self()->startThreadPool();
 
@@ -289,15 +297,15 @@ static av_cold int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
     s->out_queue = new List<Frame*>;
     s->ts_map    = new std::map<int64_t, TimeStamp>;
     s->client    = new OMXClient;
-    s->end_frame = (Frame*)av_mallocz(sizeof(Frame));
+    s->end_frame = (Frame*)malloc(sizeof(Frame));
     if (s->source == NULL || !s->in_queue || !s->out_queue || !s->client ||
         !s->ts_map || !s->end_frame) {
-        ret = AVERROR(ENOMEM);
+        ret = -1;
         goto fail;
     }
 
     if (s->client->connect() !=  OK) {
-        av_log(avctx, AV_LOG_ERROR, "Cannot connect OMX client\n");
+    	__android_log_print(ANDROID_LOG_DEBUG,TAG,"Cannot connect OMX client\n");
         ret = -1;
         goto fail;
     }
@@ -307,7 +315,7 @@ static av_cold int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
                                   false, *s->source, NULL,
                                   OMXCodec::kClientNeedsFramebuffer);
     if ((*s->decoder)->start() !=  OK) {
-        av_log(avctx, AV_LOG_ERROR, "Cannot start decoder\n");
+    	__android_log_print(ANDROID_LOG_DEBUG,TAG,"Cannot start decoder\n");
         ret = -1;
         s->client->disconnect();
         goto fail;
@@ -315,6 +323,7 @@ static av_cold int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
 
     outFormat = (*s->decoder)->getFormat();
     outFormat->findInt32(kKeyColorFormat, &colorFormat);
+#if 0
     if (colorFormat == OMX_QCOM_COLOR_FormatYVU420SemiPlanar ||
         colorFormat == OMX_COLOR_FormatYUV420SemiPlanar)
         avctx->pix_fmt = AV_PIX_FMT_NV21;
@@ -324,7 +333,7 @@ static av_cold int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
         avctx->pix_fmt = AV_PIX_FMT_UYVY422;
     else
         avctx->pix_fmt = AV_PIX_FMT_YUV420P;
-
+#endif
     outFormat->findCString(kKeyDecoderComponent, &s->decoder_component);
     if (s->decoder_component)
         s->decoder_component = av_strdup(s->decoder_component);
@@ -335,7 +344,7 @@ static av_cold int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
     return 0;
 
 fail:
-    av_bitstream_filter_close(s->bsfc);
+    //av_bitstream_filter_close(s->bsfc);
     av_freep(&s->orig_extradata);
     av_freep(&s->end_frame);
     delete s->in_queue;
@@ -345,49 +354,51 @@ fail:
     return ret;
 }
 
-static int Stagefright_decode_frame(AVCodecContext *avctx, void *data,
-                                    int *got_frame, AVPacket *avpkt)
+static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_frame,AVPicture_t **pic)
 {
-    StagefrightContext *s = (StagefrightContext*)avctx->priv_data;
+    dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)wrapper->parent;
+    StagefrightContext *s = (StagefrightContext*)wrapper->vd_priv;
     Frame *frame;
     status_t status;
-    int orig_size = avpkt->size;
+    int orig_size = vd_frame->size;
+
+#if 0
     AVPacket pkt = *avpkt;
     AVFrame *ret_frame;
-
+#endif
     if (!s->thread_started) {
-        pthread_create(&s->decode_thread_id, NULL, &decode_thread, avctx);
+        pthread_create(&s->decode_thread_id, NULL, &decode_thread, wrapper);
         s->thread_started = true;
     }
-
+#if 0
     if (avpkt && avpkt->data) {
         av_bitstream_filter_filter(s->bsfc, avctx, NULL, &pkt.data, &pkt.size,
                                    avpkt->data, avpkt->size, avpkt->flags & AV_PKT_FLAG_KEY);
         avpkt = &pkt;
     }
-
+#endif
     if (!s->source_done) {
         if(!s->dummy_buf) {
-            s->dummy_buf = (uint8_t*)av_malloc(avpkt->size);
+            s->dummy_buf = (uint8_t*)av_malloc(vd_frame->size);
             if (!s->dummy_buf)
-                return AVERROR(ENOMEM);
-            s->dummy_bufsize = avpkt->size;
-            memcpy(s->dummy_buf, avpkt->data, avpkt->size);
+                return -1;
+            s->dummy_bufsize = vd_frame->size;
+            memcpy(s->dummy_buf, vd_frame->data, vd_frame->size);
         }
 
         frame = (Frame*)av_mallocz(sizeof(Frame));
-        if (avpkt->data) {
+        if (vd_frame->data) {
             frame->status  = OK;
-            frame->size    = avpkt->size;
-            frame->key     = avpkt->flags & AV_PKT_FLAG_KEY ? 1 : 0;
-            frame->buffer  = (uint8_t*)av_malloc(avpkt->size);
+            frame->size    = vd_frame->size;
+            frame->key     = 0;//vd_frame->flags & AV_PKT_FLAG_KEY ? 1 : 0; // add key frame flag
+            frame->buffer  = (uint8_t*)av_malloc(vd_frame->size);
             if (!frame->buffer) {
                 av_freep(&frame);
-                return AVERROR(ENOMEM);
+                return -1;
             }
-            uint8_t *ptr = avpkt->data;
+            uint8_t *ptr = vd_frame->data;
             // The OMX.SEC decoder fails without this.
-            if (avpkt->size == orig_size + avctx->extradata_size) {
+            if (avpkt->size == orig_size + vd_frame->extradata_size) {
                 ptr += avctx->extradata_size;
                 frame->size = orig_size;
             }
@@ -458,9 +469,10 @@ static int Stagefright_decode_frame(AVCodecContext *avctx, void *data,
     return orig_size;
 }
 
-static av_cold int Stagefright_close(AVCodecContext *avctx)
+static av_cold int Stagefright_close(vd_wrapper_t *wrapper)
 {
-    StagefrightContext *s = (StagefrightContext*)avctx->priv_data;
+    dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)wrapper->parent;
+    StagefrightContext *s = (StagefrightContext*)wrapper->vd_priv;
     Frame *frame;
 
     if (s->thread_started) {

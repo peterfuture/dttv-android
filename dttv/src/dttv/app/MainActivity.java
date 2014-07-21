@@ -31,13 +31,15 @@ public class MainActivity extends Activity {
     
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        String result = data.getExtras().getString("com.example.simpleplayer.filePathRet");
-        Log.d(LOGTAG, result);
-        
-        //call playactivity  
-        Intent intent = new Intent(this, PlayActivity.class);
-        intent.putExtra(FILE_MSG, result);
-        startActivity(intent);
+    	if(data!=null){
+	        String result = data.getExtras().getString("com.example.simpleplayer.filePathRet");
+	        Log.d(LOGTAG, result);
+	        
+	        //call playactivity  
+	        Intent intent = new Intent(this, PlayActivity.class);
+	        intent.putExtra(FILE_MSG, result);
+	        startActivity(intent);
+    	}
     }
     
     //Choose file to play

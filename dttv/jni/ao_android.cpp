@@ -179,7 +179,7 @@ static int android_audio_stop()
 	return 0;
 }
 
-void android_ops_init()
+void android_ao_init()
 {
 	ao_android_ops.id = 0x100;//AO_ID_ANDROID
     ao_android_ops.name = ao_android_name;

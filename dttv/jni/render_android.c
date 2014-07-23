@@ -108,11 +108,11 @@ ao_wrapper_t ao_ex_ops = {
     .ao_latency = ao_ex_get_latency,
 };
 
-extern void android_ops_init(); // setup android audio render
+extern void android_ao_init(); // setup android audio render
 
 int render_init()
 {
-	android_ops_init();
+	android_ao_init();
     register_ext_ao(&ao_ex_ops);
     register_ext_vo(&vo_ex_ops);
     __android_log_print(ANDROID_LOG_INFO, TAG, "Render Init OK");

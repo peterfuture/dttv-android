@@ -18,21 +18,29 @@
 #include <map>
 
 extern "C" {
-#include "libavcodec/avcodec.h"
-#include "libavutil/imgutils.h"
-#include "libavcodec/internal.h"
 
 #include "vd_wrapper.h"
 }
+
+
+
+
+
+namespace android {
+extern "C" {
+
+vd_wrapper_t vd_stagefright_ops;
 
 #define OMX_QCOM_COLOR_FormatYVU420SemiPlanar 0x7FA30C00
 #define FF_INPUT_BUFFER_PADDING_SIZE 32
 #define TAG "VD-STAGEFRIGHT"
 
-#define av_freep free
-#define av_mallocz malloc
+#define vd_stagefright_name "H264 STAGEFRIGHT DECODER"
 
-using namespace android;
+#define av_freep free
+#define av_frame_free free
+#define av_mallocz malloc
+#define av_malloc malloc
 
 struct Frame {
     status_t status;
@@ -60,7 +68,7 @@ struct StagefrightContext {
     pthread_cond_t condition;
     pthread_t decode_thread_id;
 
-    AVPicture_t *end_frame;
+    Frame *end_frame;
     bool source_done;
     volatile sig_atomic_t thread_started, thread_exited, stop_decode;
 
@@ -78,10 +86,12 @@ struct StagefrightContext {
 
 class CustomSource : public MediaSource {
 public:
-    CustomSource(AVCodecContext *avctx, sp<MetaData> meta) {
-        s = (StagefrightContext*)avctx->priv_data;
+    CustomSource(vd_wrapper_t *wrapper, sp<MetaData> meta) {
+        dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)wrapper->parent;
+        dtvideo_para_t *vd_para = &(decoder->para);
+        s = (StagefrightContext*)wrapper->vd_priv;
         source_meta = meta;
-        frame_size  = (avctx->width * avctx->height * 3) / 2;
+        frame_size  = (vd_para->s_width * vd_para->s_height * 3) / 2;
         buf_group.add_buffer(new MediaBuffer(frame_size));
     }
 
@@ -121,7 +131,7 @@ public:
                 (*buffer)->meta_data()->setInt32(kKeyIsSyncFrame,frame->key);
                 (*buffer)->meta_data()->setInt64(kKeyTime, frame->time);
             } else {
-                av_log(s->avctx, AV_LOG_ERROR, "Failed to acquire MediaBuffer\n");
+                //av_log(s->avctx, AV_LOG_ERROR, "Failed to acquire MediaBuffer\n");
             }
             av_freep(&frame->buffer);
         }
@@ -145,7 +155,7 @@ void* decode_thread(void *arg)
     vd_wrapper_t *wrapper = (vd_wrapper_t*)arg;
     StagefrightContext *s = (StagefrightContext*)wrapper->vd_priv;
     //const AVPixFmtDescriptor *pix_desc = av_pix_fmt_desc_get(avctx->pix_fmt);
-    const AVPixFmtDescriptor *pix_desc = DTAV_PIX_FMT_YUV420P;
+    //const AVPixFmtDescriptor *pix_desc = DTAV_PIX_FMT_YUV420P;
     Frame* frame;
     MediaBuffer *buffer;
     int32_t w, h;
@@ -160,7 +170,8 @@ void* decode_thread(void *arg)
         frame = (Frame*)av_mallocz(sizeof(Frame));
         if (!frame) {
             frame         = s->end_frame;
-            frame->status = AVERROR(ENOMEM);
+            frame->status = -1;
+            //frame->status = AVERROR(ENOMEM);
             decode_done   = 1;
             s->end_frame  = NULL;
             goto push_frame;
@@ -188,7 +199,7 @@ void* decode_thread(void *arg)
                 goto push_frame;
             }
 #endif
-            frame->vframe.data = malloc(sizeof(w*h*2));
+            frame->vframe->data[0] = (uint8_t *)malloc(sizeof(w*h*2));
 
             // The OMX.SEC decoder doesn't signal the modified width/height
             if (s->decoder_component && !strncmp(s->decoder_component, "OMX.SEC", 7) &&
@@ -215,7 +226,7 @@ void* decode_thread(void *arg)
 
             src_data[0] = (uint8_t*)buffer->data();
             src_data[1] = src_data[0] + src_linesize[0] * h;
-            src_data[2] = src_data[1] + src_linesize[1] * -(-h>>pix_desc->log2_chroma_h);
+            //src_data[2] = src_data[1] + src_linesize[1] * -(-h>>pix_desc->log2_chroma_h);
 #if 0
             av_image_copy(frame->vframe->data, frame->vframe->linesize,
                           src_data, src_linesize,
@@ -224,14 +235,14 @@ void* decode_thread(void *arg)
             buffer->meta_data()->findInt64(kKeyTime, &out_frame_index);
             if (out_frame_index && s->ts_map->count(out_frame_index) > 0) {
                 frame->vframe->pts = (*s->ts_map)[out_frame_index].pts;
-                frame->vframe->reordered_opaque = (*s->ts_map)[out_frame_index].reordered_opaque;
+                //frame->vframe->reordered_opaque = (*s->ts_map)[out_frame_index].reordered_opaque;
                 s->ts_map->erase(out_frame_index);
             }
             buffer->release();
             } else if (frame->status == INFO_FORMAT_CHANGED) {
                 if (buffer)
                     buffer->release();
-                av_free(frame);
+                av_freep(frame);
                 continue;
             } else {
                 decode_done = 1;
@@ -256,12 +267,12 @@ push_frame:
 }
 
 
-static av_cold int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
+static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
 {
     dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)parent;
     wrapper->parent = decoder;
 
-    StagefrightContext *s = malloc(sizeof(StagefrightContext));
+    StagefrightContext *s = (StagefrightContext *)malloc(sizeof(StagefrightContext));
     wrapper->vd_priv = s;
 
     dtvideo_para_t *vd_para = &(decoder->para);
@@ -303,7 +314,7 @@ static av_cold int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
     android::ProcessState::self()->startThreadPool();
 
     s->source    = new sp<MediaSource>();
-    *s->source   = new CustomSource(avctx, meta);
+    *s->source   = new CustomSource(wrapper, meta);
     s->in_queue  = new List<Frame*>;
     s->out_queue = new List<Frame*>;
     s->ts_map    = new std::map<int64_t, TimeStamp>;
@@ -347,7 +358,7 @@ static av_cold int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
 #endif
     outFormat->findCString(kKeyDecoderComponent, &s->decoder_component);
     if (s->decoder_component)
-        s->decoder_component = av_strdup(s->decoder_component);
+        s->decoder_component = strdup(s->decoder_component);
 
     pthread_mutex_init(&s->in_mutex, NULL);
     pthread_mutex_init(&s->out_mutex, NULL);
@@ -425,7 +436,7 @@ static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_fra
 #endif
             frame->time = ++s->frame_index;
             (*s->ts_map)[s->frame_index].pts = vd_frame->pts;
-            (*s->ts_map)[s->frame_index].reordered_opaque = vd_frame->reordered_opaque;
+            //(*s->ts_map)[s->frame_index].reordered_opaque = vd_frame->reordered_opaque;
         } else {
             frame->status  = ERROR_END_OF_STREAM;
             s->source_done = true;
@@ -471,22 +482,22 @@ static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_fra
     if (status == ERROR_END_OF_STREAM)
         return 0;
     if (status != OK) {
-        if (status == AVERROR(ENOMEM))
-            return status;
-        av_log(avctx, AV_LOG_ERROR, "Decode failed: %x\n", status);
+        //if (status == AVERROR(ENOMEM))
+        //    return status;
+        //av_log(avctx, AV_LOG_ERROR, "Decode failed: %x\n", status);
         return -1;
     }
 
     if (s->prev_frame)
-        av_frame_free(&s->prev_frame);
+        free(&s->prev_frame);
     s->prev_frame = ret_frame;
 
-    *got_frame = 1;
+    //*got_frame = 1;
     *(AVPicture_t*)data = *ret_frame;
     return orig_size;
 }
 
-static av_cold int Stagefright_close(vd_wrapper_t *wrapper)
+static int Stagefright_close(vd_wrapper_t *wrapper)
 {
     dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)wrapper->parent;
     StagefrightContext *s = (StagefrightContext*)wrapper->vd_priv;
@@ -566,8 +577,8 @@ static av_cold int Stagefright_close(vd_wrapper_t *wrapper)
     // the next invocation (both when decoding and when called from
     // av_find_stream_info) get the original mp4 format extradata.
     //av_freep(&avctx->extradata);
-    avctx->extradata = s->orig_extradata;
-    avctx->extradata_size = s->orig_extradata_size;
+    //avctx->extradata = s->orig_extradata;
+    //avctx->extradata_size = s->orig_extradata_size;
 
     delete s->in_queue;
     delete s->out_queue;
@@ -579,16 +590,19 @@ static av_cold int Stagefright_close(vd_wrapper_t *wrapper)
     pthread_mutex_destroy(&s->in_mutex);
     pthread_mutex_destroy(&s->out_mutex);
     pthread_cond_destroy(&s->condition);
-    av_bitstream_filter_close(s->bsfc);
     return 0;
 }
 
+void android_vd_init()
+{
+    vd_stagefright_ops.name = vd_stagefright_name;
+    vd_stagefright_ops.vfmt = VIDEO_FORMAT_H264;
+    vd_stagefright_ops.type = DT_TYPE_VIDEO;
+    vd_stagefright_ops.init = Stagefright_init;
+    vd_stagefright_ops.decode_frame = Stagefright_decode_frame;
+    vd_stagefright_ops.release = Stagefright_close;
+}
 
-vd_wrapper_t vd_stagefright_ops = {
-    .name = "libstagefright_hj264",
-    .vfmt = VIDEO_FORMAT_H264,
-    .type = DT_TYPE_VIDEO,
-    .init = Stagefright_init,
-    .decode = Stagefright_decode_frame,
-    .release = Stagefright_close,
-};
+}// end extern "C"
+
+}// end namespace

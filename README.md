@@ -47,9 +47,7 @@ cd dttv/jni & ndk-build (refer to readme under jni)
 REF REPO
 ========
 
-dttv/jni/libs/libdtp.a --> build from https://github.com/peterfuture/dtplayer_c
-
-dttv/jni/libs/libamffmpeg.a --> build from https://github.com/peterfuture/FFmpeg-Android
+dttv/jni/libs/libdtp.so --> build from https://github.com/peterfuture/dtplayer_c
 
 [comments] no need user to update
 

@@ -268,6 +268,8 @@ int DTPlayer::getDuration()
 
 int DTPlayer::updatePlayerState(player_state_t *state)
 {
+    //call back to Java
+
     return 0;
 }
 

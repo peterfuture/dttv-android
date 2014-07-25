@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include "dtp_native.h"
-#include "dtp_native_api.h"
 
 #ifndef NELEM
 #define NELEM(x) ((int)(sizeof(x) / sizeof((x)[0])))
@@ -25,24 +24,6 @@ static JNINativeMethod s_methods[] = {
 	{"native_getCurrentPostion", "()I", (void*) native_getCurrentPostion},
 	{"native_getDuration", "()I", (void*) native_getDuration},
 	{"native_getPlayerStatus", "()I", (void*) native_getPlayerStatus},
-
-
-    //For New API
-	{"native_setDataSource", "(Ljava/lang/String;)I", (void*) dtp_setDataSource},
-	{"native_prePare", "()I", (void*) dtp_prePare},
-	{"native_prePareAsync", "()I", (void*) dtp_prepareAsync},
-	{"native_start", "()I", (void*) dtp_start},
-	{"native_pause", "()I", (void*) dtp_pause},
-	{"native_seekTo", "(I)I", (void*) dtp_seekTo},
-	{"native_stop", "()I", (void*) dtp_stop},
-	{"native_release", "()I", (void*) dtp_release},
-	{"native_reset", "()I", (void*) dtp_reset},
-	{"native_getVideoWidth", "()I", (void*) dtp_getVideoWidth},
-    {"native_getVideoHeight", "()I", (void*) dtp_getVideoHeight},
-    {"native_isPlaying", "()I", (void*) dtp_isPlaying},
-    {"native_getCurrentPosition", "()I", (void*) dtp_getCurrentPosition},
-    {"native_getDuration", "()I", (void*) dtp_getDuration},
-
 };
 
 

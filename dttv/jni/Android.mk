@@ -9,7 +9,8 @@ include $(PREBUILT_SHARED_LIBRARY)
 ##############################################
 include $(CLEAR_VARS)
 LOCAL_MODULE    := dtp_jni
-LOCAL_SRC_FILES := register_natives.c dtp_native_api.cpp dtp_native.c render_android.c ao_android.cpp vo_android.c
+LOCAL_SRC_FILES := dtp_native_api.cpp render_android.c ao_android.cpp vo_android.c
+LOCAL_SRC_FILES += android_dtplayer.cpp
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_LDLIBS    := -llog -lz

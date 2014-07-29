@@ -1,13 +1,16 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include "dtp_native.h"
-#include "dtp_native_api.h"
-
 #ifndef NELEM
 #define NELEM(x) ((int)(sizeof(x) / sizeof((x)[0])))
 #endif
+#define LOG_TAG "DTPLAYER-JNI"
 
+#include <jni.h>
+#include <android/log.h>
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
+
+#include "dtp_native_api.h"
 
 // ------------------------------------------------------------
 
@@ -15,16 +18,30 @@ using namespace android;
 
 // ------------------------------------------------------------
 
+// ----------------------------------------------------------------------------
+
 static DTPlayer *dtPlayer = NULL; // player handle
+
+static int dtp_nativeSetup()
+{
+    if(!dtPlayer)
+        return -1;
+    dtPlayer = new DTPlayer;
+    return 0;
+}
 
 static int dtp_setDataSource(JNIEnv *env, jclass clazz, jstring url)
 {
     int ret = 0;
     jboolean isCopy;
     const char * file_name = env->GetStringUTFChars(url, &isCopy);
-    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Receive start cmd, file [%s] size:%d ",file_name,strlen(file_name));
-    
-    dtPlayer = new DTPlayer;
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, path: [%s] size:%d ",file_name,strlen(file_name));
+   
+    if(!dtPlayer)
+    {
+        dtPlayer = new DTPlayer;
+    }
+
     ret = dtPlayer->setDataSource(file_name);
     if(ret < 0)
     {
@@ -130,8 +147,8 @@ static int dtp_getDuration(JNIEnv *env, jclass clazz)
     return dtPlayer->getDuration();
 }
 
-static JNINativeMethod s_methods[] = {
-    //For New API
+static JNINativeMethod g_Methods[] = {
+    //New API
 	{"native_setDataSource",      "(Ljava/lang/String;)I",    (void*) dtp_setDataSource},
 	{"native_prePare",            "()I",                      (void*) dtp_prePare},
 	{"native_prePareAsync",       "()I",                      (void*) dtp_prepareAsync},
@@ -148,12 +165,22 @@ static JNINativeMethod s_methods[] = {
     {"native_getDuration",        "()I",                      (void*) dtp_getDuration},
 };
 
-static const char * const kClassName = "dttv/app/DtPlayer"
+static const char * const kClassName = "dttv/app/DtPlayer";
 
 static int register_android_dtplayer(JNIEnv *env)
 {
-	return AndroidRunTim::registerNativeMethods(env,
-			"dttv/app/DtPlayer",g_Methods,NELEM(g_Methods));
+    jclass clazz;
+    clazz = env->FindClass(kClassName);
+	if (clazz == NULL) {
+		fprintf(stderr, "Native registration unable to find class '%s'\n",kClassName);
+		return JNI_FALSE;
+	}
+	if (env->RegisterNatives(clazz, g_Methods, NELEM(g_Methods)) < 0) {
+		fprintf(stderr, "RegisterNatives failed for '%s'\n", kClassName);
+		return JNI_FALSE;
+	}
+
+	return JNI_TRUE;
 }
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved)
@@ -162,13 +189,13 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     jint result = -1;
 
     if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
-        ALOGE("ERROR: GetEnv failed\n");
+        //ALOGE("ERROR: GetEnv failed\n");
         goto bail;
     }
     assert(env != NULL);
 
     if (register_android_dtplayer(env) < 0) {
-        ALOGE("ERROR: MediaPlayer native registration failed\n");
+        //ALOGE("ERROR: MediaPlayer native registration failed\n");
         goto bail;
     }
 

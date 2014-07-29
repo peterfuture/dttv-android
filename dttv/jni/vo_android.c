@@ -54,8 +54,8 @@ static int vo_android_init ()
     vo_android_ctx.dx = 0;
     vo_android_ctx.dy = 0;
     //get w h from activity
-    vo_android_ctx.dw = getActivityWidth();
-    vo_android_ctx.dh = getActivityHeight();
+    //vo_android_ctx.dw = getActivityWidth();
+    //vo_android_ctx.dh = getActivityHeight();
 
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "android vo init OK, width:%d height:%d \n",vo_android_ctx.dw, vo_android_ctx.dh);
 

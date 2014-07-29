@@ -91,11 +91,12 @@ public class DtPlayer {
 		else
 			mEventHandler = null;
 		
-		native_init();
+		//native_init();
 	}
 	
 	static{
-		//System.loadLibrary("");
+		System.loadLibrary("dtp_jni");
+		
 		//System.load(path);
 	}
 	
@@ -153,7 +154,8 @@ public class DtPlayer {
 	}
 	
 	public void setDataSource(String path) throws IOException, IllegalArgumentException,SecurityException,IllegalStateException{
-		_setDataSource(path, null, null);
+		//_setDataSource(path, null, null);
+		native_setDataSource(path);
 	}
 	
 	public void setDataSource(Context context,Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException{
@@ -219,17 +221,21 @@ public class DtPlayer {
 	
 	public void start() throws IllegalStateException{
 		stayAwake(true);
-		_start();
+		native_start();
+	}
+	
+	public void prepare() throws IllegalStateException, IOException{
+		native_prePare();
 	}
 	
 	public void stop() throws IllegalStateException{
 		stayAwake(false);
-		_stop();
+		native_stop();
 	}
 	
 	public void pause() throws IllegalStateException {
 		stayAwake(false);
-		_pause();
+		native_pause();
 	}
 	
 	@SuppressLint("Wakelock")
@@ -271,7 +277,7 @@ public class DtPlayer {
 	 */
 	public void reset() {
 		stayAwake(false);
-		_reset();
+		native_reset();
 		mEventHandler.removeCallbacksAndMessages(null);
 		closeFD();
 	}
@@ -304,7 +310,7 @@ public class DtPlayer {
 					mOnBufferingUpdateListener.onBufferingUpdate(mMediaPlayer, msg.arg1);
 				break;
 			case MEDIA_SEEK_COMPLETE:
-				if (isPlaying())
+				if (native_isPlaying()==1 ? true:false)
 					stayAwake(true);
 				if(mOnSeekCompleteListener != null)
 					mOnSeekCompleteListener.onSeekComplete(mMediaPlayer);
@@ -356,7 +362,7 @@ public class DtPlayer {
 		mOnVideoSizeChangedListener = null;
 		mOnCachingUpdateListener = null;
 		mOnHWRenderFailedListener = null;
-		_release();
+		native_release();
 		closeFD();
 	}
 	
@@ -398,7 +404,7 @@ public class DtPlayer {
 		 * storing data in memory while caching on external storage.
 		 * 
 		 * @param mp
-		 *            the MediaPlayer the update pertains to
+		 *            the MediaPlayer thenative_isPlaying update pertains to
 		 * @param percent
 		 *            the percentage (0-100) of the buffer that has been filled
 		 *            thus far
@@ -587,24 +593,25 @@ public class DtPlayer {
 	private static native void native_init();
 	private native void native_release_surface();
 	private native void native_set_video_surface(Surface surface);
+	public native static int native_setDataSource(String path);
 	private native void _setDataSource(String path,String[] keys, String[] values) throws IOException, IllegalArgumentException, IllegalStateException;
 	private native void setDataSource(FileDescriptor fileDescriptor) throws IOException,IllegalArgumentException,IllegalStateException;
-	public native void prepare() throws IOException,IllegalStateException;
-	public native void prepareAsync() throws IllegalStateException;
-	private native void _start() throws IllegalStateException;
-	private native void _stop() throws IllegalStateException;
-	private native void _pause() throws IllegalStateException;
-	private native void _release();
-	private native void _reset();
-	public native int getVideoWidth();
-	public native int getVideoHeight();
-	public native boolean isPlaying();
+	public native  static int native_prePare() throws IOException,IllegalStateException;
+	public native  static int native_prePareAsync() throws IllegalStateException;
+	private native static int native_start() throws IllegalStateException;
+	private native static int native_stop() throws IllegalStateException;
+	private native static int native_pause() throws IllegalStateException;
+	private native static int native_release();
+	private native static int native_reset();
+	public native static int native_getVideoWidth();
+	public native static int native_getVideoHeight(); 
+	public native static int native_isPlaying();
 	
 	public native void setAdaptiveStream(boolean adaptive);
-	public native void seekTo(long msec) throws IllegalStateException;
-	public native long getCurrentPosition();
+	public native static int native_seekTo(int msec) throws IllegalStateException;
+	public native static int native_getCurrentPosition();
 	public native Bitmap getCurrentFrame();
-	public native long getDuration();
+	public native static int native_getDuration();
 	
 	/**
 	 * Set whether cache the online playback file

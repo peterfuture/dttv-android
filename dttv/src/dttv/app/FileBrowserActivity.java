@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import dttv.app.utils.Constant;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -246,14 +247,22 @@ public class FileBrowserActivity extends Activity {
 					// File picked or an empty directory message clicked
 				else {// if (sel.isDirectory()) {
 					Log.d(LOGTAG, "item clicked");
-					if (!directoryShownIsEmpty) {
+					/*if (!directoryShownIsEmpty) {
 						Log.d(LOGTAG, "File selected:" + chosenFile);
 						returnFileFinishActivity(sel.getAbsolutePath());
-					}
+					}*/
+					startAudioPlayer(sel.getAbsolutePath());
 				}// else {//if (sel.isDirectory()) {
 			}// public void onClick(DialogInterface dialog, int which) {
 		});// lView.setOnClickListener(
 	}// private void initializeFileListView() {
+	
+	private void startAudioPlayer(String uri){
+		Intent retIntent = new Intent();
+		retIntent.setClass(this, NewPlayerActivity.class);
+		retIntent.putExtra(Constant.FILE_MSG, uri);
+		startActivity(retIntent);
+	}
 
 	private void returnDirectoryFinishActivity() {
 		Intent retIntent = new Intent();

@@ -6,6 +6,7 @@ import java.util.TimerTask;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import dttv.app.utils.Constant;
 import dttv.app.utils.TimesUtil;
 import dttv.app.widget.GlVideoView;
 import android.app.Activity;
@@ -77,7 +78,7 @@ public class PlayActivity extends Activity implements OnClickListener, OnTouchLi
 		
 		//start playing video
 		Intent intent = getIntent();
-		strFileName = intent.getStringExtra(MainActivity.FILE_MSG);
+		strFileName = intent.getStringExtra(Constant.FILE_MSG);
 		Log.d(TAG, "Start playing "+strFileName);
 		
 		initWidget();

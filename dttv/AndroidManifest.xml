@@ -51,6 +51,17 @@
                 <data android:mimeType="audio/*" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="dttv.app.NewPlayerActivity"
+            android:label="@string/audio_activity_play"
+            android:launchMode="singleTask"
+            android:screenOrientation="landscape" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="audio/*" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
 package dttv.app;
 
+import dttv.app.utils.Constant;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,9 +10,6 @@ import android.view.Menu;
 import android.view.View;
 
 public class MainActivity extends Activity {
-	public final static String EXTRA_MESSAGE = "com.example.simpleplayer.MESSAGE";
-	public final static String FILE_MSG = "dttp.app.MainActivity.URL";
-	private final String LOGTAG = "DTTV-FileBrowser";
 	
 	private final int REQUEST_CODE_PICK_DIR = 1;
 	private final int REQUEST_CODE_PICK_FILE = 2;
@@ -33,18 +31,18 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	if(data!=null){
 	        String result = data.getExtras().getString("com.example.simpleplayer.filePathRet");
-	        Log.d(LOGTAG, result);
+	        Log.d(Constant.LOGTAG, result);
 	        
 	        //call playactivity  
 	        Intent intent = new Intent(this, PlayActivity.class);
-	        intent.putExtra(FILE_MSG, result);
+	        intent.putExtra(Constant.FILE_MSG, result);
 	        startActivity(intent);
     	}
     }
     
     //Choose file to play
     public void ChooseFile(View view) {
-    	Log.d(LOGTAG, "Start Chooseing File to play");
+    	Log.d(Constant.LOGTAG, "Start Chooseing File to play");
     	// do something
     	Intent fileExploreIntent = new Intent(
     			dttv.app.FileBrowserActivity.INTENT_ACTION_SELECT_FILE,

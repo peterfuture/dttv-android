@@ -218,6 +218,9 @@ public class DtPlayer {
 		}
 	}
 	
+	public static void updateStatus(int status){	
+		Log.d(Constant.LOGTAG, "Notify called, status:"+status);
+	}
 	
 	public void start() throws IllegalStateException{
 		stayAwake(true);
@@ -489,12 +492,6 @@ public class DtPlayer {
 		public void onTimedTextUpdate(byte[] pixels, int width, int height);
 	}
 
-	
-	
-	
-	
-	
-	
 	
 	/**
 	 * Register a callback to be invoked when the media source is ready for

@@ -3,6 +3,7 @@
 #endif
 #define LOG_TAG "DTPLAYER-JNI"
 
+#include "android_runtime/AndroidRuntime.h"  
 #include <jni.h>
 #include <android/log.h>
 
@@ -22,11 +23,30 @@ using namespace android;
 
 static DTPlayer *dtPlayer = NULL; // player handle
 
-static int dtp_nativeSetup()
+//================================================
+jclass mClass;
+jmethodID notify_cb;
+// Notify to Java
+
+static int Notify(int status)
 {
-    if(!dtPlayer)
+    JNIEnv *env = AndroidRuntime::getJNIEnv();
+    //jclass mClass = env->FindClass("dttv/app/DtPlayer");
+    //notify_cb = env->GetStaticMethodID(mClass, "updateStatus", "(I)V;");
+    //env->CallStaticObjectMethod(mClass,notify_cb,status);
+
+    return 0;
+}
+
+//================================================
+
+static int dtp_nativeSetup(JNIEnv *env, jclass clazz)
+{
+    if(dtPlayer)
         return -1;
     dtPlayer = new DTPlayer;
+
+    Notify(2);
     return 0;
 }
 
@@ -36,10 +56,14 @@ static int dtp_setDataSource(JNIEnv *env, jclass clazz, jstring url)
     jboolean isCopy;
     const char * file_name = env->GetStringUTFChars(url, &isCopy);
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, path: [%s] size:%d ",file_name,strlen(file_name));
-   
+  
+    mClass = env->FindClass("dttv/app/DtPlayer");
+    notify_cb = env->GetStaticMethodID(mClass, "updateStatus", "(I)V;");
+
+
     if(!dtPlayer)
     {
-        dtPlayer = new DTPlayer;
+        dtp_nativeSetup(env,clazz);
     }
 
     ret = dtPlayer->setDataSource(file_name);

@@ -39,6 +39,12 @@ DTPlayer::DTPlayer()
      mDisplayWidth(0)
 {
     memset(&media_info,0,sizeof(dt_media_info_t));
+    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "DTPLAYER Constructor called \n");
+}
+
+DTPlayer::~DTPlayer()
+{
+    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "DTPLAYER Destructor called \n");
 }
 
 int DTPlayer::setDataSource(const char *file_name)

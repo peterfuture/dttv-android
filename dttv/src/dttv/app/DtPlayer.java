@@ -9,8 +9,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Map;
 
-import dttv.app.utils.FileUtil;
-import dttv.app.utils.Log;
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -24,6 +22,9 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+import dttv.app.utils.Constant;
+import dttv.app.utils.FileUtil;
+import dttv.app.utils.Log;
 
 /**
  * 
@@ -96,8 +97,6 @@ public class DtPlayer {
 	
 	static{
 		System.loadLibrary("dtp_jni");
-		
-		//System.load(path);
 	}
 	
 	public void setDisplay(SurfaceHolder surfaceHolder){
@@ -155,6 +154,7 @@ public class DtPlayer {
 	
 	public void setDataSource(String path) throws IOException, IllegalArgumentException,SecurityException,IllegalStateException{
 		//_setDataSource(path, null, null);
+		Log.d(Constant.LOGTAG, "DTPLAYER-JAVA:setDataSource");
 		native_setDataSource(path);
 	}
 	

@@ -92,6 +92,7 @@ int DTPlayer::setDataSource(const char *file_name)
 	memcpy(&media_info,&info,sizeof(dt_media_info_t));
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Get Media Info Ok,filesize:%lld fulltime:%lld S \n",info.file_size,info.duration);
     
+    mDtpHandle = handle;
     status = PLAYER_INITED;
 }
 

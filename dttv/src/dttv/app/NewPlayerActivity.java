@@ -62,6 +62,7 @@ public class NewPlayerActivity extends Activity {
 	@Override
 	protected void onStop() {
 		// TODO Auto-generated method stub
+		dtPlayer.stop();
 		super.onStop();
 	}
 	

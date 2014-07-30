@@ -34,9 +34,9 @@ public class MainActivity extends Activity {
 	        Log.d(Constant.LOGTAG, result);
 	        
 	        //call playactivity  
-	        Intent intent = new Intent(this, PlayActivity.class);
-	        intent.putExtra(Constant.FILE_MSG, result);
-	        startActivity(intent);
+	        //Intent intent = new Intent(this, PlayActivity.class);
+	        //intent.putExtra(Constant.FILE_MSG, result);
+	        //startActivity(intent);
     	}
     }
     

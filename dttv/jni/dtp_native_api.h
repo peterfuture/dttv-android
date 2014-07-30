@@ -9,6 +9,7 @@ namespace android {
 class DTPlayer{
 public:
     DTPlayer();
+    ~DTPlayer();
     int setDataSource(const char * uri);
     int prePare();
     int prePareAsync();

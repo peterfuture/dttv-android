@@ -218,7 +218,7 @@ public class DtPlayer {
 		}
 	}
 	
-	public static void updateStatus(int status){	
+	public void updateStatus(int status) throws IllegalStateException{	
 		Log.d(Constant.LOGTAG, "Notify called, status:"+status);
 	}
 	

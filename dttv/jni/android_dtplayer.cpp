@@ -21,50 +21,43 @@ using namespace android;
 
 // ----------------------------------------------------------------------------
 
+static const char * const kClassName = "dttv/app/DtPlayer";
 static DTPlayer *dtPlayer = NULL; // player handle
 
 //================================================
-jclass mClass;
-jmethodID notify_cb;
-// Notify to Java
 
-static int Notify(int status)
+// Notify to Java
+int Notify(int status)
 {
     JNIEnv *env = AndroidRuntime::getJNIEnv();
-    //jclass mClass = env->FindClass("dttv/app/DtPlayer");
-    //notify_cb = env->GetStaticMethodID(mClass, "updateStatus", "(I)V;");
-    if(!notify_cb)
+    jclass mClass = env->FindClass("dttv/app/DtPlayer");
+    jmethodID notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
+    if(!notify_cb || !mClass)
+    {
         return -1;
+    }
     env->CallStaticVoidMethod(mClass,notify_cb,status);
     return 0;
 }
 
 //================================================
 
-static int dtp_nativeSetup(JNIEnv *env, jobject obj)
+int dtp_nativeSetup(JNIEnv *env, jobject obj)
 {
     if(dtPlayer)
         return -1;
     dtPlayer = new DTPlayer;
-
-    Notify(2);
+    
     return 0;
 }
 
-static int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
+int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
 {
     int ret = 0;
     jboolean isCopy;
     const char * file_name = env->GetStringUTFChars(url, &isCopy);
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, path: [%s] size:%d ",file_name,strlen(file_name));
- 
-    mClass = env->GetObjectClass(obj); 
-    notify_cb = env->GetMethodID(mClass, "updateStatus", "(I)V;");
-    if(notify_cb == NULL)
-    {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, shit get Method ID failed ");
-    }
-
+   
     if(!dtPlayer)
     {
         dtp_nativeSetup(env,obj);
@@ -76,99 +69,101 @@ static int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
         delete dtPlayer;
         return -1;
     }
+    Notify(1);
     return 0;
 }
 
-static int dtp_prePare(JNIEnv *env, jobject obj)
+int dtp_prePare(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
+    Notify(2);
     return dtPlayer->prePare();
 }
 
-static int dtp_prepareAsync(JNIEnv *env, jobject obj)
+int dtp_prepareAsync(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
     return dtPlayer->prePareAsync();
 }
 
-static int dtp_start(JNIEnv *env, jobject obj)
+int dtp_start(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
     return dtPlayer->start();
 }
 
-static int dtp_pause(JNIEnv *env, jobject obj)
+int dtp_pause(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
     return dtPlayer->pause();
 }
 
-static int dtp_seekTo(JNIEnv *env, jobject obj, jint pos)
+int dtp_seekTo(JNIEnv *env, jobject obj, jint pos)
 {
     if(!dtPlayer)
         return -1;
     return dtPlayer->seekTo(pos);
 }
 
-static int dtp_stop(JNIEnv *env, jobject obj)
+int dtp_stop(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
     return dtPlayer->stop();
 }
 
-static int dtp_release(JNIEnv *env, jobject obj)
+int dtp_release(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
     return dtPlayer->release();
 }
 
-static int dtp_reset(JNIEnv *env, jobject obj)
+int dtp_reset(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
     return dtPlayer->reset();
 }
 
-static void dtp_releaseSurface(JNIEnv *env, jobject obj)
+void dtp_releaseSurface(JNIEnv *env, jobject obj)
 {
 
 }
 
-static int dtp_getVideoWidth(JNIEnv *env, jobject obj)
+int dtp_getVideoWidth(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
     return dtPlayer->getVideoWidth();
 }
 
-static int dtp_getVideoHeight(JNIEnv *env, jobject obj)
+int dtp_getVideoHeight(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
     return dtPlayer->getVideoHeight();
 }
 
-static int dtp_isPlaying(JNIEnv *env, jobject obj)
+int dtp_isPlaying(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return 0;
     return dtPlayer->isPlaying();
 }
 
-static int dtp_getCurrentPosition(JNIEnv *env, jobject obj)
+int dtp_getCurrentPosition(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return 0;
     return dtPlayer->getCurrentPosition();
 }
 
-static int dtp_getDuration(JNIEnv *env, jobject obj)
+int dtp_getDuration(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return 0;
@@ -193,8 +188,6 @@ static JNINativeMethod g_Methods[] = {
     {"native_getDuration",        "()I",                      (void*) dtp_getDuration},
 };
 
-static const char * const kClassName = "dttv/app/DtPlayer";
-
 static int register_android_dtplayer(JNIEnv *env)
 {
     jclass clazz;
@@ -208,7 +201,7 @@ static int register_android_dtplayer(JNIEnv *env)
 		return JNI_FALSE;
 	}
 
-	return JNI_TRUE;
+    return JNI_TRUE;
 }
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved)

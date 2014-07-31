@@ -218,8 +218,11 @@ public class DtPlayer {
 		}
 	}
 	
-	public void updateStatus(int status) throws IllegalStateException{	
-		Log.d(Constant.LOGTAG, "Notify called, status:"+status);
+	public static void updateState(int status) throws IllegalStateException{
+		if(status == MEDIA_PREPARED)
+			Log.d(Constant.LOGTAG, "Notify called, status: Prepared");
+		
+		Log.d(Constant.LOGTAG, "Notify called, status_code:"+status);
 	}
 	
 	public void start() throws IllegalStateException{
@@ -587,28 +590,28 @@ public class DtPlayer {
 	
 	
 	
-	private static native void native_init();
-	private native void native_release_surface();
-	private native void native_set_video_surface(Surface surface);
-	public native static int native_setDataSource(String path);
-	private native void _setDataSource(String path,String[] keys, String[] values) throws IOException, IllegalArgumentException, IllegalStateException;
-	private native void setDataSource(FileDescriptor fileDescriptor) throws IOException,IllegalArgumentException,IllegalStateException;
-	public native  static int native_prePare() throws IOException,IllegalStateException;
-	public native  static int native_prePareAsync() throws IllegalStateException;
-	private native static int native_start() throws IllegalStateException;
-	private native static int native_stop() throws IllegalStateException;
-	private native static int native_pause() throws IllegalStateException;
-	private native static int native_release();
-	private native static int native_reset();
-	public native static int native_getVideoWidth();
-	public native static int native_getVideoHeight(); 
-	public native static int native_isPlaying();
+	public native void native_init();
+	public native void native_release_surface();
+	public native void native_set_video_surface(Surface surface);
+	public native int native_setDataSource(String path);
+	public native void _setDataSource(String path,String[] keys, String[] values) throws IOException, IllegalArgumentException, IllegalStateException;
+	public native void setDataSource(FileDescriptor fileDescriptor) throws IOException,IllegalArgumentException,IllegalStateException;
+	public native  int native_prePare() throws IOException,IllegalStateException;
+	public native  int native_prePareAsync() throws IllegalStateException;
+	public native int native_start() throws IllegalStateException;
+	public native int native_stop() throws IllegalStateException;
+	public native int native_pause() throws IllegalStateException;
+	public native int native_release();
+	public native int native_reset();
+	public native int native_getVideoWidth();
+	public native int native_getVideoHeight(); 
+	public native int native_isPlaying();
 	
 	public native void setAdaptiveStream(boolean adaptive);
-	public native static int native_seekTo(int msec) throws IllegalStateException;
-	public native static int native_getCurrentPosition();
+	public native int native_seekTo(int msec) throws IllegalStateException;
+	public native int native_getCurrentPosition();
 	public native Bitmap getCurrentFrame();
-	public native static int native_getDuration();
+	public native int native_getDuration();
 	
 	/**
 	 * Set whether cache the online playback file

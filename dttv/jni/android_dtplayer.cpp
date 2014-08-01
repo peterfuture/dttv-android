@@ -27,16 +27,17 @@ static DTPlayer *dtPlayer = NULL; // player handle
 //================================================
 
 // Notify to Java
-int Notify(int status)
+int Notify(int status,jobject obj)
 {
     JNIEnv *env = AndroidRuntime::getJNIEnv();
     jclass mClass = env->FindClass("dttv/app/DtPlayer");
-    jmethodID notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
+    jmethodID notify_cb = env->GetMethodID(mClass, "updateState", "(I)V");
     if(!notify_cb || !mClass)
     {
         return -1;
     }
-    env->CallStaticVoidMethod(mClass,notify_cb,status);
+    //env->CallVoidMethod(mClass,notify_cb,status);
+    env->CallVoidMethod(obj,notify_cb,status);
     return 0;
 }
 
@@ -69,7 +70,7 @@ int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
         delete dtPlayer;
         return -1;
     }
-    Notify(1);
+    Notify(1,obj);
     return 0;
 }
 
@@ -77,7 +78,7 @@ int dtp_prePare(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
-    Notify(2);
+    Notify(2,obj);
     return dtPlayer->prePare();
 }
 

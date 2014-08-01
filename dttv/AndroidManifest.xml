@@ -52,7 +52,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="dttv.app.NewPlayerActivity"
+            android:name="dttv.app.AudioPlayerActivity"
             android:label="@string/audio_activity_play"
             android:launchMode="singleTask"
             android:screenOrientation="landscape" >

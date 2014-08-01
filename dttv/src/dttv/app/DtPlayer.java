@@ -218,11 +218,27 @@ public class DtPlayer {
 		}
 	}
 	
-	public static void updateState(int status) throws IllegalStateException{
-		if(status == MEDIA_PREPARED)
-			Log.d(Constant.LOGTAG, "Notify called, status: Prepared");
+	/**
+	 * jni callback status for player
+	 * @param status
+	 * @throws IllegalStateException
+	 */
+	public void updateState(int status) throws IllegalStateException{
+		/*if(status == MEDIA_PREPARED)
+			Log.d(Constant.LOGTAG, "Notify called, status: Prepared");*/
 		
 		Log.d(Constant.LOGTAG, "Notify called, status_code:"+status);
+		switch(status){
+		case MEDIA_PREPARED:
+			mEventHandler.sendEmptyMessage(MEDIA_PREPARED);
+			break;
+		case MEDIA_PLAYBACK_COMPLETE:
+			mEventHandler.sendEmptyMessage(MEDIA_PLAYBACK_COMPLETE);
+			break;
+		case MEDIA_ERROR:
+			mEventHandler.sendEmptyMessage(MEDIA_ERROR);
+			break;
+		}
 	}
 	
 	public void start() throws IllegalStateException{
@@ -588,7 +604,21 @@ public class DtPlayer {
 		mOnTimedTextListener = listener;
 	}
 	
+	public int getCurrentPosition(){
+		return native_getCurrentPosition();
+	}
 	
+	public int getDuration(){
+		return native_getDuration();
+	}
+	
+	public void seekTo(int msec){
+		native_seekTo(msec);
+	}
+	
+	public boolean isPlaying(){
+		return native_isPlaying() ==1 ? true :false;
+	}
 	
 	public native void native_init();
 	public native void native_release_surface();

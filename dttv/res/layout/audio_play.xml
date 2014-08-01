@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
     
-	<TextView
+	<!-- <TextView
 	    android:id="@+id/audio_play_txt"
 	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
-	    android:text="@string/audio_play_txt_str" />
-	<Button
+	    android:text="@string/audio_play_txt_str" /> -->
+	<!-- <Button
 	    android:id="@+id/audio_play_btn"
 	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
 	    android:text="@string/audio_play_btn_str" />
-</LinearLayout>
+	 -->
+	    <include
+	        android:id="@+id/audio_player_bar_lay"  
+	        layout="@layout/operation_bar"
+	        android:visibility="visible" />
+</RelativeLayout>

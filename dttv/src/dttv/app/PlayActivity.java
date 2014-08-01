@@ -39,11 +39,6 @@ public class PlayActivity extends Activity implements OnClickListener, OnTouchLi
     private final int PLAYER_STATUS_PAUSED=2;
     private final int PLAYER_STATUS_QUIT=3;
     
-    private final int REFRESH_TIME_MSG = 0x1000;
-    private final int BEGIN_MEDIA_MSG = REFRESH_TIME_MSG + 1;
-    private final int HIDE_OPREATE_BAR_MSG = BEGIN_MEDIA_MSG + 1;
-    private final int REFRESH_TIME = 1000;
-    
     private boolean isEnableTime = false;
     
     private String strFileName;
@@ -146,7 +141,7 @@ public class PlayActivity extends Activity implements OnClickListener, OnTouchLi
 		public void handleMessage(android.os.Message msg) {
 			int msgId = msg.what;
 			switch(msgId){
-			case REFRESH_TIME_MSG:
+			case Constant.REFRESH_TIME_MSG:
 				int duration = native_getDuration();
 	            if(duration>0){
 	            	totalTimeTxt.setText(TimesUtil.getTime(duration));
@@ -157,11 +152,11 @@ public class PlayActivity extends Activity implements OnClickListener, OnTouchLi
 				currentTimeTxt.setText(TimesUtil.getTime(currentTime));
 				playerBar.setProgress(currentTime);
 				break;
-			case BEGIN_MEDIA_MSG:
+			case Constant.BEGIN_MEDIA_MSG:
 				
 	            //startTimerTask();
 				break;
-			case HIDE_OPREATE_BAR_MSG:
+			case Constant.HIDE_OPREATE_BAR_MSG:
 				opreateLay.setVisibility(View.GONE);
 				break;
 			}
@@ -176,9 +171,9 @@ public class PlayActivity extends Activity implements OnClickListener, OnTouchLi
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				doActionHandler.sendEmptyMessage(REFRESH_TIME_MSG);
+				doActionHandler.sendEmptyMessage(Constant.REFRESH_TIME_MSG);
 			}
-		}, REFRESH_TIME, REFRESH_TIME);
+		}, Constant.REFRESH_TIME, Constant.REFRESH_TIME);
 	}
 	
 	private void releaseTimerAndHandler(){
@@ -291,8 +286,8 @@ public class PlayActivity extends Activity implements OnClickListener, OnTouchLi
 		// TODO Auto-generated method stub
 		Log.i(TAG, "enter onTouch");
 		opreateLay.setVisibility(View.VISIBLE);
-		doActionHandler.removeMessages(HIDE_OPREATE_BAR_MSG);
-		doActionHandler.sendEmptyMessageDelayed(HIDE_OPREATE_BAR_MSG, 5*REFRESH_TIME);
+		doActionHandler.removeMessages(Constant.HIDE_OPREATE_BAR_MSG);
+		doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_OPREATE_BAR_MSG, 5*Constant.REFRESH_TIME);
 		return false;
 	}
 

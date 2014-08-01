@@ -27,17 +27,16 @@ static DTPlayer *dtPlayer = NULL; // player handle
 //================================================
 
 // Notify to Java
-int Notify(int status,jobject obj)
+int Notify(int status)
 {
     JNIEnv *env = AndroidRuntime::getJNIEnv();
     jclass mClass = env->FindClass("dttv/app/DtPlayer");
-    jmethodID notify_cb = env->GetMethodID(mClass, "updateState", "(I)V");
+    jmethodID notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
     if(!notify_cb || !mClass)
     {
         return -1;
     }
-    //env->CallVoidMethod(mClass,notify_cb,status);
-    env->CallVoidMethod(obj,notify_cb,status);
+    env->CallStaticVoidMethod(mClass,notify_cb,status);
     return 0;
 }
 
@@ -46,7 +45,9 @@ int Notify(int status,jobject obj)
 int dtp_nativeSetup(JNIEnv *env, jobject obj)
 {
     if(dtPlayer)
+    {
         return -1;
+    }
     dtPlayer = new DTPlayer;
     
     return 0;
@@ -58,7 +59,7 @@ int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
     jboolean isCopy;
     const char * file_name = env->GetStringUTFChars(url, &isCopy);
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, path: [%s] size:%d ",file_name,strlen(file_name));
-   
+
     if(!dtPlayer)
     {
         dtp_nativeSetup(env,obj);
@@ -67,10 +68,9 @@ int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
     ret = dtPlayer->setDataSource(file_name);
     if(ret < 0)
     {
-        delete dtPlayer;
         return -1;
     }
-    Notify(1,obj);
+    Notify(1);
     return 0;
 }
 
@@ -78,7 +78,7 @@ int dtp_prePare(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
-    Notify(2,obj);
+    Notify(2);
     return dtPlayer->prePare();
 }
 
@@ -114,14 +114,16 @@ int dtp_stop(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
-    return dtPlayer->stop();
+    dtPlayer->stop();
+    return 0;
 }
 
 int dtp_release(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
-    return dtPlayer->release();
+    dtPlayer->release();
+    delete dtPlayer;
 }
 
 int dtp_reset(JNIEnv *env, jobject obj)

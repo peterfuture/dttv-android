@@ -204,6 +204,7 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 	protected void onStop() {
 		// TODO Auto-generated method stub
 		dtPlayer.stop();
+		dtPlayer.release();
 		super.onStop();
 	}
 	

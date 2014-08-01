@@ -6,6 +6,19 @@ extern "C"{
 }
 namespace android {
 
+const static int MEDIA_PREPARED = 1;
+const static int MEDIA_PLAYBACK_COMPLETE = 2;
+const static int MEDIA_BUFFERING_UPDATE = 3;
+const static int MEDIA_SEEK_COMPLETE = 4;
+const static int MEDIA_SET_VIDEO_SIZE = 5;
+const static int MEDIA_ERROR = 100;
+const static int MEDIA_INFO = 200;
+const static int MEDIA_CACHE = 300;
+const static int MEDIA_HW_ERROR = 400;
+const static int MEDIA_TIMED_TEXT = 1000;
+const static int MEDIA_CACHING_UPDATE = 2000;
+
+
 class DTPlayer{
 public:
     DTPlayer();
@@ -39,7 +52,7 @@ private:
         PLAYER_EOS                 = 0x200,
     };
     
-    dt_media_info_t media_info; 
+    dt_media_info_t media_info;
 
     void *mDtpHandle;
     int status;

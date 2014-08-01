@@ -1,18 +1,6 @@
 // dtp_api.cpp
 // TOP-LEVEL API provided for DtPlayer.java
 
-const static int MEDIA_PREPARED = 1;
-const static int MEDIA_PLAYBACK_COMPLETE = 2;
-const static int MEDIA_BUFFERING_UPDATE = 3;
-const static int MEDIA_SEEK_COMPLETE = 4;
-const static int MEDIA_SET_VIDEO_SIZE = 5;
-const static int MEDIA_ERROR = 100;
-const static int MEDIA_INFO = 200;
-const static int MEDIA_CACHE = 300;
-const static int MEDIA_HW_ERROR = 400;
-const static int MEDIA_TIMED_TEXT = 1000;
-const static int MEDIA_CACHING_UPDATE = 2000;
-
 #include "dtp_native_api.h"
 
 extern "C"{
@@ -28,7 +16,12 @@ extern "C"{
 #define DEBUG_TAG "DTP-API"
 }
 
+extern int Notify(int status);
+
 namespace android {
+
+static player_state_t dtp_state;
+extern "C" int updateState(player_state_t *state);
 
 DTPlayer::DTPlayer()
     :status(0),
@@ -90,6 +83,7 @@ int DTPlayer::setDataSource(const char *file_name)
     //update dtPlayer info with mediainfo
 
 	memcpy(&media_info,&info,sizeof(dt_media_info_t));
+    mDuration = info.duration;
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Get Media Info Ok,filesize:%lld fulltime:%lld S \n",info.file_size,info.duration);
     
     mDtpHandle = handle;
@@ -170,6 +164,7 @@ int DTPlayer::stop()
     if(!handle)
         return -1;
     dtplayer_stop(handle);
+    mDtpHandle = NULL;
     status = PLAYER_STOPPED;
 
     return 0;
@@ -177,7 +172,8 @@ int DTPlayer::stop()
 
 int DTPlayer::release()
 {
-    return stop();
+    stop();
+    return 0;
 }
 
 int DTPlayer::reset()
@@ -217,6 +213,7 @@ int DTPlayer::getCurrentPosition()
     void *handle = mDtpHandle;
     if(!handle)
         return 0;
+    mCurrentPosition = dtp_state.cur_time;
     return mCurrentPosition;
 
 }
@@ -232,11 +229,22 @@ int DTPlayer::getDuration()
 
 int DTPlayer::updatePlayerState(player_state_t *state)
 {
-    //Fixme -- callback to java
-    
-    return 0;
-}
+    memcpy(&dtp_state,state,sizeof(player_state_t));
+	if (state->cur_status == PLAYER_STATUS_EXIT)
+	{
+		__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "PLAYER EXIT OK\n");
+		Notify(MEDIA_PLAYBACK_COMPLETE);
+	}
+	else
+	{
+		//Notify(200);
+	}
 
+	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "UPDATECB CURSTATUS:%x \n", state->cur_status);
+	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "CUR TIME %lld S  FULL TIME:%lld  \n",state->cur_time,state->full_time);
+
+	return 0;
+}
 
 extern "C"{
 

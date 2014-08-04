@@ -20,6 +20,7 @@ extern "C" {
 
 typedef struct{
 	sp<AudioTrack> sptrack;
+    int audio_started;
     dt_buffer_t dbt;
 }android_ao_ctx_t;
 
@@ -49,6 +50,7 @@ static void audioCallback(int event, void* user, void *info)
     	return;
     }
     buf_get(&ctx->dbt,(uint8_t *)buffer->i16,buffer->size);
+    ctx->audio_started = 1;
     return;
 }
 
@@ -158,8 +160,8 @@ static int64_t android_audio_latency()
     if(ctx->sptrack == 0)
         return 0;
 
-    return 0;
-#if 0
+    if(ctx->audio_started == 0)
+        return 0;
 	int level = buf_level(&ctx->dbt);
 	unsigned int sample_num;
 	uint64_t latency;
@@ -168,7 +170,6 @@ static int64_t android_audio_latency()
 	sample_num = level / (wrapper->para.dst_channels * wrapper->para.bps / 8);
 	latency = (sample_num * pts_ratio) + (int64_t)ctx->sptrack->latency();
 	return latency;
-#endif
 }
 
 static int android_audio_stop()

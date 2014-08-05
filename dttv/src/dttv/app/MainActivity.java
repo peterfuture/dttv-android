@@ -50,14 +50,18 @@ public class MainActivity extends Activity {
     public void ChooseFile(View view) {
     	Log.d(Constant.LOGTAG, "Start Chooseing File to play");
     	// do something
-    	Intent fileExploreIntent = new Intent(
+    	/*Intent fileExploreIntent = new Intent(
     			dttv.app.FileBrowserActivity.INTENT_ACTION_SELECT_FILE,
 				null,
 				this,
 				dttv.app.FileBrowserActivity.class
 				);
 		fileExploreIntent.putExtra(dttv.app.FileBrowserActivity.startDirectoryParameter, Environment.getExternalStorageDirectory());
-		startActivityForResult(fileExploreIntent,REQUEST_CODE_PICK_FILE);	
+		startActivityForResult(fileExploreIntent,REQUEST_CODE_PICK_FILE);	*/
+    	Intent  mIntent = new Intent("com.dttv.app.browser");
+    	//mIntent.setAction("com.dttv.app.browser");
+    	mIntent.setClass(MainActivity.this, FileShowActivity.class);
+    	startActivity(mIntent);
     }
   
 }

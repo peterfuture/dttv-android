@@ -62,6 +62,12 @@
                 <data android:mimeType="audio/*" />
             </intent-filter>
         </activity>
+        <activity android:name="dttv.app.FileShowActivity"
+            android:configChanges="orientation|keyboardHidden" >
+            <intent-filter >
+                <action android:name="com.dttv.app.browser" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

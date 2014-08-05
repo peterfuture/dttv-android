@@ -59,7 +59,7 @@ public class FileBrowserActivity extends Activity {
 	// Check if the first level of the directory structure is the one showing
 	// private Boolean firstLvl = true;
 
-	private static final String LOGTAG = "F_PATH";
+	private final String LOGTAG = "F_PATH";
 
 	private List<Item> fileList = new ArrayList<Item>();
 	private File path = null;
@@ -285,7 +285,7 @@ public class FileBrowserActivity extends Activity {
 			Log.e(LOGTAG, "unable to write on the sd card ");
 		}
 		fileList.clear();
-
+		
 		if (path.exists() && path.canRead()) {
 			FilenameFilter filter = new FilenameFilter() {
 				public boolean accept(File dir, String filename) {
@@ -306,8 +306,8 @@ public class FileBrowserActivity extends Activity {
 						return (showReadableFile);
 					}
 					return true;
-				}// public boolean accept(File dir, String filename) {
-			};// FilenameFilter filter = new FilenameFilter() {
+				}
+			};
 
 			String[] fList = path.list(filter);
 			this.directoryShownIsEmpty = false;
@@ -328,9 +328,8 @@ public class FileBrowserActivity extends Activity {
 					}
 				}
 				fileList.add(i, new Item(fList[i], drawableID, canRead));
-			}// for (int i = 0; i < fList.length; i++) {
+			}
 			if (fileList.size() == 0) {
-				// Log.d(LOGTAG, "This directory is empty");
 				this.directoryShownIsEmpty = true;
 				fileList.add(0, new Item("Directory is empty", -1, true));
 			} else {// sort non empty list
@@ -339,8 +338,7 @@ public class FileBrowserActivity extends Activity {
 		} else {
 			Log.e(LOGTAG, "path does not exist or cannot be read");
 		}
-		// Log.d(TAG, "loadFileList finished");
-	}// private void loadFileList() {
+	}
 
 	private void createFileListAdapter() {
 		adapter = new ArrayAdapter<Item>(this,
@@ -380,7 +378,6 @@ public class FileBrowserActivity extends Activity {
 	private class Item {
 		public String file;
 		public int icon;
-		public boolean canRead;
 
 		public Item(String file, Integer icon, boolean canRead) {
 			this.file = file;
@@ -391,7 +388,7 @@ public class FileBrowserActivity extends Activity {
 		public String toString() {
 			return file;
 		}
-	}// END private class Item {
+	}
 
 	private class ItemFileNameComparator implements Comparator<Item> {
 		public int compare(Item lhs, Item rhs) {

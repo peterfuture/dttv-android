@@ -52,6 +52,7 @@ int DTPlayer::setDataSource(const char *file_name)
 	para.sync_enable = -1;
     
     memcpy(mUrl,file_name,strlen(file_name));
+    mUrl[strlen(file_name)] = '\0';
 	para.file_name = mUrl;
 	para.update_cb = updatePlayerState;
 	//para.no_audio=1;

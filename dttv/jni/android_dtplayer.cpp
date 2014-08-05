@@ -64,13 +64,17 @@ int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
     {
         dtp_nativeSetup(env,obj);
     }
+    else
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, failed, already done ");
+        return 0;
+    }
 
     ret = dtPlayer->setDataSource(file_name);
     if(ret < 0)
     {
         return -1;
     }
-    Notify(1);
     return 0;
 }
 
@@ -78,15 +82,18 @@ int dtp_prePare(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
-    Notify(2);
-    return dtPlayer->prePare();
+    dtPlayer->prePare();
+    Notify(MEDIA_PREPARED);
+    return 0;
 }
 
 int dtp_prepareAsync(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
         return -1;
-    return dtPlayer->prePareAsync();
+    dtPlayer->prePareAsync();
+    Notify(MEDIA_PREPARED);
+    return 0;
 }
 
 int dtp_start(JNIEnv *env, jobject obj)

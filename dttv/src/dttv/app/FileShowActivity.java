@@ -26,6 +26,7 @@ import dttv.app.multithread.DataAsyncTask;
 import dttv.app.utils.Constant;
 
 public class FileShowActivity extends Activity implements I_Async{
+	
 	private final String TAG = "FileShowActivity";
 	private TextView indexTxt;
 	private ListView mListView;
@@ -227,6 +228,12 @@ public class FileShowActivity extends Activity implements I_Async{
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
+		mFileAdapter = null;
+		pathDirsList.clear();
+		pathDirsList = null;
+		fileList.clear();
+		fileList = null;
+		stopDataTask();
 		super.onDestroy();
 	}
 

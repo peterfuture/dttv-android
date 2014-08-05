@@ -33,6 +33,12 @@ public class MainActivity extends Activity {
 	        String result = data.getExtras().getString("com.example.simpleplayer.filePathRet");
 	        Log.d(Constant.LOGTAG, result);
 	        
+	        
+	        Intent retIntent = new Intent();
+			retIntent.setClass(this, AudioPlayerActivity.class);
+			retIntent.putExtra(Constant.FILE_MSG, result);
+			startActivity(retIntent);
+			
 	        //call playactivity  
 	        //Intent intent = new Intent(this, PlayActivity.class);
 	        //intent.putExtra(Constant.FILE_MSG, result);

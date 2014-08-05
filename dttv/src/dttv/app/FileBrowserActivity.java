@@ -247,11 +247,11 @@ public class FileBrowserActivity extends Activity {
 					// File picked or an empty directory message clicked
 				else {// if (sel.isDirectory()) {
 					Log.d(LOGTAG, "item clicked");
-					/*if (!directoryShownIsEmpty) {
+					if (!directoryShownIsEmpty) {
 						Log.d(LOGTAG, "File selected:" + chosenFile);
 						returnFileFinishActivity(sel.getAbsolutePath());
-					}*/
-					startAudioPlayer(sel.getAbsolutePath());
+					}
+					//startAudioPlayer(sel.getAbsolutePath());
 				}// else {//if (sel.isDirectory()) {
 			}// public void onClick(DialogInterface dialog, int which) {
 		});// lView.setOnClickListener(

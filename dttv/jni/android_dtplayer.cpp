@@ -130,7 +130,6 @@ int dtp_release(JNIEnv *env, jobject obj)
     if(!dtPlayer)
         return -1;
     dtPlayer->release();
-    delete dtPlayer;
 }
 
 int dtp_reset(JNIEnv *env, jobject obj)

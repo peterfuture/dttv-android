@@ -57,7 +57,6 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 		try {
 			dtPlayer.setDataSource(mPath);
 			dtPlayer.prepare();
-			//dtPlayer.start();
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -136,7 +135,7 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 			// TODO Auto-generated method stub
 			int currentTime = seekBar.getProgress();
 			dtPlayer.seekTo(currentTime);
-			dtPlayer.start();
+			//dtPlayer.start();
 		}
 		
 	}
@@ -146,7 +145,7 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 		// TODO Auto-generated method stub
 		super.onResume();
 		if(dtPlayer!=null){
-			dtPlayer.start();
+			dtPlayer.pause();
 		}
 	}
 	
@@ -195,7 +194,6 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
     public void onPause()
     {
     	releaseTimerAndHandler();
-    	dtPlayer.pause();
         super.onPause();
         Log.d(TAG,"--PAUSE--");    
     }
@@ -226,6 +224,7 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 	}
 	
 	private void handlePausePlay(){
+		Log.d(TAG,"--PAUSE BUTTON CLIECK--");    
 		try {
 			if(dtPlayer.isPlaying()){
 				dtPlayer.pause();
@@ -245,6 +244,8 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
+		dtPlayer.stop();
+		dtPlayer.release();
 		super.onDestroy();
 	}
 }

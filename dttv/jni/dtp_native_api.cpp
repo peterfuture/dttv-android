@@ -126,6 +126,8 @@ int DTPlayer::start()
 
 int DTPlayer::pause()
 {
+
+	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "===player enter pause===\n");
     void *handle = mDtpHandle;
     if(!handle)
         return -1;
@@ -135,7 +137,7 @@ int DTPlayer::pause()
         dtplayer_pause(handle);
         status = PLAYER_PAUSED;
     }
-    if(status == PLAYER_PAUSED)
+    else if(status == PLAYER_PAUSED)
     {
         dtplayer_resume(handle);
         status = PLAYER_RUNNING;
@@ -153,7 +155,7 @@ int DTPlayer::seekTo(int pos) // ms
     if(status == PLAYER_RUNNING || status == PLAYER_STATUS_PAUSED)
     {
         dtplayer_seekto(handle,pos);
-        status = PLAYER_SEEKING;
+        mCurrentPosition = dtp_state.cur_time = pos;
     }
 
     return 0; 
@@ -236,9 +238,10 @@ int DTPlayer::updatePlayerState(player_state_t *state)
 		__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "PLAYER EXIT OK\n");
 		Notify(MEDIA_PLAYBACK_COMPLETE);
 	}
-	else
+	else if(state->cur_status == PLAYER_STATUS_SEEK_EXIT)
 	{
-		//Notify(200);
+	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "SEEK COMPLETE \n");
+	    //Notify(MEDIA_SEEK_COMPLETE);	
 	}
 
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "UPDATECB CURSTATUS:%x \n", state->cur_status);

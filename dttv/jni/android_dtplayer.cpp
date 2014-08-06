@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "android_dtplayer.h"
 #include "dtp_native_api.h"
 
 // ------------------------------------------------------------
@@ -34,24 +35,43 @@ int Notify(int status)
     jmethodID notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
     if(!notify_cb || !mClass)
     {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "updateState can not found ");
         return -1;
     }
     env->CallStaticVoidMethod(mClass,notify_cb,status);
     return 0;
 }
 
-//================================================
-
-int dtp_nativeSetup(JNIEnv *env, jobject obj)
+dtpListenner::dtpListenner(JNIEnv *env, jobject thiz)
 {
-    if(dtPlayer)
+    jclass clazz = env->GetObjectClass(thiz);
+    mClass = (jclass)env->NewGlobalRef(clazz);
+    mObj = env->NewGlobalRef(thiz);
+    notify_cb = env->GetMethodID(mClass, "updateState", "(I)V");
+}
+
+dtpListenner::~dtpListenner()
+{
+    JNIEnv *env = AndroidRuntime::getJNIEnv();
+    env->DeleteGlobalRef(mObj);
+    env->DeleteGlobalRef(mClass);
+}
+
+int dtpListenner::notify(int status)
+{
+    JNIEnv *env = AndroidRuntime::getJNIEnv();
+    //jmethodID notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
+    if(!notify_cb || !mClass)
     {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "updateState can not found ");
         return -1;
     }
-    dtPlayer = new DTPlayer;
-    
+    //env->CallSTATICVoidMethod(mClass,notify_cb,status);
+    env->CallVoidMethod(mObj,notify_cb,status);
     return 0;
 }
+
+//================================================
 
 int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
 {
@@ -60,22 +80,20 @@ int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
     const char * file_name = env->GetStringUTFChars(url, &isCopy);
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, path: [%s] size:%d ",file_name,strlen(file_name));
 
+    jclass mClass = env->FindClass("dttv/app/DtPlayer");
     if(!dtPlayer)
     {
-        dtp_nativeSetup(env,obj);
+        dtPlayer = new DTPlayer;
+        dtpListenner *listenner = new dtpListenner(env, obj);
+        dtPlayer->setListenner(listenner);
     }
     else
     {
         __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, failed, already done ");
-        return 0;
-    }
-
-    ret = dtPlayer->setDataSource(file_name);
-    if(ret < 0)
-    {
         return -1;
     }
-    return 0;
+
+    return dtPlayer->setDataSource(file_name);
 }
 
 int dtp_prePare(JNIEnv *env, jobject obj)
@@ -83,7 +101,6 @@ int dtp_prePare(JNIEnv *env, jobject obj)
     if(!dtPlayer)
         return -1;
     dtPlayer->prePare();
-    Notify(MEDIA_PREPARED);
     return 0;
 }
 
@@ -92,7 +109,6 @@ int dtp_prepareAsync(JNIEnv *env, jobject obj)
     if(!dtPlayer)
         return -1;
     dtPlayer->prePareAsync();
-    Notify(MEDIA_PREPARED);
     return 0;
 }
 
@@ -119,17 +135,13 @@ int dtp_seekTo(JNIEnv *env, jobject obj, jint pos)
 
 int dtp_stop(JNIEnv *env, jobject obj)
 {
+    int ret = 0;
     if(!dtPlayer)
         return -1;
-    dtPlayer->stop();
+    ret = dtPlayer->stop();
+    delete dtPlayer;
+    dtPlayer = NULL;
     return 0;
-}
-
-int dtp_release(JNIEnv *env, jobject obj)
-{
-    if(!dtPlayer)
-        return -1;
-    dtPlayer->release();
 }
 
 int dtp_reset(JNIEnv *env, jobject obj)
@@ -188,7 +200,6 @@ static JNINativeMethod g_Methods[] = {
     {"native_pause",              "()I",                      (void*) dtp_pause},
     {"native_seekTo",             "(I)I",                     (void*) dtp_seekTo},
     {"native_stop",               "()I",                      (void*) dtp_stop},
-    {"native_release",            "()I",                      (void*) dtp_release},
     {"native_reset",              "()I",                      (void*) dtp_reset},
     {"native_getVideoWidth",      "()I",                      (void*) dtp_getVideoWidth},
     {"native_getVideoHeight",     "()I",                      (void*) dtp_getVideoHeight},

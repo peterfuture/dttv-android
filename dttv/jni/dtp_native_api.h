@@ -1,6 +1,7 @@
 #ifndef DTP_NATIVE_API_H
 #define DTP_NATIVE_API_H
 
+#include "android_dtplayer.h"
 extern "C"{
 #include "dtplayer_api.h"
 }
@@ -23,6 +24,7 @@ class DTPlayer{
 public:
     DTPlayer();
     ~DTPlayer();
+    int setListenner(dtpListenner *listenner);
     int setDataSource(const char * uri);
     int prePare();
     int prePareAsync();
@@ -55,12 +57,13 @@ private:
     dt_media_info_t media_info;
 
     void *mDtpHandle;
-    int status;
+    static int status;
     int mDisplayWidth;
     int mDisplayHeight;
     char mUrl[2048];
     int mCurrentPosition;
     int mDuration;
+    dtpListenner *mListenner;
 };
 
 }

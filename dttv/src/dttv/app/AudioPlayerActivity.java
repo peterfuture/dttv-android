@@ -194,6 +194,7 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
     public void onPause()
     {
     	releaseTimerAndHandler();
+    	dtPlayer.pause();
         super.onPause();
         Log.d(TAG,"--PAUSE--");    
     }
@@ -224,7 +225,6 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 	}
 	
 	private void handlePausePlay(){
-		Log.d(TAG,"--PAUSE BUTTON CLIECK--");    
 		try {
 			if(dtPlayer.isPlaying()){
 				dtPlayer.pause();

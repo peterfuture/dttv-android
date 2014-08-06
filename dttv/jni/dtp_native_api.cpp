@@ -1,6 +1,7 @@
 // dtp_api.cpp
 // TOP-LEVEL API provided for DtPlayer.java
 
+#include "android_dtplayer.h"
 #include "dtp_native_api.h"
 
 extern "C"{
@@ -23,8 +24,11 @@ namespace android {
 static player_state_t dtp_state;
 extern "C" int updateState(player_state_t *state);
 
+int DTPlayer::status = 0;
+static DTPlayer *dtp_priv = NULL;
+
 DTPlayer::DTPlayer()
-    :status(0),
+    :mListenner(NULL),
      mCurrentPosition(-1),
      mDuration(-1),
      mDtpHandle(NULL),
@@ -32,12 +36,19 @@ DTPlayer::DTPlayer()
      mDisplayWidth(0)
 {
     memset(&media_info,0,sizeof(dt_media_info_t));
+    dtp_priv = this;
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "DTPLAYER Constructor called \n");
 }
 
 DTPlayer::~DTPlayer()
 {
+    status = 0;
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "DTPLAYER Destructor called \n");
+}
+
+int DTPlayer::setListenner(dtpListenner *listenner)
+{
+    mListenner = listenner;
 }
 
 int DTPlayer::setDataSource(const char *file_name)
@@ -96,6 +107,7 @@ int DTPlayer::prePare()
     if(status != PLAYER_INITED)
         return -1;
     status = PLAYER_PREPARED;
+    mListenner->notify(MEDIA_PREPARED);
     return 0;
 }
 
@@ -104,6 +116,7 @@ int DTPlayer::prePareAsync()
     if(status != PLAYER_INITED)
         return -1;
     status = PLAYER_PREPARED;
+    mListenner->notify(MEDIA_PREPARED);
     return 0;
 }
 
@@ -126,8 +139,6 @@ int DTPlayer::start()
 
 int DTPlayer::pause()
 {
-
-	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "===player enter pause===\n");
     void *handle = mDtpHandle;
     if(!handle)
         return -1;
@@ -154,8 +165,9 @@ int DTPlayer::seekTo(int pos) // ms
     
     if(status == PLAYER_RUNNING || status == PLAYER_STATUS_PAUSED)
     {
+        mCurrentPosition = pos;
+        status = PLAYER_SEEKING;
         dtplayer_seekto(handle,pos);
-        mCurrentPosition = dtp_state.cur_time = pos;
     }
 
     return 0; 
@@ -163,20 +175,14 @@ int DTPlayer::seekTo(int pos) // ms
 
 int DTPlayer::stop()
 {
+    int ret = 0;
     void *handle = mDtpHandle;
     if(!handle)
         return -1;
-    dtplayer_stop(handle);
+    ret = dtplayer_stop(handle);
     mDtpHandle = NULL;
     status = PLAYER_STOPPED;
-
-    return 0;
-}
-
-int DTPlayer::release()
-{
-    stop();
-    return 0;
+    return ret;
 }
 
 int DTPlayer::reset()
@@ -206,9 +212,7 @@ int DTPlayer::isPlaying()
     void *handle = mDtpHandle;
     if(!handle)
         return 0;
-    if(status == PLAYER_RUNNING || status == PLAYER_SEEKING || status == PLAYER_PAUSED)
-        return 1;
-    return 0;
+    return (status == PLAYER_RUNNING || status == PLAYER_SEEKING || status == PLAYER_PAUSED);
 }
 
 int DTPlayer::getCurrentPosition()
@@ -216,9 +220,10 @@ int DTPlayer::getCurrentPosition()
     void *handle = mDtpHandle;
     if(!handle)
         return 0;
-    mCurrentPosition = dtp_state.cur_time;
-    return mCurrentPosition;
+    if(status == PLAYER_RUNNING)
+        mCurrentPosition = dtp_state.cur_time;
 
+    return mCurrentPosition;
 }
 
 int DTPlayer::getDuration()
@@ -232,18 +237,27 @@ int DTPlayer::getDuration()
 
 int DTPlayer::updatePlayerState(player_state_t *state)
 {
+    if(status == PLAYER_STOPPED)
+        return 0;
+
+    dtpListenner *mList = dtp_priv->mListenner;
+
     memcpy(&dtp_state,state,sizeof(player_state_t));
 	if (state->cur_status == PLAYER_STATUS_EXIT)
 	{
 		__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "PLAYER EXIT OK\n");
-		Notify(MEDIA_PLAYBACK_COMPLETE);
+		//Notify(MEDIA_PLAYBACK_COMPLETE);
+        return 0;
 	}
 	else if(state->cur_status == PLAYER_STATUS_SEEK_EXIT)
 	{
 	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "SEEK COMPLETE \n");
-	    //Notify(MEDIA_SEEK_COMPLETE);	
+	    //Notify(MEDIA_SEEK_COMPLETE);
+        status = PLAYER_RUNNING;    
+        return 0;
 	}
-
+    //mList->notify(MEDIA_INFO);
+    //Notify(MEDIA_INFO);
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "UPDATECB CURSTATUS:%x \n", state->cur_status);
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "CUR TIME %lld S  FULL TIME:%lld  \n",state->cur_time,state->full_time);
 

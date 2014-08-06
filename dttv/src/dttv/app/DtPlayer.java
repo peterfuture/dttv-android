@@ -57,7 +57,7 @@ public class DtPlayer {
 	private OnInfoListener mOnInfoListener;
 	private OnTimedTextListener mOnTimedTextListener;
 	
-	private static EventHandler mEventHandler;
+	private EventHandler mEventHandler;
 	
 	private static final int MEDIA_PREPARED = 1;
 	private static final int MEDIA_PLAYBACK_COMPLETE = 2;
@@ -222,10 +222,7 @@ public class DtPlayer {
 	 * @param status
 	 * @throws IllegalStateException
 	 */
-	public static void updateState(int status) throws IllegalStateException{
-		/*if(status == MEDIA_PREPARED)
-			Log.d(Constant.LOGTAG, "Notify called, status: Prepared");*/
-		
+	public void updateState(int status) throws IllegalStateException{
 		Log.d(Constant.LOGTAG, "Notify called, status_code:"+status);
 		switch(status){
 		case MEDIA_PREPARED:
@@ -383,7 +380,7 @@ public class DtPlayer {
 		mOnVideoSizeChangedListener = null;
 		mOnCachingUpdateListener = null;
 		mOnHWRenderFailedListener = null;
-		native_release();
+		native_stop();
 		closeFD();
 	}
 	
@@ -630,7 +627,6 @@ public class DtPlayer {
 	public native int native_start() throws IllegalStateException;
 	public native int native_stop() throws IllegalStateException;
 	public native int native_pause() throws IllegalStateException;
-	public native int native_release();
 	public native int native_reset();
 	public native int native_getVideoWidth();
 	public native int native_getVideoHeight(); 

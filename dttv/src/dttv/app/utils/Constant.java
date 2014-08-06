@@ -11,4 +11,10 @@ public class Constant {
 	public final static int BEGIN_MEDIA_MSG = REFRESH_TIME_MSG + 1;
 	public final static int HIDE_OPREATE_BAR_MSG = BEGIN_MEDIA_MSG + 1;
 	public final static int REFRESH_TIME = 1000;
+	
+	
+	public static final String ARGUMENTS_NAME = "arg";
+	public static final int LOCAL_VIDEO = 0;
+	public static final int LOCAL_AUDIO = 1;
+	public static final int LOCAL_FILE = 2;
 }

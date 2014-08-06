@@ -1,67 +1,136 @@
 package dttv.app;
 
-import dttv.app.utils.Constant;
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Environment;
-import android.util.Log;
-import android.view.Menu;
-import android.view.View;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.ActionMode;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.widget.SearchView;
+import com.actionbarsherlock.view.Menu;
 
-public class MainActivity extends Activity {
+
+import android.annotation.SuppressLint;
+import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.util.Log;
+import android.widget.Toast;
+
+
+
+import dttv.app.utils.Constant;
+import dttv.app.widget.ViewPagerFragment;
+import dttv.app.widget.ViewPagerFragment.ChangeActionModeListener;
+
+@SuppressLint("NewApi")
+public class MainActivity extends SherlockFragmentActivity implements SearchView.OnQueryTextListener,SearchView.OnSuggestionListener,ChangeActionModeListener{
 	
-	private final int REQUEST_CODE_PICK_DIR = 1;
-	private final int REQUEST_CODE_PICK_FILE = 2;
+	final String TAG = "ActionBarViewpager";
+	private int CURRENTACTION = Constant.LOCAL_VIDEO;
+	ActionMode currentMode;
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		//currentMode = startActionMode(new LocalVideoActionBar());
+		fillFragment();
+	}
+	
+	private void fillFragment(){
+		FragmentManager fragmentManager = getSupportFragmentManager();
+		fragmentManager.beginTransaction().replace(R.id.dt_main_content_frame, new ViewPagerFragment(this)).commit();
+	}
+	
+	/*public void showVideoAction(View v){
+		CURRENTACTION = LOCAL_VIDEO;
+		//int i = CURRENTACTION == LOCAL_VIDEO ? 1 : 0;
+		invalidateOptionsMenu();
+	}
+	
+	public void showAudioAction(View v){
+		CURRENTACTION = LOCAL_AUDIO;
+		invalidateOptionsMenu();
+	}
+		
+	
+	public void showFileAction(View v){
+		CURRENTACTION = LOCAL_FILE;
+		invalidateOptionsMenu();
+	}*/
+
+	protected void createActionMode(int mode, Menu menu){
+		menu.clear();
+		switch(mode){
+		case Constant.LOCAL_VIDEO:
+			/*SearchView searchView = new SearchView(getSupportActionBar().getThemedContext());
+			searchView.setMaxWidth(600);
+			searchView.setQueryHint("input words");
+			searchView.setOnQueryTextListener(this);
+			searchView.setOnSuggestionListener(this);*/
+			
+			menu.add("Search").setIcon(R.drawable.dt_action_search_icon)
+			//.setActionView(searchView)
+			.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+			menu.add("Refresh").setIcon(R.drawable.dt_action_refresh_icon)
+			.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM );
+			menu.add("Setting").setShowAsAction(MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+			break;
+		case Constant.LOCAL_AUDIO:
+			menu.add("Plus").setIcon(R.drawable.dt_action_plus_icon)
+			.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+			menu.add("Setting").setShowAsAction(MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+			break;
+		case Constant.LOCAL_FILE:
+			menu.add("Refresh").setIcon(R.drawable.dt_action_refresh_icon)
+			.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+			menu.add("Setting").setShowAsAction(MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+			break;
+		}
+	}
+	
 	
 	@Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);        
-    }
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		Log.i(TAG, "enter onCreateOptionsMenu");
+		createActionMode(CURRENTACTION,menu);
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		return super.onOptionsItemSelected(item);
+	}
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-    
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    	if(data!=null){
-	        String result = data.getExtras().getString("com.example.simpleplayer.filePathRet");
-	        Log.d(Constant.LOGTAG, result);
-	        
-	        
-	        Intent retIntent = new Intent();
-			retIntent.setClass(this, AudioPlayerActivity.class);
-			retIntent.putExtra(Constant.FILE_MSG, result);
-			startActivity(retIntent);
-			
-	        //call playactivity  
-	        //Intent intent = new Intent(this, PlayActivity.class);
-	        //intent.putExtra(Constant.FILE_MSG, result);
-	        //startActivity(intent);
-    	}
-    }
-    
-    //Choose file to play
-    public void ChooseFile(View view) {
-    	Log.d(Constant.LOGTAG, "Start Chooseing File to play");
-    	// do something
-    	/*Intent fileExploreIntent = new Intent(
-    			dttv.app.FileBrowserActivity.INTENT_ACTION_SELECT_FILE,
-				null,
-				this,
-				dttv.app.FileBrowserActivity.class
-				);
-		fileExploreIntent.putExtra(dttv.app.FileBrowserActivity.startDirectoryParameter, Environment.getExternalStorageDirectory());
-		startActivityForResult(fileExploreIntent,REQUEST_CODE_PICK_FILE);	*/
-    	Intent  mIntent = new Intent("com.dttv.app.browser");
-    	//mIntent.setAction("com.dttv.app.browser");
-    	mIntent.setClass(MainActivity.this, FileShowActivity.class);
-    	startActivity(mIntent);
-    }
+	@Override
+	public boolean onSuggestionSelect(int position) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean onSuggestionClick(int position) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean onQueryTextSubmit(String query) {
+		Toast.makeText(this, "You searched for: " + query, Toast.LENGTH_LONG).show();
+		return true;
+	}
+
+	@Override
+	public boolean onQueryTextChange(String newText) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void changeActionMode(int mode) {
+		// TODO Auto-generated method stub
+		CURRENTACTION = mode;
+		invalidateOptionsMenu();
+	}
+	
   
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="dt_nav_tab_menu">
+        <item>本地视频</item>
+        <item>本地音乐</item>
+        <item>文件浏览</item>
+    </string-array>
+</resources>

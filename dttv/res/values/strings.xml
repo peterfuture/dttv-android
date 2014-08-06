@@ -18,4 +18,6 @@
 	
 	<string name="audio_play_txt_str">test for audio</string>
 	<string name="audio_play_btn_str">audio btn</string>
+	
+	<string name="nav_desc">nav_desc</string>
 </resources>

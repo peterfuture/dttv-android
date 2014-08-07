@@ -1,5 +1,8 @@
 package dttv.app.widget;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -39,6 +42,7 @@ public class ViewPagerFragment extends SherlockFragment {
 	TabFragmentPagerAdapter mAdapter;
 	private int currentIndicatorLeft = 0;
 	ChangeActionModeListener modeListener;
+	List<Fragment> mList;
 	
 	public ViewPagerFragment(ChangeActionModeListener changeActionModeListener){
 		modeListener = changeActionModeListener;
@@ -63,6 +67,7 @@ public class ViewPagerFragment extends SherlockFragment {
 		// TODO Auto-generated method stub
 		super.onActivityCreated(savedInstanceState);
 		find_ViewByid();
+		mList = new ArrayList<Fragment>();
 		initViews();
 		initListener();
 	}
@@ -92,11 +97,27 @@ public class ViewPagerFragment extends SherlockFragment {
 			rb.setLayoutParams(new LayoutParams(indicatorWidth,	LayoutParams.MATCH_PARENT));
 			tabGroup.addView(rb);
 			if(i==0){
+				rb.setSelected(true);
 				rb.setChecked(true);
 			}
 		}
+		
+		initFragment();
 		mAdapter = new TabFragmentPagerAdapter(getActivity().getSupportFragmentManager());
 		mViewPager.setAdapter(mAdapter);
+		
+	}
+	
+	private void initFragment(){
+		if(videoft==null)
+			videoft = new VideoUIFragment();
+		if(audioft==null)
+			audioft = new AudioUIFragment();
+		if(fileft == null)
+			fileft = new FilesUIFragment();
+		mList.add(videoft);
+		mList.add(audioft);
+		mList.add(fileft);
 	}
 	
 	private void initListener(){
@@ -170,7 +191,7 @@ public class ViewPagerFragment extends SherlockFragment {
 
 		@Override
 		public Fragment getItem(int arg0) {
-			switch (arg0) {
+			/*switch (arg0) {
 			case 0:
 				if(videoft==null)
 					videoft = new VideoUIFragment();
@@ -189,7 +210,8 @@ public class ViewPagerFragment extends SherlockFragment {
 			default:
 				break;
 			}
-			return null;
+			return null;*/
+			return mList.get(arg0);
 		}
 
 		@Override

@@ -54,7 +54,7 @@ public class FilesUIFragment extends Fragment implements I_Async ,OnBackStackCha
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		Log.i(TAG, "enter onCreateView");
+		Log.i(TAG, "enter onCreateView this.getId() is:"+this.getId());
 		rootView = inflater.inflate(R.layout.file_browser, container, false);
 		return rootView;
 	}

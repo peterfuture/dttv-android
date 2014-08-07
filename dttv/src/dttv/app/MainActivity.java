@@ -45,23 +45,6 @@ public class MainActivity extends SherlockFragmentActivity implements SearchView
 		FragmentManager fragmentManager = getSupportFragmentManager();
 		fragmentManager.beginTransaction().replace(R.id.dt_main_content_frame, slideFragment).commit();
 	}
-	
-	/*public void showVideoAction(View v){
-		CURRENTACTION = LOCAL_VIDEO;
-		//int i = CURRENTACTION == LOCAL_VIDEO ? 1 : 0;
-		invalidateOptionsMenu();
-	}
-	
-	public void showAudioAction(View v){
-		CURRENTACTION = LOCAL_AUDIO;
-		invalidateOptionsMenu();
-	}
-		
-	
-	public void showFileAction(View v){
-		CURRENTACTION = LOCAL_FILE;
-		invalidateOptionsMenu();
-	}*/
 
 	protected void createActionMode(int mode, Menu menu){
 		menu.clear();
@@ -160,6 +143,8 @@ public class MainActivity extends SherlockFragmentActivity implements SearchView
 		CURRENTACTION = mode;
 		if(CURRENTACTION == Constant.LOCAL_FILE){
 			isNeedInterceptKey = true;
+		}else{
+			isNeedInterceptKey = false;
 		}
 		invalidateOptionsMenu();
 	}

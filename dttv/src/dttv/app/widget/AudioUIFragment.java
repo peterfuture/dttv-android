@@ -13,6 +13,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
@@ -36,6 +38,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey{
 		// TODO Auto-generated method stub
 		super.onActivityCreated(savedInstanceState);
 		initViews();
+		initListener();
 		initFillData();
 	}
 	
@@ -43,6 +46,18 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey{
 		audio_listview = (ListView)rootView.findViewById(R.id.audio_listview);
 	}
 	
+	private void initListener(){
+		audio_listview.setOnItemClickListener(new ListItemClickListener());
+	}
+	
+	private class ListItemClickListener implements OnItemClickListener{
+		@Override
+		public void onItemClick(AdapterView<?> arg0, View v, int position,
+				long arg3) {
+			// TODO Auto-generated method stub
+			
+		}
+	}
 	
 	private Cursor readDataFromSD(Context context) {
 		Log.d(TAG, "scanFile");

@@ -90,7 +90,7 @@ public class FileBrowserActivity extends Activity {
 		setContentView(R.layout.ua_com_vassiliev_filebrowser_layout);
 
 		// Set action for this activity
-		Intent thisInt = this.getIntent();
+		/*Intent thisInt = this.getIntent();
 		currentAction = SELECT_DIRECTORY;// This would be a default action in
 											// case not set by intent
 		if (thisInt.getAction().equalsIgnoreCase(INTENT_ACTION_SELECT_FILE)) {
@@ -101,8 +101,8 @@ public class FileBrowserActivity extends Activity {
 		showHiddenFilesAndDirs = thisInt.getBooleanExtra(
 				showCannotReadParameter, true);
 
-		filterFileExtension = thisInt.getStringExtra(filterExtension);
-
+		filterFileExtension = thisInt.getStringExtra(filterExtension);*/
+		path = new File("/");
 		setInitialDirectory();
 
 		parseDirectoryPath();
@@ -249,9 +249,9 @@ public class FileBrowserActivity extends Activity {
 					Log.d(LOGTAG, "item clicked");
 					if (!directoryShownIsEmpty) {
 						Log.d(LOGTAG, "File selected:" + chosenFile);
-						returnFileFinishActivity(sel.getAbsolutePath());
+						//returnFileFinishActivity(sel.getAbsolutePath());
+						startAudioPlayer(sel.getAbsolutePath());
 					}
-					//startAudioPlayer(sel.getAbsolutePath());
 				}// else {//if (sel.isDirectory()) {
 			}// public void onClick(DialogInterface dialog, int which) {
 		});// lView.setOnClickListener(
@@ -268,7 +268,7 @@ public class FileBrowserActivity extends Activity {
 		Intent retIntent = new Intent();
 		retIntent.putExtra(returnDirectoryParameter, path.getAbsolutePath());
 		this.setResult(RESULT_OK, retIntent);
-		this.finish();
+		//this.finish();
 	}// END private void returnDirectoryFinishActivity() {
 
 	private void returnFileFinishActivity(String filePath) {

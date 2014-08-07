@@ -12,9 +12,12 @@ import dttv.app.AudioPlayerActivity;
 import dttv.app.R;
 import dttv.app.adapter.FileAdapter;
 import dttv.app.impl.I_Async;
+import dttv.app.impl.I_KeyIntercept;
+import dttv.app.impl.I_OnMyKey;
 import dttv.app.model.Item;
 import dttv.app.multithread.DataAsyncTask;
 import dttv.app.utils.Constant;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
@@ -33,7 +36,8 @@ import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
 
-public class FilesUIFragment extends Fragment implements I_Async ,OnBackStackChangedListener,OnKeyListener{
+@SuppressLint("ValidFragment")
+public class FilesUIFragment extends Fragment implements I_Async ,OnBackStackChangedListener,OnKeyListener,I_OnMyKey{
 	
 	private final String TAG = "FilesUIFragment";
 	
@@ -50,6 +54,13 @@ public class FilesUIFragment extends Fragment implements I_Async ,OnBackStackCha
 	private static int currentAction = -1;
 	private static final int SELECT_DIRECTORY = 1;
 	private static final int SELECT_FILE = 2;
+	
+	private I_KeyIntercept mKeyIntercept;
+	
+	public FilesUIFragment(I_KeyIntercept intercept) {
+		// TODO Auto-generated constructor stub
+		mKeyIntercept = intercept;
+	}
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -298,10 +309,23 @@ public class FilesUIFragment extends Fragment implements I_Async ,OnBackStackCha
 		// TODO Auto-generated method stub
 		if(event.getAction() == KeyEvent.ACTION_DOWN){
 			if(keyCode == KeyEvent.KEYCODE_BACK){
+				mKeyIntercept.isNeedIntercept(true);
 				loadDirectoryUp();
 				return true;
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public void myOnKeyDown(int keyCode) {
+		// TODO Auto-generated method stub
+		if(keyCode == KeyEvent.KEYCODE_BACK){
+			if(path.getAbsolutePath().toString().equals("/")){
+				mKeyIntercept.isNeedIntercept(false);
+			}else{
+				loadDirectoryUp();
+			}
+		}
 	}
 }

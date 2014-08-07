@@ -1,6 +1,7 @@
 package dttv.app.widget;
 
 import dttv.app.R;
+import dttv.app.impl.I_OnMyKey;
 import dttv.app.utils.MusicUtils;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -18,7 +19,7 @@ import android.widget.SimpleCursorAdapter;
 
 
 @SuppressLint("NewApi")
-public class AudioUIFragment extends Fragment {
+public class AudioUIFragment extends Fragment implements I_OnMyKey{
 	static final String TAG = "AudioUIFragment";
 	View rootView;
 	ListView audio_listview;
@@ -81,5 +82,10 @@ public class AudioUIFragment extends Fragment {
 	public void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
+	}
+	@Override
+	public void myOnKeyDown(int keyCode) {
+		// TODO Auto-generated method stub
+		
 	}
 }

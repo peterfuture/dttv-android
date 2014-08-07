@@ -2,6 +2,7 @@ package dttv.app.widget;
 
 
 import dttv.app.R;
+import dttv.app.impl.I_OnMyKey;
 import android.annotation.SuppressLint;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
@@ -17,7 +18,7 @@ import android.widget.SimpleCursorAdapter;
 
 
 @SuppressLint("NewApi")
-public class VideoUIFragment extends Fragment {
+public class VideoUIFragment extends Fragment implements I_OnMyKey{
 	final static String TAG = "VideoUIFragment";
 	View rootView;
 	ListView video_listview;
@@ -110,4 +111,9 @@ public class VideoUIFragment extends Fragment {
 	private Cursor mCursor;
 	private String mWhereClause;
     private String mSortOrder;
+	@Override
+	public void myOnKeyDown(int keyCode) {
+		// TODO Auto-generated method stub
+		
+	}
 }

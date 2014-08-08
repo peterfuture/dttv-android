@@ -27,18 +27,52 @@ static DTPlayer *dtPlayer = NULL; // player handle
 
 //================================================
 
+static JavaVM *gvm = NULL;
+static jclass mClass = NULL;
+static jmethodID notify_cb = NULL;
+
+
 // Notify to Java
 int Notify(int status)
 {
-    JNIEnv *env = AndroidRuntime::getJNIEnv();
-    jclass mClass = env->FindClass("dttv/app/DtPlayer");
-    jmethodID notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
+    JNIEnv *env = NULL;
+    int isAttached = 0; 
+
+    if(gvm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm getenv failed use AttachCurrentThread \n ");
+        if(gvm->AttachCurrentThread(&env, NULL) != JNI_OK)
+        {
+            __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm AttachCurrentThread failed \n ");
+            return -1;
+        }
+        isAttached = 1;
+    }
+    else
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm getenv ok \n ");
+#if 0 
+    mClass = env->FindClass("dttv/app/DtPlayer");
+    if(!mClass)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm getenv failed \n ");
+        goto END;
+    }
+    else
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "env find class ok \n ");
+
+    notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
+#endif
+    
     if(!notify_cb || !mClass)
     {
         __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "updateState can not found ");
-        return -1;
+        goto END;
     }
     env->CallStaticVoidMethod(mClass,notify_cb,status);
+END:
+    if(isAttached)
+        gvm->DetachCurrentThread();  
+
     return 0;
 }
 
@@ -47,7 +81,7 @@ dtpListenner::dtpListenner(JNIEnv *env, jobject thiz)
     jclass clazz = env->GetObjectClass(thiz);
     mClass = (jclass)env->NewGlobalRef(clazz);
     mObj = env->NewGlobalRef(thiz);
-    notify_cb = env->GetMethodID(mClass, "updateState", "(I)V");
+//    notify_cb = env->GetMethodID(mClass, "updateState", "(I)V");
 }
 
 dtpListenner::~dtpListenner()
@@ -59,6 +93,7 @@ dtpListenner::~dtpListenner()
 
 int dtpListenner::notify(int status)
 {
+#if 0
     JNIEnv *env = AndroidRuntime::getJNIEnv();
     //jmethodID notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
     if(!notify_cb || !mClass)
@@ -68,6 +103,7 @@ int dtpListenner::notify(int status)
     }
     //env->CallSTATICVoidMethod(mClass,notify_cb,status);
     env->CallVoidMethod(mObj,notify_cb,status);
+#endif
     return 0;
 }
 
@@ -80,7 +116,10 @@ int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
     const char * file_name = env->GetStringUTFChars(url, &isCopy);
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, path: [%s] size:%d ",file_name,strlen(file_name));
 
-    jclass mClass = env->FindClass("dttv/app/DtPlayer");
+    jclass clazz = env->GetObjectClass(obj);
+    mClass = (jclass)env->NewGlobalRef(clazz);
+    notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
+
     if(!dtPlayer)
     {
         dtPlayer = new DTPlayer;
@@ -228,6 +267,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
     JNIEnv* env = NULL;
     jint result = -1;
+    gvm = vm;
 
     if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
         //ALOGE("ERROR: GetEnv failed\n");

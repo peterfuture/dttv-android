@@ -107,7 +107,8 @@ int DTPlayer::prePare()
     if(status != PLAYER_INITED)
         return -1;
     status = PLAYER_PREPARED;
-    mListenner->notify(MEDIA_PREPARED);
+    //mListenner->notify(MEDIA_PREPARED);
+    Notify(MEDIA_PREPARED);
     return 0;
 }
 
@@ -116,7 +117,8 @@ int DTPlayer::prePareAsync()
     if(status != PLAYER_INITED)
         return -1;
     status = PLAYER_PREPARED;
-    mListenner->notify(MEDIA_PREPARED);
+    //mListenner->notify(MEDIA_PREPARED);
+    Notify(MEDIA_PREPARED);
     return 0;
 }
 
@@ -246,18 +248,18 @@ int DTPlayer::updatePlayerState(player_state_t *state)
 	if (state->cur_status == PLAYER_STATUS_EXIT)
 	{
 		__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "PLAYER EXIT OK\n");
-		//Notify(MEDIA_PLAYBACK_COMPLETE);
+		Notify(MEDIA_PLAYBACK_COMPLETE);
         return 0;
 	}
 	else if(state->cur_status == PLAYER_STATUS_SEEK_EXIT)
 	{
 	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "SEEK COMPLETE \n");
-	    //Notify(MEDIA_SEEK_COMPLETE);
+	    Notify(MEDIA_SEEK_COMPLETE);
         status = PLAYER_RUNNING;    
         return 0;
 	}
     //mList->notify(MEDIA_INFO);
-    //Notify(MEDIA_INFO);
+    Notify(MEDIA_INFO);
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "UPDATECB CURSTATUS:%x \n", state->cur_status);
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "CUR TIME %lld S  FULL TIME:%lld  \n",state->cur_time,state->full_time);
 

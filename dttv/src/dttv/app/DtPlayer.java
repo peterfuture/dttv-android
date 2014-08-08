@@ -57,7 +57,7 @@ public class DtPlayer {
 	private OnInfoListener mOnInfoListener;
 	private OnTimedTextListener mOnTimedTextListener;
 	
-	private EventHandler mEventHandler;
+	private static EventHandler mEventHandler;
 	
 	private static final int MEDIA_PREPARED = 1;
 	private static final int MEDIA_PLAYBACK_COMPLETE = 2;
@@ -222,7 +222,7 @@ public class DtPlayer {
 	 * @param status
 	 * @throws IllegalStateException
 	 */
-	public void updateState(int status) throws IllegalStateException{
+	public static void updateState(int status) throws IllegalStateException{
 		Log.d(Constant.LOGTAG, "Notify called, status_code:"+status);
 		switch(status){
 		case MEDIA_PREPARED:

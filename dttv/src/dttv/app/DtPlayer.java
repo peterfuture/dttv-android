@@ -367,7 +367,7 @@ public class DtPlayer {
 		}
 		return mMeta;
 	}*/
-	
+	@Deprecated
 	public void release(){
 		stayAwake(false);
 		updateSurfaceScreenOn();
@@ -380,7 +380,7 @@ public class DtPlayer {
 		mOnVideoSizeChangedListener = null;
 		mOnCachingUpdateListener = null;
 		mOnHWRenderFailedListener = null;
-		native_stop();
+		//native_stop();
 		closeFD();
 	}
 	
@@ -486,7 +486,8 @@ public class DtPlayer {
 	}
 	
 	public interface OnTimedTextListener {
-		/**
+		/**dtPlayer.release();
+			dtPlayer.reset();
 		 * Called to indicate that a text timed text need to display
 		 * 
 		 * @param text

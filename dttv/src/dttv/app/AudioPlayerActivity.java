@@ -38,6 +38,7 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 	private TextView currentTimeTxt,totalTimeTxt;
 	private ImageButton preBtn,nextBtn,pauseBtn;
 	private SeekBar playerProgressBar;
+	private long[] ids;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -145,7 +146,7 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 		// TODO Auto-generated method stub
 		super.onResume();
 		if(dtPlayer!=null){
-			dtPlayer.pause();
+			//dtPlayer.pause();
 		}
 	}
 	

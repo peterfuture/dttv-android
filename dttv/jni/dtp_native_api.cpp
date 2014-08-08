@@ -25,24 +25,25 @@ static player_state_t dtp_state;
 extern "C" int updateState(player_state_t *state);
 
 int DTPlayer::status = 0;
-static DTPlayer *dtp_priv = NULL;
+int DTPlayer::mCurrentPosition = -1;
+int DTPlayer::mSeekPosition = -1;
+void *DTPlayer::mDtpHandle = NULL;
 
 DTPlayer::DTPlayer()
     :mListenner(NULL),
-     mCurrentPosition(-1),
      mDuration(-1),
-     mDtpHandle(NULL),
      mDisplayHeight(0),
      mDisplayWidth(0)
 {
     memset(&media_info,0,sizeof(dt_media_info_t));
-    dtp_priv = this;
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "DTPLAYER Constructor called \n");
 }
 
 DTPlayer::~DTPlayer()
 {
     status = 0;
+    mCurrentPosition = mSeekPosition = -1;
+    mDtpHandle = NULL;
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "DTPLAYER Destructor called \n");
 }
 
@@ -165,13 +166,20 @@ int DTPlayer::seekTo(int pos) // ms
     if(!handle)
         return -1;
     
-    if(status == PLAYER_RUNNING || status == PLAYER_STATUS_PAUSED)
+    if(status == PLAYER_RUNNING || status == PLAYER_STATUS_PAUSED || status == PLAYER_STATUS_SEEK_EXIT)
     {
+        if(pos < 0)
+            return -1;
+        if(pos >= mDuration)
+            return -1;
         mCurrentPosition = pos;
         status = PLAYER_SEEKING;
-        dtplayer_seekto(handle,pos);
+        if(mSeekPosition < 0)
+        {
+            mSeekPosition = pos;
+            dtplayer_seekto(handle,pos);
+        }
     }
-
     return 0; 
 }
 
@@ -241,9 +249,7 @@ int DTPlayer::updatePlayerState(player_state_t *state)
 {
     if(status == PLAYER_STOPPED)
         return 0;
-
-    dtpListenner *mList = dtp_priv->mListenner;
-
+    void *handle = mDtpHandle;
     memcpy(&dtp_state,state,sizeof(player_state_t));
 	if (state->cur_status == PLAYER_STATUS_EXIT)
 	{
@@ -254,8 +260,19 @@ int DTPlayer::updatePlayerState(player_state_t *state)
 	else if(state->cur_status == PLAYER_STATUS_SEEK_EXIT)
 	{
 	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "SEEK COMPLETE \n");
-	    Notify(MEDIA_SEEK_COMPLETE);
-        status = PLAYER_RUNNING;    
+	    if(mCurrentPosition != mSeekPosition)
+        {
+            //still have seek request
+            mSeekPosition = -1;
+            dtplayer_seekto(handle,mCurrentPosition);
+        }
+        else
+        {
+            //last seek complete, return to running
+            mSeekPosition = -1;
+            status = PLAYER_RUNNING;    
+        }
+        Notify(MEDIA_SEEK_COMPLETE);
         return 0;
 	}
     //mList->notify(MEDIA_INFO);

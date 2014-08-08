@@ -56,12 +56,13 @@ private:
     
     dt_media_info_t media_info;
 
-    void *mDtpHandle;
+    static void *mDtpHandle;
     static int status;
     int mDisplayWidth;
     int mDisplayHeight;
     char mUrl[2048];
-    int mCurrentPosition;
+    static int mCurrentPosition;
+    static int mSeekPosition;
     int mDuration;
     dtpListenner *mListenner;
 };

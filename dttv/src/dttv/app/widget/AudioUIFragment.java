@@ -1,17 +1,11 @@
 package dttv.app.widget;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import dttv.app.DtPlayer;
-import dttv.app.R;
-import dttv.app.DtPlayer.OnCompletionListener;
-import dttv.app.DtPlayer.OnPreparedListener;
-import dttv.app.impl.I_OnMyKey;
-import dttv.app.utils.Constant;
-import dttv.app.utils.MusicUtils;
-import dttv.app.utils.TimesUtil;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
@@ -23,18 +17,26 @@ import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+import dttv.app.DtPlayer;
+import dttv.app.DtPlayer.OnCompletionListener;
+import dttv.app.DtPlayer.OnPreparedListener;
+import dttv.app.R;
+import dttv.app.impl.I_OnMyKey;
+import dttv.app.utils.Constant;
+import dttv.app.utils.MusicUtils;
+import dttv.app.utils.TimesUtil;
 
 
 
@@ -49,8 +51,9 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	private SeekBar playerProgressBar;
 	private DtPlayer dtPlayer;
 	private Cursor mCursor;
-	private SimpleCursorAdapter adapter;
+	//private SimpleCursorAdapter adapter;*/
 	private int currentPosition;
+	private List<String> playList;
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -96,6 +99,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		public void onPrepared(DtPlayer mp) {
 			// TODO Auto-generated method stub
 			Log.i(Constant.LOGTAG, "enter onPrepared");
+			//Toast.makeText(getActivity(), "enter onPrepared", 1).show();
 			dtPlayer.start();
 			int duration = mp.getDuration();
             if(duration>0){
@@ -221,13 +225,17 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	}
 	
 	private void initFillData(){
+		playList = new ArrayList<String>();
 		String[] fromColumns = new String[] {MediaStore.Audio.Media.TITLE, 
 				MediaStore.Audio.Media.ARTIST,MediaStore.Audio.Media.DATA};
 		int[] toLayoutIDs = new int[]{R.id.media_row_name,R.id.media_row_artist,R.id.media_row_uri};
 		mCursor = readDataFromSD(getActivity());
-		adapter = new SimpleCursorAdapter(getActivity(), R.layout.dt_media_item, mCursor, fromColumns, toLayoutIDs, 0);
-		
+		SimpleCursorAdapter adapter = new SimpleCursorAdapter(getActivity(), R.layout.dt_media_item, mCursor, fromColumns, toLayoutIDs, 0);
 		audio_listview.setAdapter(adapter);
+		while(mCursor.moveToNext()){
+			playList.add(mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.DATA)));
+		}
+		//mCursor.close();
 	}
 	
 	@Override
@@ -239,11 +247,9 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	@Override
 	public void onDestroy() {
 		// TODO Auto-generated method stub
-		if(mCursor!=null)
-			mCursor.close();
 		dtPlayer.stop();
 		dtPlayer.release();
-		adapter = null;
+		mCursor.close();
 		audio_listview = null;
 		super.onDestroy();
 	}
@@ -270,21 +276,24 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	
 	private void playNextSong(){
 		currentPosition = currentPosition + 1;
-		if(currentPosition < mCursor.getCount()){
+		if(currentPosition < playList.size()){
 			playSong(currentPosition);
 		}
 	}
 	
 	private void playSong(int index){
-		View itemView = audio_listview.getChildAt(currentPosition);
-		String uri = ((TextView)itemView.findViewById(R.id.media_row_uri)).getText().toString();
+		String uri = playList.get(index);
+		Log.i(TAG, "setDataSource uri is:"+uri);
 		if(uri==null){
 			Toast.makeText(getActivity(), "uri is null", 1).show();
 			return;
+		}else{
+			//Toast.makeText(getActivity(), uri, 1).show();
 		}
 		try {
-			dtPlayer.release();
-			dtPlayer.reset();
+			//dtPlayer.release();
+			/*dtPlayer.reset();*/
+			dtPlayer.stop();
 			dtPlayer.setDataSource(uri);
 			dtPlayer.prepare();
 		} catch (IllegalArgumentException e) {

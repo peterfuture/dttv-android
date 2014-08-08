@@ -177,7 +177,14 @@ int dtp_stop(JNIEnv *env, jobject obj)
     int ret = 0;
     if(!dtPlayer)
         return -1;
+
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "native stop enter \n ");
     ret = dtPlayer->stop();
+    while(dtPlayer->isQuitOK() == 0)
+    {
+        usleep(10000);
+    }
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "native stop exit \n ");
     delete dtPlayer;
     dtPlayer = NULL;
     return 0;

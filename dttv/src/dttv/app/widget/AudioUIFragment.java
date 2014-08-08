@@ -263,9 +263,11 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		// TODO Auto-generated method stub
 		switch(v.getId()){
 		case R.id.dt_play_next_btn:
+			dtPlayer.stop();
 			playNextSong();
 			break;
 		case R.id.dt_play_prev_btn:
+			dtPlayer.stop();
 			playPrevSong();
 			break;
 		case R.id.dt_play_pause_btn:
@@ -292,8 +294,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		}
 		try {
 			//dtPlayer.release();
-			/*dtPlayer.reset();*/
-			dtPlayer.stop();
+			/*dtPlayer.reset();*/			
 			dtPlayer.setDataSource(uri);
 			dtPlayer.prepare();
 		} catch (IllegalArgumentException e) {

@@ -37,6 +37,7 @@ public:
     int getVideoHeight();
     int getVideoWidth();
     int isPlaying();
+    int isQuitOK();
     int getCurrentPosition();
     int getDuration();
     static int updatePlayerState(player_state_t *state);
@@ -56,8 +57,8 @@ private:
     
     dt_media_info_t media_info;
 
-    static void *mDtpHandle;
     static int status;
+    static void *mDtpHandle;
     int mDisplayWidth;
     int mDisplayHeight;
     char mUrl[2048];

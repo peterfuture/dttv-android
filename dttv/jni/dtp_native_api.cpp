@@ -225,6 +225,14 @@ int DTPlayer::isPlaying()
     return (status == PLAYER_RUNNING || status == PLAYER_SEEKING || status == PLAYER_PAUSED);
 }
 
+int DTPlayer::isQuitOK()
+{
+    void *handle = mDtpHandle;
+    if(!handle)
+        return 1;
+    return (status == PLAYER_EXIT);
+}
+
 int DTPlayer::getCurrentPosition()
 {
     void *handle = mDtpHandle;
@@ -255,6 +263,7 @@ int DTPlayer::updatePlayerState(player_state_t *state)
 	{
 		__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "PLAYER EXIT OK\n");
 		Notify(MEDIA_PLAYBACK_COMPLETE);
+        status = PLAYER_EXIT;
         return 0;
 	}
 	else if(state->cur_status == PLAYER_STATUS_SEEK_EXIT)

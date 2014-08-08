@@ -276,7 +276,7 @@ int DTPlayer::updatePlayerState(player_state_t *state)
         return 0;
 	}
     //mList->notify(MEDIA_INFO);
-    Notify(MEDIA_INFO);
+    //Notify(MEDIA_INFO);
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "UPDATECB CURSTATUS:%x \n", state->cur_status);
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "CUR TIME %lld S  FULL TIME:%lld  \n",state->cur_time,state->full_time);
 

@@ -204,7 +204,6 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 	@Override
 	protected void onStop() {
 		// TODO Auto-generated method stub
-		dtPlayer.stop();
 		dtPlayer.release();
 		super.onStop();
 	}
@@ -245,8 +244,7 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
-		dtPlayer.stop();
-		dtPlayer.release();
+		//dtPlayer.release();
 		super.onDestroy();
 	}
 }

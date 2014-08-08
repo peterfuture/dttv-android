@@ -380,7 +380,7 @@ public class DtPlayer {
 		mOnVideoSizeChangedListener = null;
 		mOnCachingUpdateListener = null;
 		mOnHWRenderFailedListener = null;
-		//native_stop();
+		native_stop();
 		closeFD();
 	}
 	

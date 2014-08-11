@@ -68,7 +68,15 @@ int Notify(int status)
         __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "updateState can not found ");
         goto END;
     }
+ 
+    if(status == MEDIA_PLAYBACK_COMPLETE)
+    {
+        delete dtPlayer;
+        dtPlayer = NULL;
+    }
+    
     env->CallStaticVoidMethod(mClass,notify_cb,status);
+
 END:
     if(isAttached)
         gvm->DetachCurrentThread();  
@@ -189,8 +197,6 @@ int dtp_stop(JNIEnv *env, jobject obj)
         usleep(10000);
     }
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "native stop exit \n ");
-    delete dtPlayer;
-    dtPlayer = NULL;
     return 0;
 }
 

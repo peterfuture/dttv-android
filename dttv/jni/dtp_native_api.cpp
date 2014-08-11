@@ -135,6 +135,10 @@ int DTPlayer::start()
 
     if(!handle)
         return -1;
+
+    if(status == PLAYER_PAUSED) // maybe resume using start cmd
+        return pause();
+
     ret = dtplayer_start(handle);
     if(ret < 0)
         return -1;

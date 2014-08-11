@@ -180,6 +180,10 @@ int dtp_stop(JNIEnv *env, jobject obj)
 
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "native stop enter \n ");
     ret = dtPlayer->stop();
+    {
+        if(ret == -1)
+            return -1;
+    }
     while(dtPlayer->isQuitOK() == 0)
     {
         usleep(10000);

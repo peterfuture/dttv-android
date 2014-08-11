@@ -28,6 +28,7 @@ int DTPlayer::status = 0;
 int DTPlayer::mCurrentPosition = -1;
 int DTPlayer::mSeekPosition = -1;
 void *DTPlayer::mDtpHandle = NULL;
+static dt_lock_t seek_mutex;
 
 DTPlayer::DTPlayer()
     :mListenner(NULL),
@@ -36,6 +37,7 @@ DTPlayer::DTPlayer()
      mDisplayWidth(0)
 {
     memset(&media_info,0,sizeof(dt_media_info_t));
+    dt_lock_init(&seek_mutex, NULL);
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "DTPLAYER Constructor called \n");
 }
 
@@ -163,15 +165,26 @@ int DTPlayer::pause()
 int DTPlayer::seekTo(int pos) // ms
 {
     void *handle = mDtpHandle;
+    int ret = 0;
+    dt_lock(&seek_mutex);    
     if(!handle)
-        return -1;
-    
+    {
+        ret = -1;
+        goto END;
+    }
+
     if(status == PLAYER_RUNNING || status == PLAYER_STATUS_PAUSED || status == PLAYER_STATUS_SEEK_EXIT)
     {
         if(pos < 0)
-            return -1;
+        {
+            ret = -1;
+            goto END;
+        }
         if(pos >= mDuration)
-            return -1;
+        {
+            ret = -1;
+            goto END;
+        }
         mCurrentPosition = pos;
         status = PLAYER_SEEKING;
         if(mSeekPosition < 0)
@@ -180,6 +193,8 @@ int DTPlayer::seekTo(int pos) // ms
             dtplayer_seekto(handle,pos);
         }
     }
+END:
+    dt_unlock(&seek_mutex);
     return 0; 
 }
 
@@ -188,6 +203,8 @@ int DTPlayer::stop()
     int ret = 0;
     void *handle = mDtpHandle;
     if(!handle)
+        return -1;
+    if(status <= PLAYER_PREPARED)
         return -1;
     ret = dtplayer_stop(handle);
     mDtpHandle = NULL;
@@ -238,9 +255,10 @@ int DTPlayer::getCurrentPosition()
     void *handle = mDtpHandle;
     if(!handle)
         return 0;
+    dt_lock(&seek_mutex); // maybe seeking, use seek mutex
     if(status == PLAYER_RUNNING)
         mCurrentPosition = dtp_state.cur_time;
-
+    dt_unlock(&seek_mutex);
     return mCurrentPosition;
 }
 
@@ -268,6 +286,7 @@ int DTPlayer::updatePlayerState(player_state_t *state)
 	}
 	else if(state->cur_status == PLAYER_STATUS_SEEK_EXIT)
 	{
+        dt_lock(&seek_mutex);
 	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "SEEK COMPLETE \n");
 	    if(mCurrentPosition != mSeekPosition)
         {
@@ -282,6 +301,7 @@ int DTPlayer::updatePlayerState(player_state_t *state)
             status = PLAYER_RUNNING;    
         }
         Notify(MEDIA_SEEK_COMPLETE);
+        dt_unlock(&seek_mutex);
         return 0;
 	}
     //mList->notify(MEDIA_INFO);

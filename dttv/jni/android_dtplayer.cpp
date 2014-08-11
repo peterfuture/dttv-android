@@ -223,7 +223,7 @@ int dtp_getVideoHeight(JNIEnv *env, jobject obj)
 int dtp_isPlaying(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
-        return 0;
+        return -1;
     return dtPlayer->isPlaying();
 }
 

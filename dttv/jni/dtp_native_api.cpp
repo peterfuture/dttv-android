@@ -238,8 +238,8 @@ int DTPlayer::isPlaying()
 {
     void *handle = mDtpHandle;
     if(!handle)
-        return 0;
-    return (status == PLAYER_RUNNING || status == PLAYER_SEEKING || status == PLAYER_PAUSED);
+        return -1;
+    return (status == PLAYER_RUNNING);
 }
 
 int DTPlayer::isQuitOK()

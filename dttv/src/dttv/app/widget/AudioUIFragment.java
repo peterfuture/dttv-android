@@ -327,7 +327,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 				dtPlayer.pause();
 				pauseBtn.setBackgroundResource(R.drawable.btn_mu_pause);
 			}else{
-				dtPlayer.start();
+				dtPlayer.pause();
 				pauseBtn.setBackgroundResource(R.drawable.btn_mu_play);
 			}
 		} catch (IllegalStateException e) {

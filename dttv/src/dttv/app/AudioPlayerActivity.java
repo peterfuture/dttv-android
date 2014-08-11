@@ -122,7 +122,6 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 		public void onProgressChanged(SeekBar seekBar, int progress,
 				boolean fromUser) {
 			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
@@ -136,7 +135,7 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 			// TODO Auto-generated method stub
 			int currentTime = seekBar.getProgress();
 			dtPlayer.seekTo(currentTime);
-			//dtPlayer.start();
+			dtPlayer.start();
 		}
 		
 	}

@@ -139,6 +139,12 @@ int DTPlayer::start()
     if(status == PLAYER_PAUSED) // maybe resume using start cmd
         return pause();
 
+    if(status != PLAYER_PREPARED)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "player is running \n");
+        return 0;
+    }
+
     ret = dtplayer_start(handle);
     if(ret < 0)
         return -1;
@@ -170,6 +176,8 @@ int DTPlayer::seekTo(int pos) // ms
 {
     void *handle = mDtpHandle;
     int ret = 0;
+    
+    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seekto %d ms \n",pos);
     dt_lock(&seek_mutex);    
     if(!handle)
     {

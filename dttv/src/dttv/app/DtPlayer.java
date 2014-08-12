@@ -151,10 +151,10 @@ public class DtPlayer {
 			mSurfaceHolder.setKeepScreenOn(mScreenOnWhilePlaying && mStayAwake);
 	}
 	
-	public void setDataSource(String path) throws IOException, IllegalArgumentException,SecurityException,IllegalStateException{
+	public int setDataSource(String path) throws IOException, IllegalArgumentException,SecurityException,IllegalStateException{
 		//_setDataSource(path, null, null);
 		Log.d(Constant.LOGTAG, "DTPLAYER-JAVA:setDataSource");
-		native_setDataSource(path);
+		return native_setDataSource(path);
 	}
 	
 	public void setDataSource(Context context,Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException{

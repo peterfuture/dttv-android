@@ -122,11 +122,7 @@ int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
     int ret = 0;
     jboolean isCopy;
     const char * file_name = env->GetStringUTFChars(url, &isCopy);
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, path: [%s] size:%d ",file_name,strlen(file_name));
-
-    jclass clazz = env->GetObjectClass(obj);
-    mClass = (jclass)env->NewGlobalRef(clazz);
-    notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter setDataSource, path: [%s] size:%d ",file_name,strlen(file_name));
 
     if(!dtPlayer)
     {
@@ -136,15 +132,20 @@ int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
     }
     else
     {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, failed, already done ");
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, failed, another player is running ");
         return -1;
     }
+
+    jclass clazz = env->GetObjectClass(obj);
+    mClass = (jclass)env->NewGlobalRef(clazz);
+    notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
 
     return dtPlayer->setDataSource(file_name);
 }
 
 int dtp_prePare(JNIEnv *env, jobject obj)
 {
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter prePare");
     if(!dtPlayer)
         return -1;
     dtPlayer->prePare();
@@ -153,6 +154,7 @@ int dtp_prePare(JNIEnv *env, jobject obj)
 
 int dtp_prepareAsync(JNIEnv *env, jobject obj)
 {
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter prePareAsync");
     if(!dtPlayer)
         return -1;
     dtPlayer->prePareAsync();
@@ -161,6 +163,7 @@ int dtp_prepareAsync(JNIEnv *env, jobject obj)
 
 int dtp_start(JNIEnv *env, jobject obj)
 {
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter start");
     if(!dtPlayer)
         return -1;
     return dtPlayer->start();
@@ -168,6 +171,7 @@ int dtp_start(JNIEnv *env, jobject obj)
 
 int dtp_pause(JNIEnv *env, jobject obj)
 {
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter pause");
     if(!dtPlayer)
         return -1;
     return dtPlayer->pause();
@@ -175,6 +179,7 @@ int dtp_pause(JNIEnv *env, jobject obj)
 
 int dtp_seekTo(JNIEnv *env, jobject obj, jint pos)
 {
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter seekTo pos:%d ",pos);
     if(!dtPlayer)
         return -1;
     return dtPlayer->seekTo(pos);
@@ -182,6 +187,7 @@ int dtp_seekTo(JNIEnv *env, jobject obj, jint pos)
 
 int dtp_stop(JNIEnv *env, jobject obj)
 {
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter stop ");
     int ret = 0;
     if(!dtPlayer)
         return -1;

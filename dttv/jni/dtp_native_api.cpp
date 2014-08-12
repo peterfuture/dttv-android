@@ -28,7 +28,7 @@ int DTPlayer::status = 0;
 int DTPlayer::mCurrentPosition = -1;
 int DTPlayer::mSeekPosition = -1;
 void *DTPlayer::mDtpHandle = NULL;
-static dt_lock_t seek_mutex;
+static dt_lock_t dtp_mutex;
 
 DTPlayer::DTPlayer()
     :mListenner(NULL),
@@ -37,7 +37,7 @@ DTPlayer::DTPlayer()
      mDisplayWidth(0)
 {
     memset(&media_info,0,sizeof(dt_media_info_t));
-    dt_lock_init(&seek_mutex, NULL);
+    dt_lock_init(&dtp_mutex, NULL);
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "DTPLAYER Constructor called \n");
 }
 
@@ -103,12 +103,16 @@ int DTPlayer::setDataSource(const char *file_name)
     
     mDtpHandle = handle;
     status = PLAYER_INITED;
+    return 0;
 }
 
 int DTPlayer::prePare()
 {
     if(status != PLAYER_INITED)
+    {
+        Notify(MEDIA_INVALID_CMD);
         return -1;
+    }
     status = PLAYER_PREPARED;
     //mListenner->notify(MEDIA_PREPARED);
     Notify(MEDIA_PREPARED);
@@ -118,7 +122,10 @@ int DTPlayer::prePare()
 int DTPlayer::prePareAsync()
 {
     if(status != PLAYER_INITED)
+    {
+        Notify(MEDIA_INVALID_CMD);
         return -1;
+    }
     status = PLAYER_PREPARED;
     //mListenner->notify(MEDIA_PREPARED);
     Notify(MEDIA_PREPARED);
@@ -131,33 +138,48 @@ int DTPlayer::start()
     void *handle = mDtpHandle;
 
     if(status < PLAYER_PREPARED)
-        return -1;
+    {
+        ret = -1;
+        goto END;
+    }
 
     if(!handle)
-        return -1;
-
+    {
+        ret = -1;
+        goto END;
+    }
     if(status == PLAYER_PAUSED) // maybe resume using start cmd
+    {
         return pause();
+    }
 
     if(status != PLAYER_PREPARED)
     {
         __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "player is running \n");
-        return 0;
+        goto END;
     }
 
     ret = dtplayer_start(handle);
     if(ret < 0)
-        return -1;
+    {
+        ret = -1;
+        goto END;
+    }
     status = PLAYER_RUNNING;
-    return 0;
+
+END:
+    return ret;
 }
 
 int DTPlayer::pause()
 {
     void *handle = mDtpHandle;
+    dt_lock(&dtp_mutex);
     if(!handle)
+    {
+        dt_unlock(&dtp_mutex);
         return -1;
-    
+    }
     if(status == PLAYER_RUNNING)
     {
         dtplayer_pause(handle);
@@ -169,6 +191,7 @@ int DTPlayer::pause()
         status = PLAYER_RUNNING;
     }
 
+    dt_unlock(&dtp_mutex);
     return 0;
 }
 
@@ -178,14 +201,14 @@ int DTPlayer::seekTo(int pos) // ms
     int ret = 0;
     
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seekto %d ms \n",pos);
-    dt_lock(&seek_mutex);    
+    dt_lock(&dtp_mutex);    
     if(!handle)
     {
         ret = -1;
         goto END;
     }
 
-    if(status == PLAYER_RUNNING || status == PLAYER_STATUS_PAUSED || status == PLAYER_STATUS_SEEK_EXIT)
+    if(status == PLAYER_RUNNING || status == PLAYER_STATUS_PAUSED || status == PLAYER_STATUS_SEEK_EXIT || status == PLAYER_SEEKING)
     {
         if(pos < 0)
         {
@@ -194,19 +217,21 @@ int DTPlayer::seekTo(int pos) // ms
         }
         if(pos >= mDuration)
         {
-            ret = -1;
-            goto END;
+            pos = mDuration;
         }
         mCurrentPosition = pos;
         status = PLAYER_SEEKING;
         if(mSeekPosition < 0)
         {
+            __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seekTo execute \n");
             mSeekPosition = pos;
             dtplayer_seekto(handle,pos);
         }
+        else
+            __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seekTo is ececuting \n");
     }
 END:
-    dt_unlock(&seek_mutex);
+    dt_unlock(&dtp_mutex);
     return 0; 
 }
 
@@ -215,12 +240,19 @@ int DTPlayer::stop()
     int ret = 0;
     void *handle = mDtpHandle;
     if(!handle)
-        return -1;
+    {
+        ret = -1;
+        goto END;
+    }
     if(status <= PLAYER_PREPARED)
-        return -1;
+    {
+        ret = -1;
+        goto END;
+    }
     ret = dtplayer_stop(handle);
     mDtpHandle = NULL;
     status = PLAYER_STOPPED;
+END:
     return ret;
 }
 
@@ -249,79 +281,109 @@ int DTPlayer::getVideoHeight()
 int DTPlayer::isPlaying()
 {
     void *handle = mDtpHandle;
+    int isPlaying = 1;
+    dt_lock(&dtp_mutex);
     if(!handle)
+    {
+        dt_unlock(&dtp_mutex);
         return -1;
-    return (status == PLAYER_RUNNING);
+    }
+    isPlaying =  (status == PLAYER_RUNNING);
+    dt_unlock(&dtp_mutex);
+    return isPlaying;
 }
 
 int DTPlayer::isQuitOK()
 {
     void *handle = mDtpHandle;
+    int isQuitOK = 0;
+    dt_lock(&dtp_mutex);
     if(!handle)
+    {
+        dt_unlock(&dtp_mutex);
         return 1;
-    return (status == PLAYER_EXIT);
+    }
+    isQuitOK = (status == PLAYER_EXIT);
+    dt_unlock(&dtp_mutex);
+    return isQuitOK;
 }
 
 int DTPlayer::getCurrentPosition()
 {
     void *handle = mDtpHandle;
+    int cur_pos = -1;
+    dt_lock(&dtp_mutex);
     if(!handle)
+    {
+        dt_unlock(&dtp_mutex);
         return 0;
-    dt_lock(&seek_mutex); // maybe seeking, use seek mutex
+    }
     if(status == PLAYER_RUNNING)
         mCurrentPosition = dtp_state.cur_time;
-    dt_unlock(&seek_mutex);
-    return mCurrentPosition;
+    cur_pos = mCurrentPosition;
+    dt_unlock(&dtp_mutex);
+    return cur_pos;
 }
 
 int DTPlayer::getDuration()
 {
     void *handle = mDtpHandle;
+    dt_lock(&dtp_mutex);
     if(!handle)
+    {
+        dt_unlock(&dtp_mutex);
         return 0;
+    }
+    dt_unlock(&dtp_mutex);
     return mDuration;
 
 }
 
 int DTPlayer::updatePlayerState(player_state_t *state)
 {
-    if(status == PLAYER_STOPPED)
-        return 0;
     void *handle = mDtpHandle;
+    int ret = 0;
+    dt_lock(&dtp_mutex);
+    if(status == PLAYER_STOPPED)
+    {
+        ret = -1;
+        goto END;
+    }
     memcpy(&dtp_state,state,sizeof(player_state_t));
 	if (state->cur_status == PLAYER_STATUS_EXIT)
 	{
 		__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "PLAYER EXIT OK\n");
 		Notify(MEDIA_PLAYBACK_COMPLETE);
         status = PLAYER_EXIT;
-        return 0;
+        goto END;
 	}
 	else if(state->cur_status == PLAYER_STATUS_SEEK_EXIT)
 	{
-        dt_lock(&seek_mutex);
 	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "SEEK COMPLETE \n");
 	    if(mCurrentPosition != mSeekPosition)
         {
             //still have seek request
-            mSeekPosition = -1;
+            mSeekPosition = mCurrentPosition;
             dtplayer_seekto(handle,mCurrentPosition);
+	        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "queued seek to %d \n",mCurrentPosition);
         }
         else
         {
             //last seek complete, return to running
             mSeekPosition = -1;
             status = PLAYER_RUNNING;    
+	        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seek complete \n");
         }
         Notify(MEDIA_SEEK_COMPLETE);
-        dt_unlock(&seek_mutex);
-        return 0;
+        goto END;
 	}
     //mList->notify(MEDIA_INFO);
     //Notify(MEDIA_INFO);
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "UPDATECB CURSTATUS:%x \n", state->cur_status);
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "CUR TIME %lld S  FULL TIME:%lld  \n",state->cur_time,state->full_time);
-
-	return 0;
+END:
+    dt_unlock(&dtp_mutex);
+	return ret;
 }
 
 extern "C"{

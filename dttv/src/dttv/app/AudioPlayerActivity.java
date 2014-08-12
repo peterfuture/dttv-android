@@ -39,7 +39,7 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 	private ImageButton preBtn,nextBtn,pauseBtn;
 	private SeekBar playerProgressBar;
 	private long[] ids;
-	
+	private int seek_flag = 0;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -53,10 +53,14 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 	
 	private void initExtraData(){
 		Intent intent = getIntent();
+		int ret = 0;
 		mPath = intent.getStringExtra(Constant.FILE_MSG);
 		Toast.makeText(this, "mPath is:"+mPath, 1).show();
 		try {
-			dtPlayer.setDataSource(mPath);
+			if(dtPlayer.setDataSource(mPath) == -1)
+			{
+				return;
+			}
 			dtPlayer.prepare();
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
@@ -122,12 +126,17 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 		public void onProgressChanged(SeekBar seekBar, int progress,
 				boolean fromUser) {
 			// TODO Auto-generated method stub
+			if(seek_flag == 1)
+			{
+				int currentTime = seekBar.getProgress();
+				dtPlayer.seekTo(currentTime);
+			}
 		}
 
 		@Override
 		public void onStartTrackingTouch(SeekBar seekBar) {
 			// TODO Auto-generated method stub
-			
+			seek_flag = 1;
 		}
 
 		@Override
@@ -136,6 +145,7 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 			int currentTime = seekBar.getProgress();
 			dtPlayer.seekTo(currentTime);
 			dtPlayer.start();
+			seek_flag = 0;
 		}
 		
 	}

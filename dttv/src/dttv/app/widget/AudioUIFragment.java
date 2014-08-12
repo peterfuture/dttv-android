@@ -123,8 +123,9 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		@Override
 		public void onProgressChanged(SeekBar seekBar, int progress,
 				boolean fromUser) {
+			//int currentTime = seekBar.getProgress();
 			// TODO Auto-generated method stub
-			
+			//Log.d(Constant.LOGTAG, "----1---SeekTo:"+currentTime);
 		}
 
 		@Override
@@ -139,6 +140,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 			int currentTime = seekBar.getProgress();
 			dtPlayer.seekTo(currentTime);
 			//dtPlayer.start();
+			Log.d(Constant.LOGTAG, "----2---SeekTo:"+currentTime);
 		}
 		
 	}

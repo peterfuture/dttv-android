@@ -54,6 +54,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	//private SimpleCursorAdapter adapter;*/
 	private int currentPosition;
 	private List<String> playList;
+	private int trick_seek = 0;
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -123,15 +124,19 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		@Override
 		public void onProgressChanged(SeekBar seekBar, int progress,
 				boolean fromUser) {
-			//int currentTime = seekBar.getProgress();
 			// TODO Auto-generated method stub
+			if(trick_seek == 1)
+			{
+				int currentTime = seekBar.getProgress();
+				dtPlayer.seekTo(currentTime);
+			}
 			//Log.d(Constant.LOGTAG, "----1---SeekTo:"+currentTime);
 		}
 
 		@Override
 		public void onStartTrackingTouch(SeekBar seekBar) {
 			// TODO Auto-generated method stub
-			
+			trick_seek = 1;
 		}
 
 		@Override
@@ -139,7 +144,8 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 			// TODO Auto-generated method stub
 			int currentTime = seekBar.getProgress();
 			dtPlayer.seekTo(currentTime);
-			//dtPlayer.start();
+			dtPlayer.start();
+			trick_seek = 0;
 			Log.d(Constant.LOGTAG, "----2---SeekTo:"+currentTime);
 		}
 		

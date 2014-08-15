@@ -171,6 +171,11 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 			switch(msgId){
 			case Constant.REFRESH_TIME_MSG:
 				int currentTime = dtPlayer.getCurrentPosition();
+				int duration = dtPlayer.getDuration();
+				if(currentTime < 0)
+					currentTime = 0;
+				if(currentTime > duration)
+					currentTime = duration;
 				currentTimeTxt.setText(TimesUtil.getTime(currentTime));
 				playerProgressBar.setProgress(currentTime);
 				break;

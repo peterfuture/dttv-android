@@ -319,7 +319,10 @@ int DTPlayer::getCurrentPosition()
         return 0;
     }
     if(status == PLAYER_RUNNING)
+    {
         mCurrentPosition = dtp_state.cur_time;
+    }
+
     cur_pos = mCurrentPosition;
     dt_unlock(&dtp_mutex);
     return cur_pos;
@@ -371,15 +374,20 @@ int DTPlayer::updatePlayerState(player_state_t *state)
         {
             //last seek complete, return to running
             mSeekPosition = -1;
-            status = PLAYER_RUNNING;    
-	        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seek complete \n");
+	        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seek complete !\n");
         }
         Notify(MEDIA_SEEK_COMPLETE);
         goto END;
 	}
-    //mList->notify(MEDIA_INFO);
-    //Notify(MEDIA_INFO);
-	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "UPDATECB CURSTATUS:%x \n", state->cur_status);
+    
+    if(status == PLAYER_SEEKING && state->cur_status == PLAYER_STATUS_RUNNING)
+    {
+	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "set status to running from seek complete \n");
+        status = PLAYER_RUNNING;
+        Notify(MEDIA_INFO);
+    }
+
+	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "UPDATECB CURSTATUS:%x status:%d \n", state->cur_status,status);
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "CUR TIME %lld S  FULL TIME:%lld  \n",state->cur_time,state->full_time);
 END:
     dt_unlock(&dtp_mutex);

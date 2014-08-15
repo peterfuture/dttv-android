@@ -271,11 +271,9 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		// TODO Auto-generated method stub
 		switch(v.getId()){
 		case R.id.dt_play_next_btn:
-			dtPlayer.stop();
 			playNextSong();
 			break;
 		case R.id.dt_play_prev_btn:
-			dtPlayer.stop();
 			playPrevSong();
 			break;
 		case R.id.dt_play_pause_btn:
@@ -292,6 +290,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	}
 	
 	private void playSong(int index){
+		dtPlayer.stop();
 		String uri = playList.get(index);
 		Log.i(TAG, "setDataSource uri is:"+uri);
 		if(uri==null){

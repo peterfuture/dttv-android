@@ -127,8 +127,8 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 			// TODO Auto-generated method stub
 			if(trick_seek == 1)
 			{
-				int currentTime = seekBar.getProgress();
-				dtPlayer.seekTo(currentTime);
+				//int currentTime = seekBar.getProgress();
+				//dtPlayer.seekTo(currentTime);
 			}
 			//Log.d(Constant.LOGTAG, "----1---SeekTo:"+currentTime);
 		}

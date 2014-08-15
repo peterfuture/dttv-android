@@ -179,7 +179,7 @@ int dtp_pause(JNIEnv *env, jobject obj)
 
 int dtp_seekTo(JNIEnv *env, jobject obj, jint pos)
 {
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter seekTo pos:%d ",pos);
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter seekTo pos:%d s",pos);
     if(!dtPlayer)
         return -1;
     return dtPlayer->seekTo(pos);

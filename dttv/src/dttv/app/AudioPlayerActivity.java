@@ -128,8 +128,8 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 			// TODO Auto-generated method stub
 			if(seek_flag == 1)
 			{
-				int currentTime = seekBar.getProgress();
-				dtPlayer.seekTo(currentTime);
+				//int currentTime = seekBar.getProgress();
+				//dtPlayer.seekTo(currentTime);
 			}
 		}
 
@@ -166,6 +166,11 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 			switch(msgId){
 			case Constant.REFRESH_TIME_MSG:
 				int currentTime = dtPlayer.getCurrentPosition();
+				int duration = dtPlayer.getDuration();
+				if(currentTime < 0)
+					currentTime = 0;
+				if(currentTime > duration)
+					currentTime = duration;
 				currentTimeTxt.setText(TimesUtil.getTime(currentTime));
 				playerProgressBar.setProgress(currentTime);
 				break;

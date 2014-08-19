@@ -259,7 +259,7 @@ public class FileBrowserActivity extends Activity {
 	
 	private void startAudioPlayer(String uri){
 		Intent retIntent = new Intent();
-		retIntent.setClass(this, AudioPlayerActivity.class);
+		retIntent.setClass(this, VideoPlayerActivity.class);
 		retIntent.putExtra(Constant.FILE_MSG, uri);
 		startActivity(retIntent);
 	}

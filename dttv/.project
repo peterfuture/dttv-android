@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>SimplePlayer</name>
-	<comment></comment>
+	<name>dttv</name>
+	<comment>dttv source for android platform</comment>
 	<projects>
 	</projects>
 	<buildSpec>

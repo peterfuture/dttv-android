@@ -125,7 +125,7 @@ public class FileShowActivity extends Activity implements I_Async{
 	
 	private void startAudioPlayer(String uri){
 		Intent retIntent = new Intent();
-		retIntent.setClass(this, AudioPlayerActivity.class);
+		retIntent.setClass(this, VideoPlayerActivity.class);
 		retIntent.putExtra(Constant.FILE_MSG, uri);
 		startActivity(retIntent);
 	}

@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import dttv.app.AudioPlayerActivity;
+import dttv.app.VideoPlayerActivity;
 import dttv.app.R;
 import dttv.app.adapter.FileAdapter;
 import dttv.app.impl.I_Async;
@@ -154,7 +154,7 @@ public class FilesUIFragment extends Fragment implements I_Async ,OnBackStackCha
 	
 	private void startAudioPlayer(String uri){
 		Intent retIntent = new Intent();
-		retIntent.setClass(getActivity(), AudioPlayerActivity.class);
+		retIntent.setClass(getActivity(), VideoPlayerActivity.class);
 		retIntent.putExtra(Constant.FILE_MSG, uri);
 		startActivity(retIntent);
 	}

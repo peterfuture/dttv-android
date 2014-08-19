@@ -4,11 +4,6 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import dttv.app.DtPlayer.OnCompletionListener;
-import dttv.app.DtPlayer.OnPreparedListener;
-import dttv.app.utils.Constant;
-import dttv.app.utils.Log;
-import dttv.app.utils.TimesUtil;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -22,14 +17,19 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
+import dttv.app.DtPlayer.OnCompletionListener;
+import dttv.app.DtPlayer.OnPreparedListener;
+import dttv.app.utils.Constant;
+import dttv.app.utils.Log;
+import dttv.app.utils.TimesUtil;
 /**
- * just test for
- * audio
+ * VideoPlayer Activity
+ * 
  * @author shihx1
  *	
  */
-public class AudioPlayerActivity extends Activity implements OnClickListener{
-	private String TAG = "AudioPlayerActivity";
+public class VideoPlayerActivity extends Activity implements OnClickListener{
+	private String TAG = "VideoPlayerActivity";
 	private DtPlayer dtPlayer;
 	private String mPath;
 	
@@ -44,7 +44,7 @@ public class AudioPlayerActivity extends Activity implements OnClickListener{
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.audio_play);
+		setContentView(R.layout.video_play);
 		dtPlayer = new DtPlayer(this);
 		initExtraData();
 		initView();

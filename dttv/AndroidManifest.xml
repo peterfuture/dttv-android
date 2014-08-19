@@ -56,6 +56,7 @@
                 </action>
             </intent-filter>
         </activity>
+        <!--  
         <activity
             android:name="dttv.app.PlayActivity"
             android:label="@string/title_activity_play"
@@ -68,6 +69,7 @@
                 <data android:mimeType="audio/*" />
             </intent-filter>
         </activity>
+        -->
         <activity
             android:name="dttv.app.VideoPlayerActivity"
             android:label="@string/video_activity_play"

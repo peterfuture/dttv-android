@@ -3,7 +3,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
-  
+    
+    <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+ 		<dttv.app.widget.GlVideoView
+     		android:id="@+id/glvideo_view"
+     		android:layout_width="match_parent"
+     		android:layout_height="match_parent"/>
+	</LinearLayout>
+	
     <include
         android:id="@+id/audio_player_bar_lay"  
         layout="@layout/operation_bar"

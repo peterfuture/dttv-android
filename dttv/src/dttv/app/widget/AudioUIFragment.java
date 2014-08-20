@@ -115,6 +115,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		@Override
 		public void onCompletion(DtPlayer mp) {
 			// TODO Auto-generated method stub
+			Log.i(TAG, "enter play onCompletion function");
 			playNextSong();
 		}
 	}
@@ -276,6 +277,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		// TODO Auto-generated method stub
 		switch(v.getId()){
 		case R.id.dt_play_next_btn:
+			Log.i(TAG, "click next song btn");
 			playNextSong();
 			break;
 		case R.id.dt_play_prev_btn:
@@ -288,6 +290,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	}
 	
 	private void playNextSong(){
+		Log.i(TAG, "enter play nextSong function");
 		currentPosition = currentPosition + 1;
 		if(currentPosition < playList.size()){
 			playSong(currentPosition);

@@ -617,6 +617,27 @@ public class DtPlayer {
 		return native_isPlaying() ==1 ? true :false;
 	}
 	
+	//----------------------------------
+	//OPENGL-ESV2
+	public int onSurfaceCreated()
+	{
+		native_onSurfaceCreated();
+		return 0;
+	}
+	
+	public int onSurfaceChanged(int w, int h)
+	{
+		native_onSurfaceChanged(w,h);
+		return 0;
+	}
+	
+	public int onDrawFrame()
+	{
+		native_onDrawFrame();
+		return 0;
+	}
+	//----------------------------------
+	
 	public native void native_init();
 	public native void native_release_surface();
 	public native void native_set_video_surface(Surface surface);
@@ -639,6 +660,10 @@ public class DtPlayer {
 	public native Bitmap getCurrentFrame();
 	public native int native_getDuration();
 	
+	//opengl esv2
+	public native int native_onSurfaceCreated();
+	public native int native_onSurfaceChanged(int w, int h);
+	public native int native_onDrawFrame();
 	/**
 	 * Set whether cache the online playback file
 	 * @param cache

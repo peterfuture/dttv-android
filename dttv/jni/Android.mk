@@ -12,6 +12,7 @@ LOCAL_MODULE    := dtp_jni
 LOCAL_SRC_FILES := dtp_native_api.cpp render_android.c ao_android.cpp vo_android.c
 LOCAL_SRC_FILES += android_dtplayer.cpp
 
+LOCAL_CFLAGS += -D GL_GLEXT_PROTOTYPES
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_LDLIBS    := -llog -lz
 

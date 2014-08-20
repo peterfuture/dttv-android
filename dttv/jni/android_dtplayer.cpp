@@ -14,6 +14,52 @@
 #include "android_dtplayer.h"
 #include "dtp_native_api.h"
 
+
+// ------------------------------------------------------------
+//OPENGL ESV2
+
+#include <GLES/gl.h>
+#include <GLES/glext.h>
+//#include <GLES2/gl2.h>
+//#include <GLES2/gl2ext.h>
+extern "C"{
+#include "dt_lock.h"
+}
+
+#define RGB565(r, g, b)  (((r) << (5+6)) | ((g) << 6) | (b))
+
+#define GLRENDER_STATUS_IDLE 0
+#define GLRENDER_STATUS_RUNNING 1
+#define GLRENDER_STATUS_QUIT 2
+static GLuint s_disable_caps[] = {
+    GL_FOG,
+	GL_LIGHTING,
+	GL_CULL_FACE,
+	GL_ALPHA_TEST,
+	GL_BLEND,
+	GL_COLOR_LOGIC_OP,
+	GL_DITHER,
+	GL_STENCIL_TEST,
+	GL_DEPTH_TEST,
+	GL_COLOR_MATERIAL,
+	0
+};
+typedef struct{
+	uint16_t *frame;
+    int frame_size;
+	int width;
+	int height;
+	int status;
+    int invalid_frame;
+
+    GLuint s_texture;
+    dt_lock_t mutex;
+}gl_ctx_t;
+
+static gl_ctx_t gl_ctx;
+// ------------------------------------------------------------
+
+
 // ------------------------------------------------------------
 
 using namespace android;
@@ -253,6 +299,122 @@ int dtp_getDuration(JNIEnv *env, jobject obj)
     return dtPlayer->getDuration();
 }
 
+
+//-----------------------------------------------------
+//OPENGL ESV2
+
+static void check_gl_error(const char* op)
+{
+	GLint error;
+	for (error = glGetError(); error; error = glGetError())
+		__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG,"after %s() glError (0x%x)\n", op, error);
+}
+
+int dtp_onSurfaceCreated(JNIEnv *env, jobject obj)
+{
+    //glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+    memset(&gl_ctx,0,sizeof(gl_ctx_t));
+    dt_lock_init (&gl_ctx.mutex, NULL);
+    return 0;
+}
+
+int dtp_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
+{
+    dt_lock(&gl_ctx.mutex);
+    
+	__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged, w:%d h:%d \n",w,h);
+    //realloc frame buffer
+    gl_ctx.width = w;
+	gl_ctx.height = h;
+	gl_ctx.frame_size = w*h*2;
+    if(gl_ctx.frame)
+        free(gl_ctx.frame);
+	gl_ctx.frame = (uint16_t *)malloc(gl_ctx.frame_size); // rgb565
+	if(gl_ctx.frame == NULL)
+    {
+	    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged, size:%d malloc failed \n",gl_ctx.frame_size);
+        gl_ctx.frame = NULL;
+	    //goto END;
+    }
+    gl_ctx.status = GLRENDER_STATUS_RUNNING;
+
+	glDeleteTextures(1, &gl_ctx.s_texture);
+	GLuint *start = s_disable_caps;
+	while (*start)
+		glDisable(*start++);
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &gl_ctx.s_texture);
+	glBindTexture(GL_TEXTURE_2D, gl_ctx.s_texture);
+	glTexParameterf(GL_TEXTURE_2D,
+			GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D,
+			GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glShadeModel(GL_FLAT);
+	check_gl_error("glShadeModel");
+	glColor4x(0x10000, 0x10000, 0x10000, 0x10000);
+	check_gl_error("glColor4x");
+	//int rect[4] = {0, TEXTURE_HEIGHT, TEXTURE_WIDTH, -TEXTURE_HEIGHT};
+	int rect[4] = {0, h, w, -h};
+	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_CROP_RECT_OES, rect);
+	check_gl_error("glTexParameteriv");
+
+	__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged ok\n");
+END:
+    dt_unlock(&gl_ctx.mutex);
+    return 0;
+}
+
+static int update_pixel_test()
+{
+    uint16_t *pixels = gl_ctx.frame;
+    int x, y;
+    int s_x = 50;
+    int s_y = 100;
+    memset(pixels, 0, 320*240*2);
+	/* fill in a square of 5 x 5 at s_x, s_y */
+	for (y = s_y; y < s_y + 5; y++) {
+		for (x = s_x; x < s_x + 5; x++) {
+			int idx = x + y * gl_ctx.width;
+			pixels[idx++] = RGB565(31, 31, 0);
+		}
+	}
+}
+
+int dtp_onDrawFrame(JNIEnv *env, jobject obj)
+{
+    dt_lock(&gl_ctx.mutex);
+
+    if(gl_ctx.status == GLRENDER_STATUS_IDLE)
+        goto END;
+    if(!gl_ctx.frame)
+        goto END;
+    
+    //if(gl_ctx.invalid_frame == 0)
+    //    goto END;
+
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "start disp frame\n");
+	
+    update_pixel_test();
+	glTexImage2D(GL_TEXTURE_2D,		/* target */
+			0,			/* level */
+			GL_RGB,			/* internal format */
+			gl_ctx.width,		/* width */
+			gl_ctx.height,		/* height */
+			0,			/* border */
+			GL_RGB,			/* format */
+			GL_UNSIGNED_SHORT_5_6_5,/* type */
+			gl_ctx.frame);		/* pixels */
+	glDrawTexiOES(0, 0, 0, gl_ctx.width, gl_ctx.height);
+    gl_ctx.invalid_frame = 0;
+
+END:
+    //glClear(GL_COLOR_BUFFER_BIT);
+    dt_unlock(&gl_ctx.mutex);
+    return 0;
+}
+
+//-----------------------------------------------------
+
 static JNINativeMethod g_Methods[] = {
     //New API
     {"native_setDataSource",      "(Ljava/lang/String;)I",    (void*) dtp_setDataSource},
@@ -268,6 +430,10 @@ static JNINativeMethod g_Methods[] = {
     {"native_isPlaying",          "()I",                      (void*) dtp_isPlaying},
     {"native_getCurrentPosition", "()I",                      (void*) dtp_getCurrentPosition},
     {"native_getDuration",        "()I",                      (void*) dtp_getDuration},
+    
+    {"native_onSurfaceCreated",   "()I",                      (void*) dtp_onSurfaceCreated},
+    {"native_onSurfaceChanged",   "(II)I",                    (void*) dtp_onSurfaceChanged},
+    {"native_onDrawFrame",        "()I",                      (void*) dtp_onDrawFrame},
 };
 
 static int register_android_dtplayer(JNIEnv *env)

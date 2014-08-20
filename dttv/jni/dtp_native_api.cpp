@@ -22,7 +22,6 @@ extern int Notify(int status);
 namespace android {
 
 static player_state_t dtp_state;
-extern "C" int updateState(player_state_t *state);
 
 int DTPlayer::status = 0;
 int DTPlayer::mCurrentPosition = -1;

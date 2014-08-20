@@ -6,17 +6,19 @@ import java.util.TimerTask;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
-import dttv.app.widget.GlVideoView;
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
-import android.opengl.EGLConfig;
+import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -46,22 +48,58 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 	private ImageButton preBtn,nextBtn,pauseBtn;
 	private SeekBar playerProgressBar;
 	private GlVideoView glSurfaceView;
-	private long[] ids;
 	private int seek_flag = 0;
+	@SuppressLint("ShowToast")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
-		super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState);		
 		setContentView(R.layout.video_play);
 		dtPlayer = new DtPlayer(this);
+		
+		if(OpenglES2Support() == 0)
+		{
+			Toast.makeText(this, "opengl es2.0 not supported", 1).show();
+			return;
+		}
+		else
+		{
+			//opengl
+			glSurfaceView = (GlVideoView)findViewById(R.id.glvideo_view);
+			glSurfaceView.setRenderer(new GLSurfaceViewRender());
+	        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+	        //glSurfaceView.setOnTouchListener((OnTouchListener) this);
+		}
+
 		initExtraData();
 		initView();
 		initListener();
 	}
 	
+	private int OpenglES2Support()
+	{
+		ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
+ 
+	    boolean supportsEs2 = configurationInfo.reqGlEsVersion >= 0x20000 || isProbablyEmulator();	 
+	    if(supportsEs2)
+	    	return 1;
+	    else
+	    	return 0;
+	}
+	
+	private boolean isProbablyEmulator() {
+	    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1
+	            && (Build.FINGERPRINT.startsWith("generic")
+	                    || Build.FINGERPRINT.startsWith("unknown")
+	                    || Build.MODEL.contains("google_sdk")
+	                    || Build.MODEL.contains("Emulator")
+	                    || Build.MODEL.contains("Android SDK built for x86"));
+	}
+	
+	@SuppressLint("ShowToast")
 	private void initExtraData(){
 		Intent intent = getIntent();
-		int ret = 0;
 		mPath = intent.getStringExtra(Constant.FILE_MSG);
 		Toast.makeText(this, "mPath is:"+mPath, 1).show();
 		try {
@@ -94,12 +132,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 		pauseBtn = (ImageButton)mBarView.findViewById(R.id.dt_play_pause_btn);
 		nextBtn = (ImageButton)mBarView.findViewById(R.id.dt_play_next_btn);
 		playerProgressBar = (SeekBar)mBarView.findViewById(R.id.dt_play_progress_seekbar);
-		
-		//opengl
-		glSurfaceView = (GlVideoView)findViewById(R.id.glvideo_view);
-		glSurfaceView.setRenderer(new GLSurfaceViewRender());
-        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        //glSurfaceView.setOnTouchListener((OnTouchListener) this);
 	}
 	
 	private void initListener(){
@@ -164,15 +196,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 		
 	}
 	
-	@Override
-	protected void onResume() {
-		// TODO Auto-generated method stub
-		super.onResume();
-		if(dtPlayer!=null){
-			//dtPlayer.pause();
-		}
-	}
-	
 	
 	Handler doActionHandler = new Handler(Looper.getMainLooper()){
 		public void handleMessage(android.os.Message msg) {
@@ -223,11 +246,17 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
     public void onPause()
     {
     	releaseTimerAndHandler();
+    	glSurfaceView.onPause();
     	dtPlayer.pause();
         super.onPause();
         Log.d(TAG,"--PAUSE--");    
     }
 	
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //glSurfaceView.onResume();
+    }
 	
 	@Override
 	protected void onStop() {
@@ -279,32 +308,35 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 	//---------------------------OPENGL------------------------------//
 	
 	class GLSurfaceViewRender implements GLSurfaceView.Renderer {  
-		public void onSurfaceCreated(GL10 gl, EGLConfig config) {  
-            Log.i(TAG, "onSurfaceCreated");
-            // 设置背景颜色 - load backgroud picture 
-            //gl.glClearColor(0.0f, 0f, 1f, 0.5f);
-        }  
   
+		@Override
+		public void onSurfaceCreated(GL10 gl,
+				javax.microedition.khronos.egl.EGLConfig config) {
+			// TODO Auto-generated method stub
+			Log.i(TAG, "gl create enter");			
+			//gl.glClearColor(0.0f, 0f, 1f, 0.5f); // display blue at first
+			//gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+			dtPlayer.onSurfaceCreated();
+			
+		}  
+		
         @Override  
-        public void onSurfaceChanged(GL10 gl, int width, int height) {  
+        public void onSurfaceChanged(GL10 gl, int width, int height) {
             //other case
+        	Log.i(TAG, "gl surface change enter, width:"+width+" height:"+height);
+        	dtPlayer.onSurfaceChanged(width,height);
         }
   
         @Override  
-        public void onDrawFrame(GL10 gl) {  
+        public void onDrawFrame(GL10 gl) {
             //Log.i(TAG, "onDrawFrame");  
             // 清除屏幕和深度缓存(如果不调用该代码, 将不显示glClearColor设置的颜色)  
             // 同样如果将该代码放到 onSurfaceCreated 中屏幕会一直闪动  
             //gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-        	Log.i(TAG, "draw enter");
+        	//Log.i(TAG, "draw enter");
+        	dtPlayer.onDrawFrame();
         }
-
-		@Override
-		public void onSurfaceCreated(GL10 arg0,
-				javax.microedition.khronos.egl.EGLConfig arg1) {
-			// TODO Auto-generated method stub
-			
-		}  
+		
   
     }  
 	

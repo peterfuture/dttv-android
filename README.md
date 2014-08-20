@@ -52,10 +52,10 @@ dttv/jni/libs/libdtp.so --> build from https://github.com/peterfuture/dtplayer_c
 [comments] no need user to update
 
 
-Test
+Todo
 ========
 
-...
+https://trello.com/b/92mZZ7u6/dttv-android
 
 [Help]
 =========

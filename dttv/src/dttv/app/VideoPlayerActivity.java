@@ -49,14 +49,27 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 	private SeekBar playerProgressBar;
 	private GlVideoView glSurfaceView;
 	private int seek_flag = 0;
+	
+	private static final int PLAYER_IDLE = 0x0;
+	private static final int PLAYER_INITING = 0x1;
+	private static final int PLAYER_PREPARED = 0x2;
+	private static final int PLAYER_RUNNING = 0x3;
+	private static final int PLAYER_PAUSED = 0x4;
+	private static final int PLAYER_BUFFERING = 0x5;
+	private static final int PLAYER_SEEKING = 0x6;
+	
+	private static final int PLAYER_STOP = 0x100;
+	private static final int PLAYER_EXIT = 0x101;
+	private int mState = PLAYER_IDLE;
+	
 	@SuppressLint("ShowToast")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);		
 		setContentView(R.layout.video_play);
+		mState = PLAYER_IDLE;		
 		dtPlayer = new DtPlayer(this);
-		
 		if(OpenglES2Support() == 0)
 		{
 			Toast.makeText(this, "opengl es2.0 not supported", 1).show();
@@ -103,8 +116,10 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 		mPath = intent.getStringExtra(Constant.FILE_MSG);
 		Toast.makeText(this, "mPath is:"+mPath, 1).show();
 		try {
+			mState = PLAYER_INITING;
 			if(dtPlayer.setDataSource(mPath) == -1)
 			{
+				mState = PLAYER_IDLE;
 				return;
 			}
 			dtPlayer.prepare();
@@ -148,7 +163,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 		public void onPrepared(DtPlayer mp) {
 			// TODO Auto-generated method stub
 			Log.i(Constant.LOGTAG, "enter onPrepared");
+			mState = PLAYER_PREPARED;
 			dtPlayer.start();
+			mState = PLAYER_RUNNING;
 			int duration = mp.getDuration();
             if(duration>0){
             	totalTimeTxt.setText(TimesUtil.getTime(duration));
@@ -162,7 +179,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 		@Override
 		public void onCompletion(DtPlayer mp) {
 			// TODO Auto-generated method stub
-			
+			mState = PLAYER_EXIT;
 		}
 	}
 	
@@ -188,6 +205,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 		@Override
 		public void onStopTrackingTouch(SeekBar seekBar) {
 			// TODO Auto-generated method stub
+			mState = PLAYER_SEEKING;
 			int currentTime = seekBar.getProgress();
 			dtPlayer.seekTo(currentTime);
 			dtPlayer.start();
@@ -249,7 +267,11 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
     	glSurfaceView.onPause();
     	dtPlayer.pause();
         super.onPause();
-        Log.d(TAG,"--PAUSE--");    
+        if(mState == PLAYER_PAUSED)
+        	mState = PLAYER_RUNNING;
+        if(mState == PLAYER_RUNNING)
+        	mState = PLAYER_PAUSED;
+        Log.d(TAG,"--PAUSE--");
     }
 	
     @Override
@@ -261,6 +283,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 	@Override
 	protected void onStop() {
 		// TODO Auto-generated method stub
+		mState = PLAYER_STOP;
 		dtPlayer.release();
 		super.onStop();
 	}

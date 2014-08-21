@@ -12,24 +12,24 @@ extern vo_wrapper_t vo_android_ops;
 
 //vo_wrapper_t vo_ex_ops;
 
-static int vo_ex_init ()
+static int vo_ex_init (dtvideo_output_t *vout)
 {
     int ret = 0;
-    ret = vo_android_ops.vo_init();
+    ret = vo_android_ops.vo_init(vout);
     return ret;
 }
 
-static int vo_ex_render (AVPicture_t * pict)
+static int vo_ex_render (dtvideo_output_t *vout,AVPicture_t * pict)
 {
     int ret = 0;
-    ret = vo_android_ops.vo_render(pict);
+    ret = vo_android_ops.vo_render(vout,pict);
     return ret;
 }
 
-static int vo_ex_stop ()
+static int vo_ex_stop (dtvideo_output_t *vout)
 {
     int ret = 0;
-    ret = vo_android_ops.vo_stop();
+    ret = vo_android_ops.vo_stop(vout);
     return ret;
 }
 

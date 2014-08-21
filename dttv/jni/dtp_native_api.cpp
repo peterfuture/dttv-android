@@ -264,20 +264,37 @@ int DTPlayer::reset()
     return 0;
 }
 
-int DTPlayer::getVideoWidth()
+int DTPlayer::setVideoSize(int w, int h)
 {
     void *handle = mDtpHandle;
     if(!handle)
         return -1;
-    return -1; 
+    dtplayer_set_video_size(handle, w, h);
+    return 0;
+}
+
+int DTPlayer::getVideoWidth()
+{
+    void *handle = mDtpHandle;
+    vstream_info_t *vstream = NULL;
+    if(!handle)
+        return -1;
+    if (media_info.vst_num == 0)
+        return -1;
+    vstream = media_info.vstreams[0];
+    return vstream->width;
 }
 
 int DTPlayer::getVideoHeight()
 {
     void *handle = mDtpHandle;
+    vstream_info_t *vstream = NULL;
     if(!handle)
         return -1;
-    return -1; 
+    if (media_info.vst_num == 0)
+        return -1;
+    vstream = media_info.vstreams[0];
+    return vstream->height;
 }
 
 int DTPlayer::isPlaying()

@@ -264,6 +264,14 @@ void dtp_releaseSurface(JNIEnv *env, jobject obj)
 
 }
 
+int dtp_setVideoSize(JNIEnv *env, jobject obj, int w, int h)
+{
+    if(!dtPlayer)
+        return -1;
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setVideoSize, w:%d h:%d \n ",w,h);
+    dtPlayer->setVideoSize(w, h);
+}
+
 int dtp_getVideoWidth(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
@@ -358,7 +366,13 @@ int dtp_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
 	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_CROP_RECT_OES, rect);
 	check_gl_error("glTexParameteriv");
 
-	__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged ok\n");
+    gl_ctx.status = GLRENDER_STATUS_RUNNING;
+
+    //dtPlayer->setVideoSize(w,h);//do not resize here
+
+    glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged ok\n");
 END:
     dt_unlock(&gl_ctx.mutex);
     return 0;
@@ -382,14 +396,21 @@ static int update_pixel_test()
 
 extern "C" int update_frame(uint8_t *buf,int size)
 {
+    int cp_size = size;
     if(size > gl_ctx.frame_size)
     {
         __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame,in size:%d larger than out size:%d  \n",gl_ctx.frame_size,gl_ctx.frame_size);
         return 0;
     }
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, size:%d \n",gl_ctx.frame_size);
+    if(!gl_ctx.frame) // buf not ready
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, buf not ready\n");
+        return 0;
+    }
     dt_lock (&gl_ctx.mutex);
-    memcpy((uint8_t *)gl_ctx.frame,buf,gl_ctx.frame_size);
+    cp_size = (size < gl_ctx.frame_size)?size:gl_ctx.frame_size;
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, cpsize:%d size:%d bufsize:%d \n",cp_size,size,gl_ctx.frame_size);
+    memcpy((uint8_t *)gl_ctx.frame,buf,cp_size);
     gl_ctx.invalid_frame = 1;
     dt_unlock (&gl_ctx.mutex);
 }
@@ -437,6 +458,7 @@ static JNINativeMethod g_Methods[] = {
     {"native_seekTo",             "(I)I",                     (void*) dtp_seekTo},
     {"native_stop",               "()I",                      (void*) dtp_stop},
     {"native_reset",              "()I",                      (void*) dtp_reset},
+    {"native_setVideoSize",       "(II)I",                    (void*) dtp_setVideoSize},
     {"native_getVideoWidth",      "()I",                      (void*) dtp_getVideoWidth},
     {"native_getVideoHeight",     "()I",                      (void*) dtp_getVideoHeight},
     {"native_isPlaying",          "()I",                      (void*) dtp_isPlaying},

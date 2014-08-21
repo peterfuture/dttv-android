@@ -6,6 +6,10 @@
 #define FALSE 0
 #define  MIN(x,y)       ((x)<(y)?(x):(y))
 #define  MAX(x,y)       ((x)>(y)?(x):(y))
+
+//#define DT_NOPTS_VALUE          ((int64_t)UINT64_C(0x8000000000000000)) // FROM FFMPEG
+#define DT_NOPTS_VALUE          (-1)
+
 /*PLAYER*/
 #define FILE_NAME_MAX_LENGTH 1024
 #define DT_PTS_FREQ    90000

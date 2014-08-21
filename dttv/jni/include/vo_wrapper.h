@@ -8,14 +8,17 @@
 #include <unistd.h>
 #include <string.h>
 
+//declare
+struct dtvideo_output;
+
 typedef struct vo_wrapper
 {
     int id;
     char *name;
 
-    int (*vo_init) ();
-    int (*vo_stop) ();
-    int (*vo_render) (AVPicture_t * pic);
+    int (*vo_init) (struct dtvideo_output *vout);
+    int (*vo_stop) (struct dtvideo_output *vout);
+    int (*vo_render) (struct dtvideo_output *vout,AVPicture_t * pic);
     void *handle;
     struct vo_wrapper *next;
     void *vo_priv;

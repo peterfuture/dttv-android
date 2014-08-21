@@ -617,6 +617,18 @@ public class DtPlayer {
 		return native_isPlaying() ==1 ? true :false;
 	}
 	
+	public int setVideoSize(int w, int h){
+		return native_setVideoSize(w,h);
+	}
+	
+	public int getVideoWidth(){
+		return native_getVideoWidth();
+	}
+	
+	public int getVideoHeight(){
+		return native_getVideoHeight();
+	}
+	
 	//----------------------------------
 	//OPENGL-ESV2
 	public int onSurfaceCreated()
@@ -650,6 +662,7 @@ public class DtPlayer {
 	public native int native_stop() throws IllegalStateException;
 	public native int native_pause() throws IllegalStateException;
 	public native int native_reset();
+	public native int native_setVideoSize(int w, int h); 
 	public native int native_getVideoWidth();
 	public native int native_getVideoHeight(); 
 	public native int native_isPlaying();

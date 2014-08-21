@@ -35,6 +35,7 @@ public:
     int stop();
     int release();
     int reset();
+    int setVideoSize(int w, int h);
     int getVideoHeight();
     int getVideoWidth();
     int isPlaying();

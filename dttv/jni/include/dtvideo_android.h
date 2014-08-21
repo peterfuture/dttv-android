@@ -3,6 +3,8 @@
 #define DTVIDEO_ANDROID_H
 
 #include <stdint.h>
+#include "vo_wrapper.h"
+#if 0
 /* AVPicture_t is wrapper of AVPicture */
 typedef struct _AVPicture_t_
 {
@@ -27,5 +29,5 @@ typedef struct vo_wrapper
     struct vo_wrapper *next;
     void *vo_priv;
 } vo_wrapper_t;
-
+#endif
 #endif

@@ -85,6 +85,18 @@ void *dtplayer_init (dtplayer_para_t * para);
 int dtplayer_get_mediainfo (void *handle, dt_media_info_t *info);
 
 /*
+ * set Video Size: 
+ *
+ * @param handle - dtplayer handle
+ * @param width  - dst width
+ * @param height - dst height
+ * @return ret - 0 success , negtive failed
+ * 
+ * */
+int dtplayer_set_video_size (void *handle, int w, int h);
+
+
+/*
  * start playing:
  * data fill loop 
  * decode-render process

@@ -19,6 +19,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -121,6 +122,19 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 			{
 				mState = PLAYER_IDLE;
 				return;
+			}
+			//here to set video size
+			int width = dtPlayer.getVideoWidth();
+			int height = dtPlayer.getVideoHeight();
+			Log.d(TAG,"--width:"+width+"  height:"+height);
+			if(width > 0 && height > 0 && width <= 1920 && height <= 1080)
+			{
+				ViewGroup.LayoutParams layoutParams=glSurfaceView.getLayoutParams();
+				layoutParams.width=width;
+				layoutParams.height=height;
+				glSurfaceView.setLayoutParams(layoutParams);
+				
+				dtPlayer.setVideoSize(width,height);
 			}
 			dtPlayer.prepare();
 		} catch (IllegalArgumentException e) {

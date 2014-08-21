@@ -47,7 +47,7 @@ static void SaveFrame (AVPicture_t * pFrame, int width, int height, int iFrame)
     fclose (pFile);
 }
 
-static int vo_android_init ()
+static int vo_android_init (dtvideo_output_t *vout)
 {
     vo_wrapper_t *wrap = &vo_android_ops;
     wrap->handle = (void *)&vo_android_ctx;
@@ -56,13 +56,16 @@ static int vo_android_init ()
     //get w h from activity
     //vo_android_ctx.dw = getActivityWidth();
     //vo_android_ctx.dh = getActivityHeight();
+    
+    vo_android_ctx.dw = vout->para.d_width;
+    vo_android_ctx.dh = vout->para.d_height;
 
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "android vo init OK, width:%d height:%d \n",vo_android_ctx.dw, vo_android_ctx.dh);
 
     return 0;
 }
 
-static int vo_android_render (AVPicture_t * pict)
+static int vo_android_render (dtvideo_output_t *vout,AVPicture_t * pict)
 {
     vo_wrapper_t *wrap = &vo_android_ops;
     vo_android_ctx_t *ctx = (vo_android_ctx_t *)wrap->handle;
@@ -74,7 +77,7 @@ static int vo_android_render (AVPicture_t * pict)
     return 0;
 }
 
-static int vo_android_stop ()
+static int vo_android_stop (dtvideo_output_t *vout)
 {
     vo_wrapper_t *wrap = &vo_android_ops;
     vo_android_ctx_t *ctx = (vo_android_ctx_t *)wrap->handle;

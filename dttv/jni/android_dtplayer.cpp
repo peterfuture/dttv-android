@@ -380,6 +380,20 @@ static int update_pixel_test()
 	}
 }
 
+extern "C" int update_frame(uint8_t *buf,int size)
+{
+    if(size > gl_ctx.frame_size)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame,in size:%d larger than out size:%d  \n",gl_ctx.frame_size,gl_ctx.frame_size);
+        return 0;
+    }
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, size:%d \n",gl_ctx.frame_size);
+    dt_lock (&gl_ctx.mutex);
+    memcpy((uint8_t *)gl_ctx.frame,buf,gl_ctx.frame_size);
+    gl_ctx.invalid_frame = 1;
+    dt_unlock (&gl_ctx.mutex);
+}
+
 int dtp_onDrawFrame(JNIEnv *env, jobject obj)
 {
     dt_lock(&gl_ctx.mutex);
@@ -389,12 +403,10 @@ int dtp_onDrawFrame(JNIEnv *env, jobject obj)
     if(!gl_ctx.frame)
         goto END;
     
-    //if(gl_ctx.invalid_frame == 0)
-    //    goto END;
+    if(gl_ctx.invalid_frame == 0)
+        goto END;
 
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "start disp frame\n");
-	
-    update_pixel_test();
+    //update_pixel_test();
 	glTexImage2D(GL_TEXTURE_2D,		/* target */
 			0,			/* level */
 			GL_RGB,			/* internal format */

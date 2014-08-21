@@ -399,14 +399,4 @@ END:
 	return ret;
 }
 
-extern "C"{
-
-int update_frame(uint8_t *buf, int size)
-{
-    return 0;
-}
-
-
-}
-
 } // end namespace android

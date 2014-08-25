@@ -6,16 +6,16 @@
     android:orientation="vertical" >
     
     <LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:gravity="center" >
 
  		<dttv.app.widget.GlVideoView
  		    android:id="@+id/glvideo_view"
  		    style="@style/AppTheme"
  		    android:layout_width="match_parent"
  		    android:layout_height="match_parent"
- 		    android:layout_gravity="center"
- 		    android:gravity="center" />
+ 		     />
 
 	</LinearLayout>
 	

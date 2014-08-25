@@ -15,6 +15,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -22,6 +23,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.ImageButton;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -38,6 +40,12 @@ public class PlayActivity extends Activity implements OnClickListener, OnTouchLi
     private final int PLAYER_STATUS_RUNNING=1;
     private final int PLAYER_STATUS_PAUSED=2;
     private final int PLAYER_STATUS_QUIT=3;
+    
+    private final int SCREEN_169value = 0;
+    private final int SCREEN_43value = 1;
+    private final int SCREEN_ORIGINAL = 2;
+    private final int SCREEN_FULLSCREEN = 3;
+    private final int SCREEN_NORMALSCALE = 4;
     
     private boolean isEnableTime = false;
     
@@ -63,8 +71,9 @@ public class PlayActivity extends Activity implements OnClickListener, OnTouchLi
 	private GlVideoView glSurfaceView;
 	private SeekBar playerBar;
 	private TextView currentTimeTxt,totalTimeTxt;
-	private ImageButton pauseBtn,nextBtn,preBtn;
+	private ImageButton pauseBtn,nextBtn,preBtn,ratioBtn;
 	private RelativeLayout opreateLay;
+	private int screenHeight,screenWidth;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -96,13 +105,20 @@ public class PlayActivity extends Activity implements OnClickListener, OnTouchLi
 		pauseBtn = (ImageButton)findViewById(R.id.dt_play_pause_btn);
 		nextBtn = (ImageButton)findViewById(R.id.dt_play_next_btn);
 		preBtn = (ImageButton)findViewById(R.id.dt_play_prev_btn);
+		ratioBtn = (ImageButton)findViewById(R.id.dt_play_ratio_btn);
 		opreateLay = (RelativeLayout)findViewById(R.id.dt_play_bar_lay);
+		
+		DisplayMetrics dm = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(dm);
+		screenHeight = dm.heightPixels;
+		screenWidth = dm.widthPixels;
 	}
 	
 	private void initListener(){
 		pauseBtn.setOnClickListener(this);
 		nextBtn.setOnClickListener(this);
 		preBtn.setOnClickListener(this);
+		ratioBtn.setOnClickListener(this);
 		playerBar.setOnSeekBarChangeListener(new SeekChangeListener());
 	}
 	
@@ -228,6 +244,7 @@ public class PlayActivity extends Activity implements OnClickListener, OnTouchLi
                 Log.i(TAG, "surface changed, start play:"+strFileName);  
                 native_ui_init(surface_width,surface_height); 
                 native_playerStart(strFileName);
+                setVideoScale(temp_flag);
                 playerStatus = PLAYER_STATUS_RUNNING;
             }
             startTimerTask();
@@ -264,6 +281,9 @@ public class PlayActivity extends Activity implements OnClickListener, OnTouchLi
 			break;
 		case R.id.dt_play_next_btn:
 			break;
+		case R.id.dt_play_ratio_btn:
+			setVideoScale(temp_flag);
+			break;
 		}
 	}
 	
@@ -290,5 +310,59 @@ public class PlayActivity extends Activity implements OnClickListener, OnTouchLi
 		doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_OPREATE_BAR_MSG, 5*Constant.REFRESH_TIME);
 		return false;
 	}
-
+	
+	private int temp_flag = 2;
+	private void setVideoScale(int flag){
+		temp_flag ++;
+		flag = temp_flag % 5;
+		LayoutParams lp = (LayoutParams) glSurfaceView.getLayoutParams();
+		switch(flag){
+		case SCREEN_169value:
+			if(screenWidth * 9 > screenHeight * 16){
+				lp.height = screenHeight;
+				lp.width = screenHeight*16/9;
+			}else{
+				lp.height = screenWidth *9/16;
+				lp.width = screenWidth;
+			}
+			break;
+		case SCREEN_43value:
+			if(screenWidth*3 > screenHeight*4){
+				lp.height = screenHeight;
+				lp.width = screenWidth * 4 /3;
+			}else{
+				lp.height = screenWidth * 3/4;
+				lp.width = screenWidth;
+			}
+			break;
+		case SCREEN_ORIGINAL:
+			lp.width = surface_width;
+			lp.height = surface_height;
+			break;
+		case SCREEN_FULLSCREEN:
+			lp.width = screenWidth;
+			lp.height = screenHeight;
+			break;
+		case SCREEN_NORMALSCALE:
+			lp.width = screenWidth;
+			lp.height = screenHeight;
+			int temp_width = 0;
+			int temp_height = 0;
+			if(surface_width > 0){
+				if(lp.width/surface_width > lp.height/surface_height){
+					temp_width = (int)surface_width *lp.height/surface_height;
+					temp_height = lp.height;
+				}else{
+					temp_width = lp.width;
+					temp_height = surface_height * lp.width/surface_width;
+				}
+			}else{
+				
+			}
+			lp.width = temp_width;
+			lp.height = temp_height;
+			break;
+		}
+		glSurfaceView.setLayoutParams(lp);
+	}
 }

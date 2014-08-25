@@ -54,7 +54,7 @@ static void audioCallback(int event, void* user, void *info)
     return;
 }
 
-static int android_audio_init(dtaudio_para_t *para)
+static int android_audio_init(dtaudio_output_t *aout, dtaudio_para_t *para)
 {
 	int ret = 0;
 	status_t status;
@@ -122,7 +122,7 @@ FAIL:
 	return ret;
 }
 
-static int android_audio_pause()
+static int android_audio_pause(dtaudio_output_t *aout)
 {
 	__android_log_print(ANDROID_LOG_DEBUG,TAG,"android out pause");
 
@@ -132,7 +132,7 @@ static int android_audio_pause()
    	return 0;
 }
 
-static int android_audio_resume()
+static int android_audio_resume(dtaudio_output_t *aout)
 {
 	__android_log_print(ANDROID_LOG_DEBUG,TAG,"android out pause");
 
@@ -142,19 +142,19 @@ static int android_audio_resume()
 	return 0;
 }
 
-static int android_audio_play(uint8_t * buf, int size)
+static int android_audio_play(dtaudio_output_t *aout, uint8_t * buf, int size)
 {
 	android_ao_ctx_t *ctx = (android_ao_ctx_t *)wrapper->ao_priv;
 	return buf_put(&ctx->dbt,buf,size);
 }
 
-static int android_audio_level()
+static int android_audio_level(dtaudio_output_t *aout)
 {
 	android_ao_ctx_t *ctx = (android_ao_ctx_t *)wrapper->ao_priv;
     return ctx->dbt.level;
 }
 
-static int64_t android_audio_latency()
+static int64_t android_audio_latency(dtaudio_output_t *aout)
 {
 	android_ao_ctx_t *ctx = (android_ao_ctx_t *)wrapper->ao_priv;
     if(ctx->sptrack == 0)
@@ -172,7 +172,7 @@ static int64_t android_audio_latency()
 	return latency;
 }
 
-static int android_audio_stop()
+static int android_audio_stop(dtaudio_output_t *aout)
 {
 	if(wrapper->ao_priv)
 	{

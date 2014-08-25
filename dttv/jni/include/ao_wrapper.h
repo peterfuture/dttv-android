@@ -9,20 +9,22 @@
 #include <stdint.h>
 #include <string.h>
 
+struct dtaudio_output;
+
 typedef struct ao_wrapper
 {
     int id;
     char *name;
     dtaudio_para_t para;
     
-    int (*ao_init) (dtaudio_para_t *para);
-    int (*ao_start) ();
-    int (*ao_pause) ();
-    int (*ao_resume) ();
-    int (*ao_stop) ();
-    int64_t (*ao_latency) ();
-    int (*ao_level) ();
-    int (*ao_write) (uint8_t * buf, int size);
+    int (*ao_init) (struct dtaudio_output *aout, dtaudio_para_t *para);
+    int (*ao_start) (struct dtaudio_output *aout);
+    int (*ao_pause) (struct dtaudio_output *aout);
+    int (*ao_resume) (struct dtaudio_output *aout);
+    int (*ao_stop) (struct dtaudio_output *aout);
+    int64_t (*ao_latency) (struct dtaudio_output *aout);
+    int (*ao_level) (struct dtaudio_output *aout);
+    int (*ao_write) (struct dtaudio_output *aout, uint8_t * buf, int size);
     struct ao_wrapper *next;
     void *ao_priv;
 } ao_wrapper_t;

@@ -16,7 +16,7 @@ typedef enum
 typedef struct vd_wrapper
 {
     char *name;
-    video_format_t vfmt;        // not used, for ffmpeg
+    dtvideo_format_t vfmt;        // not used, for ffmpeg
     int type;
 
     int (*init) (struct vd_wrapper *wrapper, void *parent);

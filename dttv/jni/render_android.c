@@ -46,53 +46,53 @@ vo_wrapper_t vo_ex_ops = {
 /*---------------------------------------------------------- */
 extern ao_wrapper_t ao_android_ops;
 
-static int ao_ex_init (dtaudio_para_t *para)
+static int ao_ex_init (dtaudio_output_t *aout, dtaudio_para_t *para)
 {
     int ret = 0;
-    ret = ao_android_ops.ao_init(para);
+    ret = ao_android_ops.ao_init(aout, para);
     __android_log_print(ANDROID_LOG_INFO, TAG, "AO Render Init OK");
     return ret;
 }
 
-static int ao_ex_play (uint8_t * buf, int size)
+static int ao_ex_play (dtaudio_output_t *aout, uint8_t * buf, int size)
 {
     int ret = 0;
-    ret = ao_android_ops.ao_write(buf,size);
+    ret = ao_android_ops.ao_write(aout, buf,size);
     return ret;
 }
 
-static int ao_ex_pause ()
+static int ao_ex_pause (dtaudio_output_t *aout)
 {
     int ret = 0;
-    ret = ao_android_ops.ao_pause();
+    ret = ao_android_ops.ao_pause(aout);
     return ret;
 }
 
-static int ao_ex_resume ()
+static int ao_ex_resume (dtaudio_output_t *aout)
 {
     int ret = 0;
-    ret = ao_android_ops.ao_resume();
+    ret = ao_android_ops.ao_resume(aout);
     return ret;
 }
 
-static int ao_ex_level()
+static int ao_ex_level(dtaudio_output_t *aout)
 {
     int ret = 0;
-    ret = ao_android_ops.ao_level();
+    ret = ao_android_ops.ao_level(aout);
     return ret;
 }
 
-static int64_t ao_ex_get_latency ()
+static int64_t ao_ex_get_latency (dtaudio_output_t *aout)
 {
     int ret = 0;
-    ret = ao_android_ops.ao_latency();
+    ret = ao_android_ops.ao_latency(aout);
     return ret;
 }
 
-static int ao_ex_stop ()
+static int ao_ex_stop (dtaudio_output_t *aout)
 {
     int ret = 0;
-    ret = ao_android_ops.ao_stop();
+    ret = ao_android_ops.ao_stop(aout);
     return ret;
 }
 

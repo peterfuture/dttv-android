@@ -30,7 +30,7 @@ typedef struct
     dtratio time_base;
     int extradata_size;
     uint8_t *extradata;
-    video_format_t format;
+    dtvideo_format_t format;
     void *codec_priv;
 } vstream_info_t;
 
@@ -46,7 +46,7 @@ typedef struct
     dtratio time_base;
     int extradata_size;
     uint8_t *extradata;
-    audio_format_t format;
+    dtaudio_format_t format;
     void *codec_priv;
 } astream_info_t;
 
@@ -59,14 +59,14 @@ typedef struct
     int height;
     int extradata_size;
     uint8_t *extradata;
-    subtitle_format_t format;
+    dtsubtitle_format_t format;
     void *codec_priv;
 } sstream_info_t;
 
 typedef struct
 {
     char file_name[FILE_NAME_MAX_LENGTH];
-    media_format_t format;
+    dtmedia_format_t format;
     int64_t start_time;
     int64_t duration;
     int64_t file_size;

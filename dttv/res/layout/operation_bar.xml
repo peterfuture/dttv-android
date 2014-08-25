@@ -54,19 +54,26 @@
                 android:id="@+id/dt_play_prev_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:background="@drawable/btn_mu_pre" />
             <ImageButton
                 android:id="@+id/dt_play_pause_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="100dp"
+                android:layout_weight="1"
                 android:background="@drawable/btn_mu_pause" />
             <ImageButton
                 android:id="@+id/dt_play_next_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="100dp"
+                android:layout_weight="1"
                 android:background="@drawable/btn_mu_next" />
+            <ImageButton
+                android:id="@+id/dt_play_ratio_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/dt_player_control_ratio_normal" />
         </LinearLayout>
     </RelativeLayout>
 </RelativeLayout>

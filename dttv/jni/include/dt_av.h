@@ -235,6 +235,7 @@ typedef enum _AO_ID_
     AO_ID_OSS,
     AO_ID_DSOUND,
     AO_ID_ANDROID = 0x100,
+    AO_ID_OPENSL = 0x101,
     AO_ID_IOS = 0x200,
 } dtao_format_t;
 

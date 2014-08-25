@@ -65,6 +65,7 @@ typedef struct dtaudio_output
 
     uint64_t last_valid_latency;
     void *parent;               //point to dtaudio_t, can used for param of pcm get interface
+    void *ao_priv;
 }dtaudio_output_t;
 
 

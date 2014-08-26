@@ -9,7 +9,7 @@ include $(PREBUILT_SHARED_LIBRARY)
 ##############################################
 include $(CLEAR_VARS)
 LOCAL_MODULE    := dtp_jni
-LOCAL_SRC_FILES := dtp_native_api.cpp render_android.c ao_android.cpp vo_android.c ao_opensl.c
+LOCAL_SRC_FILES := dtp_native_api.cpp render_android.c vo_android.c 
 LOCAL_SRC_FILES += android_dtplayer.cpp
 
 LOCAL_CFLAGS += -D GL_GLEXT_PROTOTYPES
@@ -19,9 +19,11 @@ AO_OPENSL = yes
 AO_AUDIOTRACK = no
 ifeq ($(AO_OPENSL),yes)
 	LOCAL_CFLAGS += -D ENABLE_OPENSL
+	LOCAL_SRC_FILES += ao_opensl.c
 endif
 ifeq ($(AO_AUDIOTRACK),yes)
 	LOCAL_CFLAGS += -D ENABLE_AUDIOTRACK
+	LOCAL_SRC_FILES += ao_audiotrack.cpp
 endif
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
@@ -30,7 +32,7 @@ LOCAL_LDLIBS    := -llog -lz
 #android env
 LOCAL_C_INCLUDES += $(AOSP_TREE)/libnativehelper/include/     #runtime
 LOCAL_C_INCLUDES += $(AOSP_TREE)/frameworks/base/include/     #runtime
-LOCAL_C_INCLUDES += $(AOSP_TREE)/frameworks/av/include/       #media
+#LOCAL_C_INCLUDES += $(AOSP_TREE)/frameworks/av/include/       #media
 LOCAL_C_INCLUDES += $(AOSP_TREE)/system/core/include          #cutils
 LOCAL_C_INCLUDES += $(AOSP_TREE)/hardware/libhardware/include #hardware
 LOCAL_C_INCLUDES += $(AOSP_TREE)/frameworks/native/include    #utils

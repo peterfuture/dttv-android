@@ -44,12 +44,24 @@ vo_wrapper_t vo_ex_ops = {
 
 
 /*---------------------------------------------------------- */
+#ifdef ENABLE_AUDIOTRACK
 extern ao_wrapper_t ao_android_ops;
+#endif
+
+#ifdef ENABLE_OPENSL
+extern ao_wrapper_t ao_opensl_ops;
+#endif
 
 static int ao_ex_init (dtaudio_output_t *aout, dtaudio_para_t *para)
 {
     int ret = 0;
+#ifdef ENABLE_AUDIOTRACK
     ret = ao_android_ops.ao_init(aout, para);
+#endif
+
+#ifdef ENABLE_OPENSL
+    ret = ao_opensl_ops.ao_init(aout, para);
+#endif
     __android_log_print(ANDROID_LOG_INFO, TAG, "AO Render Init OK");
     return ret;
 }
@@ -57,42 +69,72 @@ static int ao_ex_init (dtaudio_output_t *aout, dtaudio_para_t *para)
 static int ao_ex_play (dtaudio_output_t *aout, uint8_t * buf, int size)
 {
     int ret = 0;
+#ifdef ENABLE_AUDIOTRACK
     ret = ao_android_ops.ao_write(aout, buf,size);
+#endif
+#ifdef ENABLE_OPENSL
+    ret = ao_opensl_ops.ao_write(aout, buf,size);
+#endif
     return ret;
 }
 
 static int ao_ex_pause (dtaudio_output_t *aout)
 {
     int ret = 0;
+#ifdef ENABLE_AUDIOTRACK
     ret = ao_android_ops.ao_pause(aout);
+#endif
+#ifdef ENABLE_OPENSL
+    ret = ao_opensl_ops.ao_pause(aout);
+#endif
     return ret;
 }
 
 static int ao_ex_resume (dtaudio_output_t *aout)
 {
     int ret = 0;
+#ifdef ENABLE_AUDIOTRACK
     ret = ao_android_ops.ao_resume(aout);
+#endif
+#ifdef ENABLE_OPENSL
+    ret = ao_opensl_ops.ao_resume(aout);
+#endif
     return ret;
 }
 
 static int ao_ex_level(dtaudio_output_t *aout)
 {
     int ret = 0;
+#ifdef ENABLE_AUDIOTRACK
     ret = ao_android_ops.ao_level(aout);
+#endif
+#ifdef ENABLE_OPENSL
+    ret = ao_opensl_ops.ao_level(aout);
+#endif
     return ret;
 }
 
 static int64_t ao_ex_get_latency (dtaudio_output_t *aout)
 {
     int ret = 0;
+#ifdef ENABLE_AUDIOTRACK
     ret = ao_android_ops.ao_latency(aout);
+#endif
+#ifdef ENABLE_OPENSL
+    ret = ao_opensl_ops.ao_latency(aout);
+#endif
     return ret;
 }
 
 static int ao_ex_stop (dtaudio_output_t *aout)
 {
     int ret = 0;
+#ifdef ENABLE_AUDIOTRACK
     ret = ao_android_ops.ao_stop(aout);
+#endif
+#ifdef ENABLE_OPENSL
+    ret = ao_opensl_ops.ao_stop(aout);
+#endif
     return ret;
 }
 

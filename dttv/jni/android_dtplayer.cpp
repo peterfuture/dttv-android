@@ -370,7 +370,7 @@ int dtp_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
 
     //dtPlayer->setVideoSize(w,h);//do not resize here
 
-    glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged ok\n");
 END:

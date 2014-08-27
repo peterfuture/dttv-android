@@ -88,14 +88,14 @@ typedef struct aout_sys_t
 
     /* audio buffered through opensles */
     uint8_t                         *buf;
-    size_t                          samples_per_buf;
+    int                             samples_per_buf;
     int                             next_buf;
 
     int                             rate;
 
     /* if we can measure latency already */
-    bool                            started;
-    size_t                          samples;
+    int                             started;
+    int                             samples;
     dt_buffer_t                     dbt;
     dt_lock_t                       lock;
 }aout_sys_t;
@@ -107,9 +107,11 @@ typedef struct aout_sys_t
  *
  *****************************************************************************/
 
-static inline int bytesPerSample(void)
+static inline int bytesPerSample(dtaudio_output_t *aout)
 {
-    return 2 /* S16 */ * 2 /* stereo */;
+    dtaudio_para_t *para = &aout->para;
+    return para->dst_channels * para->data_width / 2;
+    //return 2 /* S16 */ * 2 /* stereo */;
 }
 
 // get us delay
@@ -150,7 +152,7 @@ static void Flush(dtaudio_output_t *aout, bool drain)
         SetPlayState(sys->playerPlay, SL_PLAYSTATE_PLAYING);
 
         sys->samples = 0;
-        sys->started = false;
+        sys->started = 0;
     }
 }
 
@@ -195,7 +197,7 @@ static void Pause(dtaudio_output_t *aout, bool pause)
 static int WriteBuffer(dtaudio_output_t *aout)
 {
     aout_sys_t *sys = (aout_sys_t *)aout->ao_priv;
-    const size_t unit_size = sys->samples_per_buf * bytesPerSample();
+    const int unit_size = sys->samples_per_buf * bytesPerSample(aout);
 
     /* Check if we can fill at least one buffer unit by chaining blocks */
     if (sys->dbt.level  <  unit_size) {
@@ -211,9 +213,9 @@ static int WriteBuffer(dtaudio_output_t *aout)
     if (st.count == OPENSLES_BUFFERS)
         return false;
 
-    size_t done = 0;
+    int done = 0;
     while (done < unit_size) {
-        size_t cur = buf_level(&sys->dbt);
+        int cur = buf_level(&sys->dbt);
         if (cur > unit_size - done)
             cur = unit_size - done;
 
@@ -247,7 +249,7 @@ static int Play(dtaudio_output_t *aout, uint8_t *buf, int size)
 {
     aout_sys_t *sys = (aout_sys_t *)aout->ao_priv;
 	int ret = buf_put(&sys->dbt,buf,size);
-    sys->samples += ret / bytesPerSample();
+    sys->samples += ret / bytesPerSample(aout);
     /* Fill OpenSL buffer */
     WriteBuffer(aout);
     return ret;
@@ -260,11 +262,44 @@ static void PlayedCallback (SLAndroidSimpleBufferQueueItf caller, void *pContext
     aout_sys_t *sys = (aout_sys_t *)aout->ao_priv;
 
     assert (caller == sys->playerBufferQueue);
-    sys->started = true;
+    sys->started = 1;
 }
 /*****************************************************************************
  *
  *****************************************************************************/
+
+static SLuint32 convertSampleRate(SLuint32 sr) {
+    switch(sr) {
+    case 8000:
+        return SL_SAMPLINGRATE_8;
+    case 11025:
+        return SL_SAMPLINGRATE_11_025;
+    case 12000:
+        return SL_SAMPLINGRATE_12;
+    case 16000:
+        return SL_SAMPLINGRATE_16;
+    case 22050:
+        return SL_SAMPLINGRATE_22_05;
+    case 24000:
+        return SL_SAMPLINGRATE_24;
+    case 32000:
+        return SL_SAMPLINGRATE_32;
+    case 44100:
+        return SL_SAMPLINGRATE_44_1;
+    case 48000:
+        return SL_SAMPLINGRATE_48;
+    case 64000:
+        return SL_SAMPLINGRATE_64;
+    case 88200:
+        return SL_SAMPLINGRATE_88_2;
+    case 96000:
+        return SL_SAMPLINGRATE_96;
+    case 192000:
+        return SL_SAMPLINGRATE_192;
+  }
+  return -1;
+}
+
 static int Start(dtaudio_output_t *aout)
 {
     SLresult       result;
@@ -278,13 +313,22 @@ static int Start(dtaudio_output_t *aout)
         OPENSLES_BUFFERS
     };
 
+    int mask;
+
+    if(para->dst_channels > 1)
+        mask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT;
+    else
+        mask = SL_SPEAKER_FRONT_CENTER;
+
+
     SLDataFormat_PCM format_pcm;
     format_pcm.formatType       = SL_DATAFORMAT_PCM;
-    format_pcm.numChannels      = 2;
-    format_pcm.samplesPerSec    = ((SLuint32) para->dst_samplerate * 1000) ;
+    format_pcm.numChannels      = para->dst_channels;
+    //format_pcm.samplesPerSec    = ((SLuint32) para->dst_samplerate * 1000) ;
+    format_pcm.samplesPerSec    = ((SLuint32) convertSampleRate(para->dst_samplerate)) ;
     format_pcm.bitsPerSample    = SL_PCMSAMPLEFORMAT_FIXED_16;
     format_pcm.containerSize    = SL_PCMSAMPLEFORMAT_FIXED_16;
-    format_pcm.channelMask      = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT;
+    format_pcm.channelMask      = mask;
     format_pcm.endianness       = SL_BYTEORDER_LITTLEENDIAN;
 
     SLDataSource audioSrc = {&loc_bufq, &format_pcm};
@@ -339,11 +383,11 @@ static int Start(dtaudio_output_t *aout)
     /* XXX: rounding shouldn't affect us at normal sampling rate */
     sys->rate = para->dst_samplerate;
     sys->samples_per_buf = OPENSLES_BUFLEN * para->dst_samplerate / 1000;
-    sys->buf = malloc(OPENSLES_BUFFERS * sys->samples_per_buf * bytesPerSample());
+    sys->buf = malloc(OPENSLES_BUFFERS * sys->samples_per_buf * bytesPerSample(aout));
     if (!sys->buf)
         goto error;
 
-    sys->started = false;
+    sys->started = 0;
     sys->next_buf = 0;
 
     sys->samples = 0;
@@ -451,7 +495,7 @@ static int Open (dtaudio_output_t *aout)
 
     dt_lock_init(&sys->lock, NULL);
 	
-    if(buf_init(&sys->dbt,para->dst_samplerate * 4 / 10) < 0) // 100ms
+    if(buf_init(&sys->dbt,para->dst_samplerate * 2 / 10) < 0) // 100ms
         return -1;
     aout->ao_priv = (void *)sys;
     return 0;
@@ -507,16 +551,17 @@ static int ao_opensl_level(dtaudio_output_t *aout)
 {
     aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
     dt_lock(&sys->lock);
-    int level = sys->samples *bytesPerSample();
-    const size_t unit_size = sys->samples_per_buf * bytesPerSample();
+    int level = sys->samples * bytesPerSample(aout);
+    const int unit_size = sys->samples_per_buf * bytesPerSample(aout);
     SLAndroidSimpleBufferQueueState st;
+    if(!sys->started)
+        goto END;
     SLresult res = GetState(sys->playerBufferQueue, &st);
     if (unlikely(res != SL_RESULT_SUCCESS)) {
-        dt_unlock(&sys->lock);
         goto END;
     }
     level += st.count * unit_size; 
-    //__android_log_print(ANDROID_LOG_DEBUG,TAG, "opensl level:%d  st.count:%d sample:%d:%d \n",level, st.count, sys->samples);
+    //__android_log_print(ANDROID_LOG_DEBUG,TAG, "opensl level:%d  st.count:%d sample:%d:%d \n",level, (int)st.count, sys->samples);
 END:
     dt_unlock(&sys->lock);
     return level;
@@ -533,9 +578,9 @@ static int64_t ao_opensl_get_latency (dtaudio_output_t *aout)
 	unsigned int sample_num;
 	float pts_ratio = 0.0;
 	pts_ratio = (double) 90000 / para->dst_samplerate;
-	sample_num = level / (para->dst_channels * para->bps / 8);
+	sample_num = level / bytesPerSample(aout);
 	latency += (sample_num * pts_ratio);
-    //__android_log_print(ANDROID_LOG_DEBUG,TAG, "opensl latency, level:%d latency:%d \n",level, latency);
+    //__android_log_print(ANDROID_LOG_DEBUG,TAG, "opensl latency, level:%d latency:%lld \n",level, latency);
 
     return latency;
 }

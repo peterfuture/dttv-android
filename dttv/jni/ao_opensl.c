@@ -371,6 +371,8 @@ static void Stop(dtaudio_output_t *aout)
 
     Destroy(sys->playerObject);
     sys->playerObject = NULL;
+    free(sys);
+    sys = NULL;
 }
 
 /*****************************************************************************
@@ -393,7 +395,7 @@ static int Open (dtaudio_output_t *aout)
     SLresult result;
 
     dtaudio_para_t *para = &aout->para;
-    sys = calloc(1, sizeof(*sys));
+    sys = (aout_sys_t *)malloc(sizeof(*sys));
     if (unlikely(sys == NULL))
         return -1;
 
@@ -505,16 +507,17 @@ static int ao_opensl_level(dtaudio_output_t *aout)
 {
     aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
     dt_lock(&sys->lock);
-    int level = 0;
+    int level = sys->samples *bytesPerSample();
     const size_t unit_size = sys->samples_per_buf * bytesPerSample();
     SLAndroidSimpleBufferQueueState st;
     SLresult res = GetState(sys->playerBufferQueue, &st);
     if (unlikely(res != SL_RESULT_SUCCESS)) {
         dt_unlock(&sys->lock);
-        return 0;
+        goto END;
     }
-    level += st.count * unit_size + sys->samples * bytesPerSample();
+    level += st.count * unit_size; 
     //__android_log_print(ANDROID_LOG_DEBUG,TAG, "opensl level:%d  st.count:%d sample:%d:%d \n",level, st.count, sys->samples);
+END:
     dt_unlock(&sys->lock);
     return level;
 }
@@ -524,8 +527,6 @@ static int64_t ao_opensl_get_latency (dtaudio_output_t *aout)
     int64_t latency;
     int ret = 0;
     aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
-    if(!sys->started) // not ready
-        return 0;
 
     dtaudio_para_t *para = &aout->para;
     int level = ao_opensl_level(aout);

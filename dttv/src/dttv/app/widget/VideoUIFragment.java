@@ -1,11 +1,17 @@
 package dttv.app.widget;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import dttv.app.R;
+import dttv.app.VideoPlayerActivity;
 import dttv.app.impl.I_OnMyKey;
+import dttv.app.utils.Constant;
 import android.annotation.SuppressLint;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -13,8 +19,10 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.AdapterView.OnItemClickListener;
 
 
 @SuppressLint("NewApi")
@@ -22,6 +30,8 @@ public class VideoUIFragment extends Fragment implements I_OnMyKey{
 	final static String TAG = "VideoUIFragment";
 	View rootView;
 	ListView video_listview;
+	
+	private List<String> playList;
 	//private AsyncQueryHandler mQueryHandler;
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -50,6 +60,24 @@ public class VideoUIFragment extends Fragment implements I_OnMyKey{
 		getQueryCursor(mQueryHandler, null);*/
 		MakeCursor();
 		fillDataToListView();
+		video_listview.setOnItemClickListener(new ListOnItemClickListener());
+	}
+	
+	private class ListOnItemClickListener implements OnItemClickListener{
+		@Override
+		public void onItemClick(AdapterView<?> adapter, View v, int position,
+				long arg3) {
+			// TODO Auto-generated method stub
+			String uri = playList.get(position);
+			startVideoPlayer(uri);
+		}
+	}
+	
+	private void startVideoPlayer(String uri){
+		Intent retIntent = new Intent();
+		retIntent.setClass(getActivity(), VideoPlayerActivity.class);
+		retIntent.putExtra(Constant.FILE_MSG, uri);
+		startActivity(retIntent);
 	}
 	
 	class QueryHandler extends AsyncQueryHandler {
@@ -66,12 +94,16 @@ public class VideoUIFragment extends Fragment implements I_OnMyKey{
     }
 	
 	private void fillDataToListView(){
+		playList = new ArrayList<String>();
 		String[] fromColumns = new String[] {MediaStore.Video.Media.TITLE};
 		int[] toLayoutIDs = new int[]{R.id.media_row_name};
 		//Cursor cursor = readDataFromSD(getActivity());
-		SimpleCursorAdapter adapter = new SimpleCursorAdapter(getActivity(), R.layout.dt_media_item, mCursor, fromColumns, toLayoutIDs, 0);
+		SimpleCursorAdapter adapter = new SimpleCursorAdapter(getActivity(), R.layout.dt_video_item, mCursor, fromColumns, toLayoutIDs, 0);
 		
 		video_listview.setAdapter(adapter);
+		while(mCursor.moveToNext()){
+			playList.add(mCursor.getString(mCursor.getColumnIndex(MediaStore.Video.Media.DATA)));
+		}
 	}
 	
 	

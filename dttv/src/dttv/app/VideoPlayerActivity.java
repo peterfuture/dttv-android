@@ -213,6 +213,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 		public void onCompletion(DtPlayer mp) {
 			// TODO Auto-generated method stub
 			mState = PLAYER_EXIT;
+			finish();
 		}
 	}
 	

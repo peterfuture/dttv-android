@@ -47,33 +47,53 @@
         android:gravity="center_horizontal" >
         <LinearLayout
             android:id="@+id/dt_play_operate_btns_lay"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal" >
-            <ImageButton
-                android:id="@+id/dt_play_prev_btn"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/btn_mu_pre" />
-            <ImageButton
-                android:id="@+id/dt_play_pause_btn"
+                android:gravity="center" >
+	            <ImageButton
+	                android:id="@+id/dt_play_prev_btn"
+	                android:layout_width="wrap_content"
+	                android:layout_height="wrap_content"
+	                android:background="@drawable/btn_mu_pre" />
+            </LinearLayout>
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/btn_mu_pause" />
-            <ImageButton
-                android:id="@+id/dt_play_next_btn"
+                android:gravity="center" >
+	            <ImageButton
+	                android:id="@+id/dt_play_pause_btn"
+	                android:layout_width="wrap_content"
+	                android:layout_height="wrap_content"
+	                android:background="@drawable/btn_mu_pause" />
+            </LinearLayout>
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/btn_mu_next" />
-            <ImageButton
-                android:id="@+id/dt_play_ratio_btn"
+                android:gravity="center" >
+	            <ImageButton
+	                android:id="@+id/dt_play_next_btn"
+	                android:layout_width="wrap_content"
+	                android:layout_height="wrap_content"
+	                android:background="@drawable/btn_mu_next" />
+            </LinearLayout>
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/dt_player_control_ratio_normal" />
+                android:gravity="center" >
+	            <ImageButton
+	                android:id="@+id/dt_play_ratio_btn"
+	                android:layout_width="wrap_content"
+	                android:layout_height="wrap_content"
+	                android:background="@drawable/dt_player_control_ratio_normal" />
+            </LinearLayout>
         </LinearLayout>
     </RelativeLayout>
 </RelativeLayout>

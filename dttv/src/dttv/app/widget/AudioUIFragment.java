@@ -152,6 +152,15 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		
 	}
 	
+	@Override
+	public void onResume() {
+		// TODO Auto-generated method stub
+		if(dtPlayer!=null)
+			dtPlayer.start();
+		super.onResume();
+	}
+	
+	
 	private class ListItemClickListener implements OnItemClickListener{
 		@Override
 		public void onItemClick(AdapterView<?> ad, View v, int position,
@@ -242,9 +251,9 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		playList = new ArrayList<String>();
 		String[] fromColumns = new String[] {MediaStore.Audio.Media.TITLE, 
 				MediaStore.Audio.Media.ARTIST,MediaStore.Audio.Media.DATA};
-		int[] toLayoutIDs = new int[]{R.id.media_row_name,R.id.media_row_artist,R.id.media_row_uri};
+		int[] toLayoutIDs = new int[]{ R.id.media_row_name,R.id.media_row_artist,R.id.media_row_uri};
 		mCursor = readDataFromSD(getActivity());
-		SimpleCursorAdapter adapter = new SimpleCursorAdapter(getActivity(), R.layout.dt_media_item, mCursor, fromColumns, toLayoutIDs, 0);
+		SimpleCursorAdapter adapter = new SimpleCursorAdapter(getActivity(), R.layout.dt_audio_item, mCursor, fromColumns, toLayoutIDs, 0);
 		audio_listview.setAdapter(adapter);
 		while(mCursor.moveToNext()){
 			playList.add(mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.DATA)));

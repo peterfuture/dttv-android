@@ -13,6 +13,7 @@
 #include <dlfcn.h>
 #include <math.h>
 #include <stdbool.h>
+#include <android/log.h>
 
 // For native audio
 #include <SLES/OpenSLES.h>
@@ -77,7 +78,7 @@ typedef struct aout_sys_t
     SLPlayItf                       playerPlay;
 
     /* OpenSL symbols */
-    void                           *p_so_handle;
+    void                            *p_so_handle;
 
     slCreateEngine_t                slCreateEnginePtr;
     SLInterfaceID                   SL_IID_ENGINE;
@@ -85,12 +86,8 @@ typedef struct aout_sys_t
     SLInterfaceID                   SL_IID_VOLUME;
     SLInterfaceID                   SL_IID_PLAY;
 
-    /* */
-
-    dt_lock_t                     lock;
-
     /* audio buffered through opensles */
-    uint8_t                        *buf;
+    uint8_t                         *buf;
     size_t                          samples_per_buf;
     int                             next_buf;
 
@@ -98,17 +95,13 @@ typedef struct aout_sys_t
 
     /* if we can measure latency already */
     bool                            started;
-
-    /* audio not yet buffered through opensles */
-    //block_t                        *p_buffer_chain;
-    //block_t                       **pp_buffer_last;
-
-    dt_buffer_t dbt;
-
     size_t                          samples;
+    dt_buffer_t                     dbt;
+    dt_lock_t                       lock;
 }aout_sys_t;
 
 
+#define TAG "AO-OPENSL"
 
 /*****************************************************************************
  *
@@ -119,27 +112,26 @@ static inline int bytesPerSample(void)
     return 2 /* S16 */ * 2 /* stereo */;
 }
 
-typedef int64_t mtime_t;
-
-static int TimeGet(dtaudio_output_t* aout, mtime_t* drift)
+// get us delay
+static int TimeGet(dtaudio_output_t* aout, int64_t* drift)
 {
     aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
-
+    int64_t us = 0;
     SLAndroidSimpleBufferQueueState st;
     SLresult res = GetState(sys->playerBufferQueue, &st);
     if (unlikely(res != SL_RESULT_SUCCESS)) {
         return -1;
     }
 
-    dt_lock(&sys->lock);
     bool started = sys->started;
-    dt_unlock(&sys->lock);
 
     if (!started)
         return -1;
 
-    *drift = (CLOCK_FREQ * OPENSLES_BUFLEN * st.count / 1000)
+    us = (CLOCK_FREQ * OPENSLES_BUFLEN * st.count / 1000)
         + sys->samples * CLOCK_FREQ / sys->rate;
+
+    *drift = us / 1000;
 
     return 0;
 }
@@ -149,19 +141,16 @@ static void Flush(dtaudio_output_t *aout, bool drain)
     aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
 
     if (drain) {
-        mtime_t delay;
+        int64_t delay;
         if (!TimeGet(aout, &delay))
-            msleep(delay);
+            usleep(delay * 1000);
     } else {
-        dt_lock(&sys->lock);
         SetPlayState(sys->playerPlay, SL_PLAYSTATE_STOPPED);
         Clear(sys->playerBufferQueue);
         SetPlayState(sys->playerPlay, SL_PLAYSTATE_PLAYING);
 
         sys->samples = 0;
         sys->started = false;
-
-        dt_unlock(&sys->lock);
     }
 }
 
@@ -257,12 +246,10 @@ static int WriteBuffer(dtaudio_output_t *aout)
 static int Play(dtaudio_output_t *aout, uint8_t *buf, int size)
 {
     aout_sys_t *sys = (aout_sys_t *)aout->ao_priv;
-    dt_lock(&sys->lock);
 	int ret = buf_put(&sys->dbt,buf,size);
     sys->samples += ret / bytesPerSample();
     /* Fill OpenSL buffer */
     WriteBuffer(aout);
-    dt_unlock(&sys->lock);
     return ret;
 }
 
@@ -273,10 +260,7 @@ static void PlayedCallback (SLAndroidSimpleBufferQueueItf caller, void *pContext
     aout_sys_t *sys = (aout_sys_t *)aout->ao_priv;
 
     assert (caller == sys->playerBufferQueue);
-
-    dt_lock(&sys->lock);
     sys->started = true;
-    dt_unlock(&sys->lock);
 }
 /*****************************************************************************
  *
@@ -362,18 +346,8 @@ static int Start(dtaudio_output_t *aout)
     sys->started = false;
     sys->next_buf = 0;
 
-    //sys->p_buffer_chain = NULL;
-    //sys->pp_buffer_last = &sys->p_buffer_chain;
     sys->samples = 0;
-
-    // we want 16bit signed data native endian.
-    //fmt->i_format              = VLC_CODEC_S16N;
-    //fmt->i_physical_channels   = AOUT_CHAN_LEFT | AOUT_CHAN_RIGHT;
-
     SetPositionUpdatePeriod(sys->playerPlay, AOUT_MIN_PREPARE_TIME * 1000 / CLOCK_FREQ);
-
-    //aout_FormatPrepare(fmt);
-
     return 0;
 
 error:
@@ -478,16 +452,6 @@ static int Open (dtaudio_output_t *aout)
     if(buf_init(&sys->dbt,para->dst_samplerate * 4 / 10) < 0) // 100ms
         return -1;
     aout->ao_priv = (void *)sys;
-#if 0
-    aout->start      = Start;
-    aout->stop       = Stop;
-    aout->time_get   = TimeGet;
-    aout->play       = Play;
-    aout->pause      = Pause;
-    aout->flush      = Flush;
-    aout->mute_set   = MuteSet;
-    aout->volume_set = VolumeSet;
-#endif
     return 0;
 
 error:
@@ -503,67 +467,85 @@ error:
 
 static int ao_opensl_init (dtaudio_output_t *aout, dtaudio_para_t *para)
 {
-    Open(aout);
+    if(Open(aout) == -1)
+        return -1;
     Start(aout);
+    return 0;
 }
 
 static int ao_opensl_write (dtaudio_output_t *aout, uint8_t * buf, int size)
 {
-    return Play(aout,buf,size);
+    aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
+    int ret = 0;
+    dt_lock(&sys->lock);
+    ret = Play(aout,buf,size);
+    dt_unlock(&sys->lock);
+    return ret; 
 }
 
 static int ao_opensl_pause (dtaudio_output_t *aout)
 {
+    aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
+    dt_lock(&sys->lock);
     Pause(aout,1);
+    dt_unlock(&sys->lock);
     return 0;
 }
 
 static int ao_opensl_resume (dtaudio_output_t *aout)
 {
+    aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
+    dt_lock(&sys->lock);
     Pause(aout,0);
+    dt_unlock(&sys->lock);
     return 0;
 }
 
 static int ao_opensl_level(dtaudio_output_t *aout)
 {
     aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
-    int level = buf_level(&sys->dbt);
+    dt_lock(&sys->lock);
+    int level = 0;
     const size_t unit_size = sys->samples_per_buf * bytesPerSample();
     SLAndroidSimpleBufferQueueState st;
     SLresult res = GetState(sys->playerBufferQueue, &st);
     if (unlikely(res != SL_RESULT_SUCCESS)) {
+        dt_unlock(&sys->lock);
         return 0;
     }
-    level += st.count * unit_size + sys->samples * 2;
+    level += st.count * unit_size + sys->samples * bytesPerSample();
+    //__android_log_print(ANDROID_LOG_DEBUG,TAG, "opensl level:%d  st.count:%d sample:%d:%d \n",level, st.count, sys->samples);
+    dt_unlock(&sys->lock);
     return level;
 }
 
 static int64_t ao_opensl_get_latency (dtaudio_output_t *aout)
 {
     int64_t latency;
-    int ret = TimeGet(aout, &latency);
-    if(ret == -1) // not ready
+    int ret = 0;
+    aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
+    if(!sys->started) // not ready
         return 0;
 
-    latency = latency * 90;  // transform from ms to latency (90K)   
-
-    aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
     dtaudio_para_t *para = &aout->para;
-    int level = buf_level(&sys->dbt);
+    int level = ao_opensl_level(aout);
 	unsigned int sample_num;
 	float pts_ratio = 0.0;
 	pts_ratio = (double) 90000 / para->dst_samplerate;
 	sample_num = level / (para->dst_channels * para->bps / 8);
 	latency += (sample_num * pts_ratio);
-
-    //need to calc level in opensl
+    //__android_log_print(ANDROID_LOG_DEBUG,TAG, "opensl latency, level:%d latency:%d \n",level, latency);
 
     return latency;
 }
 
 static int ao_opensl_stop (dtaudio_output_t *aout)
 {
+    aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
+    dt_lock(&sys->lock);
     Stop(aout);
+    dt_unlock(&sys->lock);
+    return 0;
 }
 
 ao_wrapper_t ao_opensl_ops = {

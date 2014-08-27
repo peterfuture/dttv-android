@@ -596,7 +596,7 @@ static int Stagefright_close(vd_wrapper_t *wrapper)
 void android_vd_init()
 {
     vd_stagefright_ops.name = vd_stagefright_name;
-    vd_stagefright_ops.vfmt = VIDEO_FORMAT_H264;
+    vd_stagefright_ops.vfmt = DT_VIDEO_FORMAT_H264;
     vd_stagefright_ops.type = DT_TYPE_VIDEO;
     vd_stagefright_ops.init = Stagefright_init;
     vd_stagefright_ops.decode_frame = Stagefright_decode_frame;

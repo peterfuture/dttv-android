@@ -241,6 +241,10 @@ int DTPlayer::stop()
 {
     int ret = 0;
     void *handle = mDtpHandle;
+    DTPlayer::status = 0;
+    DTPlayer::mCurrentPosition = -1;
+    DTPlayer::mSeekPosition = -1;
+
     if(!handle)
     {
         ret = -1;

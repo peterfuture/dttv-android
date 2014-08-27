@@ -80,6 +80,12 @@ int DTPlayer::setDataSource(const char *file_name)
         return -1;
     }
 
+    //reset var
+    DTPlayer::status = 0;
+    DTPlayer::mCurrentPosition = -1;
+    DTPlayer::mSeekPosition = -1;
+    memset(&dtp_state,0,sizeof(player_state_t));
+
     handle = dtplayer_init(&para);
     if (!handle)
     {
@@ -102,6 +108,7 @@ int DTPlayer::setDataSource(const char *file_name)
     
     mDtpHandle = handle;
     status = PLAYER_INITED;
+
     return 0;
 }
 
@@ -241,10 +248,6 @@ int DTPlayer::stop()
 {
     int ret = 0;
     void *handle = mDtpHandle;
-    DTPlayer::status = 0;
-    DTPlayer::mCurrentPosition = -1;
-    DTPlayer::mSeekPosition = -1;
-
     if(!handle)
     {
         ret = -1;
@@ -257,12 +260,6 @@ int DTPlayer::stop()
     }
     ret = dtplayer_stop(handle);
     mDtpHandle = NULL;
-    
-    DTPlayer::status = 0;
-    DTPlayer::mCurrentPosition = -1;
-    DTPlayer::mSeekPosition = -1;
-    memcpy(&dtp_state,state,sizeof(player_state_t));
-    
     status = PLAYER_STOPPED;
 END:
     return ret;
@@ -388,6 +385,13 @@ int DTPlayer::updatePlayerState(player_state_t *state)
 		__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "PLAYER EXIT OK\n");
 		Notify(MEDIA_PLAYBACK_COMPLETE);
         status = PLAYER_EXIT;
+
+#if 0        
+        DTPlayer::status = 0;
+        DTPlayer::mCurrentPosition = -1;
+        DTPlayer::mSeekPosition = -1;
+        memset(&dtp_state,0,sizeof(player_state_t));
+#endif   
         goto END;
 	}
 	else if(state->cur_status == PLAYER_STATUS_SEEK_EXIT)

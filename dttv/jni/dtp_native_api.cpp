@@ -257,6 +257,12 @@ int DTPlayer::stop()
     }
     ret = dtplayer_stop(handle);
     mDtpHandle = NULL;
+    
+    DTPlayer::status = 0;
+    DTPlayer::mCurrentPosition = -1;
+    DTPlayer::mSeekPosition = -1;
+    memcpy(&dtp_state,state,sizeof(player_state_t));
+    
     status = PLAYER_STOPPED;
 END:
     return ret;

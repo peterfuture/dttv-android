@@ -95,7 +95,8 @@ public class DtPlayer {
 	}
 	
 	static{
-		System.loadLibrary("dtp_jni");
+		System.loadLibrary("dtp");
+		System.loadLibrary("dtp_jni");		
 	}
 	
 	public void setDisplay(SurfaceHolder surfaceHolder){

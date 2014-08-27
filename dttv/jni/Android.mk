@@ -14,16 +14,21 @@ LOCAL_SRC_FILES += android_dtplayer.cpp
 
 LOCAL_CFLAGS += -D GL_GLEXT_PROTOTYPES
 
-#ao control
-AO_OPENSL = yes
-AO_AUDIOTRACK = no
-ifeq ($(AO_OPENSL),yes)
+#control
+ENABLE_OPENSL = yes
+ENABLE_AUDIOTRACK = no
+ENABLE_ANDROID_OMX = yes
+
+ifeq ($(ENABLE_OPENSL),yes)
 	LOCAL_CFLAGS += -D ENABLE_OPENSL
 	LOCAL_SRC_FILES += ao_opensl.c
 endif
-ifeq ($(AO_AUDIOTRACK),yes)
+ifeq ($(ENABLE_AUDIOTRACK),yes)
 	LOCAL_CFLAGS += -D ENABLE_AUDIOTRACK
 	LOCAL_SRC_FILES += ao_audiotrack.cpp
+endif
+ifeq ($(ENABLE_ANDROID_OMX),yes)
+	LOCAL_CFLAGS += -D ENABLE_ANDROID_OMX
 endif
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
@@ -32,7 +37,7 @@ LOCAL_LDLIBS    := -llog -lz
 #android env
 LOCAL_C_INCLUDES += $(AOSP_TREE)/libnativehelper/include/     #runtime
 LOCAL_C_INCLUDES += $(AOSP_TREE)/frameworks/base/include/     #runtime
-#LOCAL_C_INCLUDES += $(AOSP_TREE)/frameworks/av/include/       #media
+LOCAL_C_INCLUDES += $(AOSP_TREE)/frameworks/av/include/       #media
 LOCAL_C_INCLUDES += $(AOSP_TREE)/system/core/include          #cutils
 LOCAL_C_INCLUDES += $(AOSP_TREE)/hardware/libhardware/include #hardware
 LOCAL_C_INCLUDES += $(AOSP_TREE)/frameworks/native/include    #utils

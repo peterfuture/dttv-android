@@ -6,6 +6,8 @@
  * */
 
 
+#include <android/log.h>
+
 #include <binder/ProcessState.h>
 #include <media/stagefright/MetaData.h>
 #include <media/stagefright/MediaBufferGroup.h>
@@ -20,11 +22,10 @@
 extern "C" {
 
 #include "vd_wrapper.h"
+
 }
 
-
-
-
+#define TAG "VD-STAGEFRIGHT"
 
 namespace android {
 extern "C" {
@@ -59,7 +60,7 @@ struct TimeStamp {
 
 class CustomSource;
 
-struct StagefrightContext {
+typedef struct StagefrightContext {
     uint8_t* orig_extradata;
     int orig_extradata_size;
     sp<MediaSource> *source;
@@ -82,7 +83,7 @@ struct StagefrightContext {
     OMXClient *client;
     sp<MediaSource> *decoder;
     const char *decoder_component;
-};
+}StagefrightContext;
 
 class CustomSource : public MediaSource {
 public:
@@ -266,7 +267,7 @@ push_frame:
     return 0;
 }
 
-
+#if 0
 static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
 {
     dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)parent;
@@ -282,8 +283,10 @@ static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
     int ret;
 
     if (!vd_para->extradata || !vd_para->extradata_size || vd_para->extradata[0] != 1)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "NO extradata Quit \n");
         return -1;
-
+    }
 #if 0 // here maybe have err
     s->avctx = avctx;
     s->bsfc  = av_bitstream_filter_init("h264_mp4toannexb");
@@ -363,6 +366,127 @@ static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
     pthread_mutex_init(&s->in_mutex, NULL);
     pthread_mutex_init(&s->out_mutex, NULL);
     pthread_cond_init(&s->condition, NULL);
+    return 0;
+
+fail:
+    //av_bitstream_filter_close(s->bsfc);
+    av_freep(&s->orig_extradata);
+    av_freep(&s->end_frame);
+    delete s->in_queue;
+    delete s->out_queue;
+    delete s->ts_map;
+    delete s->client;
+    return ret;
+}
+#endif
+
+static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
+{
+    dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)parent;
+    wrapper->parent = decoder;
+
+    StagefrightContext *s = (StagefrightContext *)malloc(sizeof(StagefrightContext));
+    wrapper->vd_priv = s;
+
+    dtvideo_para_t *vd_para = &(decoder->para);
+
+    sp<MetaData> meta, outFormat;
+    int32_t colorFormat = 0;
+    int pix_fmt;
+    int ret;
+
+    if (!vd_para->extradata || !vd_para->extradata_size || vd_para->extradata[0] != 1)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "NO Valid Extradata Find \n");
+        s->orig_extradata_size = vd_para->extradata_size;
+        //return -1;
+    }
+    else
+    {
+        s->orig_extradata = (uint8_t*) malloc(vd_para->extradata_size +
+                                              FF_INPUT_BUFFER_PADDING_SIZE);
+        if (!s->orig_extradata) {
+            ret = -1;
+            goto fail;
+        }
+        memcpy(s->orig_extradata, vd_para->extradata, vd_para->extradata_size);
+    }
+
+    meta = new MetaData;
+    if (meta == NULL) {
+        ret = -1;
+        goto fail;
+    }
+    meta->setCString(kKeyMIMEType, MEDIA_MIMETYPE_VIDEO_AVC);
+    meta->setInt32(kKeyWidth, vd_para->s_width);
+    meta->setInt32(kKeyHeight, vd_para->s_height);
+    //meta->setData(kKeyAVCC, kTypeAVCC, vd_para->extradata, vd_para->extradata_size);
+
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "meta set ok \n");
+    //android::ProcessState::self()->startThreadPool();
+
+    s->source    = new sp<MediaSource>();
+    *s->source   = new CustomSource(wrapper, meta);
+    s->in_queue  = new List<Frame*>;
+    s->out_queue = new List<Frame*>;
+    s->ts_map    = new std::map<int64_t, TimeStamp>;
+    s->client    = new OMXClient;
+    s->end_frame = (Frame*)malloc(sizeof(Frame));
+    if (s->source == NULL || !s->in_queue || !s->out_queue || !s->client ||
+        !s->ts_map || !s->end_frame) {
+        ret = -1;
+        goto fail;
+    }
+
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 1 client->connect \n");
+    if (s->client->connect() !=  OK) {
+    	__android_log_print(ANDROID_LOG_DEBUG,TAG,"Cannot connect OMX client\n");
+        ret = -1;
+        goto fail;
+    }
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 1 client->connect ok\n");
+
+    s->decoder  = new sp<MediaSource>();
+    *s->decoder = OMXCodec::Create(s->client->interface(), meta,
+                                  false, *s->source, NULL,
+                                  OMXCodec::kClientNeedsFramebuffer);
+    if(*s->decoder == NULL)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 2 create omxcodec failed \n");
+        goto fail;
+    }
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 2 create omxcodec ok \n");
+    if ((*s->decoder)->start() !=  OK) {
+    	__android_log_print(ANDROID_LOG_DEBUG,TAG,"Cannot start decoder\n");
+        ret = -1;
+        s->client->disconnect();
+        goto fail;
+    }
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 3 start omxcodec ok \n");
+
+    outFormat = (*s->decoder)->getFormat();
+    outFormat->findInt32(kKeyColorFormat, &colorFormat);
+    
+    if (colorFormat == OMX_QCOM_COLOR_FormatYVU420SemiPlanar ||
+        colorFormat == OMX_COLOR_FormatYUV420SemiPlanar)
+        pix_fmt = DTAV_PIX_FMT_NV21;
+    else if (colorFormat == OMX_COLOR_FormatYCbYCr)
+        pix_fmt = DTAV_PIX_FMT_YUYV422;
+    else if (colorFormat == OMX_COLOR_FormatCbYCrY)
+        pix_fmt = DTAV_PIX_FMT_UYVY422;
+    else
+        pix_fmt = DTAV_PIX_FMT_YUV420P;
+    
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 4 get colorFormat info, format:%d pix_fmt:%d  \n", colorFormat, pix_fmt);
+    
+    outFormat->findCString(kKeyDecoderComponent, &s->decoder_component);
+    if (s->decoder_component)
+        s->decoder_component = strdup(s->decoder_component);
+
+    pthread_mutex_init(&s->in_mutex, NULL);
+    pthread_mutex_init(&s->out_mutex, NULL);
+    pthread_cond_init(&s->condition, NULL);
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "vd stagefright init ok \n");
     return 0;
 
 fail:
@@ -593,7 +717,7 @@ static int Stagefright_close(vd_wrapper_t *wrapper)
     return 0;
 }
 
-void android_vd_init()
+void vd_stagefright_init()
 {
     vd_stagefright_ops.name = vd_stagefright_name;
     vd_stagefright_ops.vfmt = DT_VIDEO_FORMAT_H264;
@@ -601,6 +725,7 @@ void android_vd_init()
     vd_stagefright_ops.init = Stagefright_init;
     vd_stagefright_ops.decode_frame = Stagefright_decode_frame;
     vd_stagefright_ops.release = Stagefright_close;
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "vd stagefright setup ok \n");
 }
 
 }// end extern "C"

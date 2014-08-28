@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include "ao_wrapper.h"
+#include "ad_wrapper.h"
 #include "dtaudio_para.h"
 
 #endif

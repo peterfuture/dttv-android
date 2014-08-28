@@ -151,14 +151,20 @@ ao_wrapper_t ao_ex_ops = {
 };
 
 extern void ao_audiotrack_init(); // setup android audio render
+extern void vd_stagefright_init(); // setup android audio render
+extern vd_wrapper_t vd_stagefright_ops;
 
 int ext_element_init()
 {
+#ifdef ENABLE_ANDROID_OMX
+    vd_stagefright_init();
+    dtplayer_register_ext_vd(&vd_stagefright_ops);
+#endif
 #ifdef ENABLE_AUDIOTRACK
 	android_ao_init();
 #endif
-    register_ext_ao(&ao_ex_ops);
-    register_ext_vo(&vo_ex_ops);
+    dtplayer_register_ext_ao(&ao_ex_ops);
+    dtplayer_register_ext_vo(&vo_ex_ops);
     __android_log_print(ANDROID_LOG_INFO, TAG, "EXT Element Init OK");
     return  0;
 }

@@ -52,7 +52,7 @@ typedef struct _AVPicture_t_
 /*video part*/
 
 //From ffmpeg
-enum DT_AVPixelFormat
+typedef enum DT_AVPixelFormat
 {
     DTAV_PIX_FMT_NONE = -1,
     DTAV_PIX_FMT_YUV420P,       ///< planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)

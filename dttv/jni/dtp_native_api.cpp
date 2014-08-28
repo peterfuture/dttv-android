@@ -5,17 +5,18 @@
 #include "dtp_native_api.h"
 
 extern "C"{
+
 #include <android/log.h>
 #include <stdlib.h>
 
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 
-#include "render_android.h"
+#include "ext_wrapper.h"
 #include "dt_lock.h"
 
-#define DEBUG_TAG "DTP-API"
 }
+#define DEBUG_TAG "DTP-API"
 
 extern int Notify(int status);
 
@@ -55,7 +56,7 @@ int DTPlayer::setListenner(dtpListenner *listenner)
 
 int DTPlayer::setDataSource(const char *file_name)
 {
-    render_init();
+    ext_element_init();
     dtplayer_para_t para;
     para.no_audio = para.no_video = para.no_sub = -1;
 	para.height = para.width = -1;

@@ -9,7 +9,7 @@ include $(PREBUILT_SHARED_LIBRARY)
 ##############################################
 include $(CLEAR_VARS)
 LOCAL_MODULE    := dtp_jni
-LOCAL_SRC_FILES := dtp_native_api.cpp render_android.c vo_android.c 
+LOCAL_SRC_FILES := dtp_native_api.cpp ext_wrapper.c vo_android.c
 LOCAL_SRC_FILES += android_dtplayer.cpp
 
 LOCAL_CFLAGS += -D GL_GLEXT_PROTOTYPES
@@ -17,7 +17,7 @@ LOCAL_CFLAGS += -D GL_GLEXT_PROTOTYPES
 #control
 ENABLE_OPENSL = yes
 ENABLE_AUDIOTRACK = no
-ENABLE_ANDROID_OMX = yes
+ENABLE_ANDROID_OMX = no
 
 ifeq ($(ENABLE_OPENSL),yes)
 	LOCAL_CFLAGS += -D ENABLE_OPENSL

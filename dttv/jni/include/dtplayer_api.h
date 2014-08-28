@@ -1,66 +1,31 @@
 #ifndef DTPLAYER_API_H
 #define DTPLAYER_API_H
 
-#include "dt_media_info.h"
-
-typedef enum
-{
-    PLAYER_STATUS_INVALID = -1,
-    PLAYER_STATUS_IDLE,
-
-    PLAYER_STATUS_INIT_ENTER,
-    PLAYER_STATUS_INIT_EXIT,
-
-    PLAYER_STATUS_START,
-    PLAYER_STATUS_RUNNING,
-
-    PLAYER_STATUS_PAUSED,
-    PLAYER_STATUS_RESUME,
-    PLAYER_STATUS_SEEK_ENTER,
-    PLAYER_STATUS_SEEK_EXIT,
-
-    PLAYER_STATUS_ERROR,
-    PLAYER_STATUS_STOP,
-    PLAYER_STATUS_PLAYEND,
-    PLAYER_STATUS_EXIT,
-} player_status_t;
-
-typedef struct
-{
-    /* player state */
-    player_status_t cur_status;
-    player_status_t last_status;
-
-    int64_t cur_time_ms;
-    int64_t cur_time;
-    int64_t full_time;
-
-    int64_t start_time;
-} player_state_t;
-
-typedef struct dtplayer_para
-{
-    char *file_name;
-    int video_index;
-    int audio_index;
-    int sub_index;
-
-    int loop_mode;
-    int no_audio;
-    int no_video;
-    int no_sub;
-    int sync_enable;
-
-    int width;
-    int height;
-
-    int (*update_cb) (player_state_t * sta);
-} dtplayer_para_t;
-
+#include "dtplayer_para.h"
+#include "stream_wrapper.h"
+#include "demuxer_wrapper.h"
+#include "ad_wrapper.h"
+#include "ao_wrapper.h"
+#include "vd_wrapper.h"
+#include "vo_wrapper.h"
 /* 
  * DTPLAYER API DEFINITION
  *
  * */
+
+/* 
+ * register external module
+ * including ao vo ad vd stream demuxer
+ * supporting third-party develop
+ *
+ * */
+
+void dtplayer_register_ext_stream(stream_wrapper_t *wrapper);
+void dtplayer_register_ext_demuxer(demuxer_wrapper_t *wrapper);
+void dtplayer_register_ext_ao(ao_wrapper_t *wrapper);
+void dtplayer_register_ext_ad(ad_wrapper_t *wrapper);
+void dtplayer_register_ext_vo(vo_wrapper_t *wrapper);
+void dtplayer_register_ext_vd(vd_wrapper_t *wrapper);
 
 /* 
  * do global initialization of dtplayer.
@@ -94,7 +59,6 @@ int dtplayer_get_mediainfo (void *handle, dt_media_info_t *info);
  * 
  * */
 int dtplayer_set_video_size (void *handle, int w, int h);
-
 
 /*
  * start playing:

@@ -189,7 +189,7 @@ static int android_audio_stop(dtaudio_output_t *aout)
 	return 0;
 }
 
-void android_ao_init()
+void ao_audiotrack_init()
 {
 	ao_android_ops.id = 0x100;//AO_ID_ANDROID
     ao_android_ops.name = ao_android_name;

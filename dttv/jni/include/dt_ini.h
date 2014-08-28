@@ -81,7 +81,7 @@ typedef const char cchr;
 #define tpKEYVALUE   2
 #define tpCOMMENT    3
 
-struct ENTRY
+typedef struct ENTRY
 {
     char Type;
     char *Text;

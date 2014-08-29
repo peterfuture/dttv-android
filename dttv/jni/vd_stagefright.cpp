@@ -113,13 +113,19 @@ public:
         Frame *frame;
         status_t ret;
 
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read, enter read \n");
         if (s->thread_exited)
             return ERROR_END_OF_STREAM;
         pthread_mutex_lock(&s->in_mutex);
 
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read, enter mutex lock, origsize:%d  \n",s->orig_extradata_size);
+        
         while (s->in_queue->empty())
+        {
+            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read, list empty wait \n");
             pthread_cond_wait(&s->condition, &s->in_mutex);
-
+        }
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read, list->size:%d \n",s->in_queue->size());
         frame = *s->in_queue->begin();
         ret = frame->status;
 
@@ -134,13 +140,14 @@ public:
             } else {
                 //av_log(s->avctx, AV_LOG_ERROR, "Failed to acquire MediaBuffer\n");
             }
-            av_freep(&frame->buffer);
+            av_freep(frame->buffer);
         }
 
         s->in_queue->erase(s->in_queue->begin());
         pthread_mutex_unlock(&s->in_mutex);
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read one frame ok , size:%d key:%d \n",frame->size,frame->key);
 
-        av_freep(&frame);
+        av_freep(frame);
         return ret;
     }
 
@@ -177,7 +184,9 @@ void* decode_thread(void *arg)
             s->end_frame  = NULL;
             goto push_frame;
         }
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step start read one frame in decoder\n");
         frame->status = (*s->decoder)->read(&buffer);
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read one frame, status:%d  \n",frame->status);
         if (frame->status == OK) {
             sp<MetaData> outFormat = (*s->decoder)->getFormat();
             outFormat->findInt32(kKeyWidth , &w);
@@ -241,11 +250,15 @@ void* decode_thread(void *arg)
             }
             buffer->release();
             } else if (frame->status == INFO_FORMAT_CHANGED) {
+                __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step info chaned  \n",frame->status);
                 if (buffer)
                     buffer->release();
                 av_freep(frame);
                 continue;
             } else {
+                __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode failed, maybe no data left \n");
+                usleep(1000);
+                continue;
                 decode_done = 1;
             }
 push_frame:
@@ -267,125 +280,13 @@ push_frame:
     return 0;
 }
 
-#if 0
 static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
 {
     dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)parent;
     wrapper->parent = decoder;
 
     StagefrightContext *s = (StagefrightContext *)malloc(sizeof(StagefrightContext));
-    wrapper->vd_priv = s;
-
-    dtvideo_para_t *vd_para = &(decoder->para);
-
-    sp<MetaData> meta, outFormat;
-    int32_t colorFormat = 0;
-    int ret;
-
-    if (!vd_para->extradata || !vd_para->extradata_size || vd_para->extradata[0] != 1)
-    {
-        __android_log_print(ANDROID_LOG_DEBUG,TAG, "NO extradata Quit \n");
-        return -1;
-    }
-#if 0 // here maybe have err
-    s->avctx = avctx;
-    s->bsfc  = av_bitstream_filter_init("h264_mp4toannexb");
-    if (!s->bsfc) {
-    	__android_log_print(ANDROID_LOG_DEBUG,TAG,"Cannot open the h264_mp4toannexb BSF!\n");
-        return -1;
-    }
-#endif
-    s->orig_extradata_size = vd_para->extradata_size;
-    s->orig_extradata = (uint8_t*) malloc(vd_para->extradata_size +
-                                              FF_INPUT_BUFFER_PADDING_SIZE);
-    if (!s->orig_extradata) {
-        ret = -1;
-        goto fail;
-    }
-    memcpy(s->orig_extradata, vd_para->extradata, vd_para->extradata_size);
-
-    meta = new MetaData;
-    if (meta == NULL) {
-        ret = -1;
-        goto fail;
-    }
-    meta->setCString(kKeyMIMEType, MEDIA_MIMETYPE_VIDEO_AVC);
-    meta->setInt32(kKeyWidth, vd_para->s_width);
-    meta->setInt32(kKeyHeight, vd_para->s_height);
-    meta->setData(kKeyAVCC, kTypeAVCC, vd_para->extradata, vd_para->extradata_size);
-
-    android::ProcessState::self()->startThreadPool();
-
-    s->source    = new sp<MediaSource>();
-    *s->source   = new CustomSource(wrapper, meta);
-    s->in_queue  = new List<Frame*>;
-    s->out_queue = new List<Frame*>;
-    s->ts_map    = new std::map<int64_t, TimeStamp>;
-    s->client    = new OMXClient;
-    s->end_frame = (Frame*)malloc(sizeof(Frame));
-    if (s->source == NULL || !s->in_queue || !s->out_queue || !s->client ||
-        !s->ts_map || !s->end_frame) {
-        ret = -1;
-        goto fail;
-    }
-
-    if (s->client->connect() !=  OK) {
-    	__android_log_print(ANDROID_LOG_DEBUG,TAG,"Cannot connect OMX client\n");
-        ret = -1;
-        goto fail;
-    }
-
-    s->decoder  = new sp<MediaSource>();
-    *s->decoder = OMXCodec::Create(s->client->interface(), meta,
-                                  false, *s->source, NULL,
-                                  OMXCodec::kClientNeedsFramebuffer);
-    if ((*s->decoder)->start() !=  OK) {
-    	__android_log_print(ANDROID_LOG_DEBUG,TAG,"Cannot start decoder\n");
-        ret = -1;
-        s->client->disconnect();
-        goto fail;
-    }
-
-    outFormat = (*s->decoder)->getFormat();
-    outFormat->findInt32(kKeyColorFormat, &colorFormat);
-#if 0
-    if (colorFormat == OMX_QCOM_COLOR_FormatYVU420SemiPlanar ||
-        colorFormat == OMX_COLOR_FormatYUV420SemiPlanar)
-        avctx->pix_fmt = DTAV_PIX_FMT_NV21;
-    else if (colorFormat == OMX_COLOR_FormatYCbYCr)
-        avctx->pix_fmt = DTAV_PIX_FMT_YUYV422;
-    else if (colorFormat == OMX_COLOR_FormatCbYCrY)
-        avctx->pix_fmt = DTAV_PIX_FMT_UYVY422;
-    else
-        avctx->pix_fmt = DTAV_PIX_FMT_YUV420P;
-#endif
-    outFormat->findCString(kKeyDecoderComponent, &s->decoder_component);
-    if (s->decoder_component)
-        s->decoder_component = strdup(s->decoder_component);
-
-    pthread_mutex_init(&s->in_mutex, NULL);
-    pthread_mutex_init(&s->out_mutex, NULL);
-    pthread_cond_init(&s->condition, NULL);
-    return 0;
-
-fail:
-    //av_bitstream_filter_close(s->bsfc);
-    av_freep(&s->orig_extradata);
-    av_freep(&s->end_frame);
-    delete s->in_queue;
-    delete s->out_queue;
-    delete s->ts_map;
-    delete s->client;
-    return ret;
-}
-#endif
-
-static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
-{
-    dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)parent;
-    wrapper->parent = decoder;
-
-    StagefrightContext *s = (StagefrightContext *)malloc(sizeof(StagefrightContext));
+    memset(s,0,sizeof(StagefrightContext));
     wrapper->vd_priv = s;
 
     dtvideo_para_t *vd_para = &(decoder->para);
@@ -398,11 +299,12 @@ static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
     if (!vd_para->extradata || !vd_para->extradata_size || vd_para->extradata[0] != 1)
     {
         __android_log_print(ANDROID_LOG_DEBUG,TAG, "NO Valid Extradata Find \n");
-        s->orig_extradata_size = vd_para->extradata_size;
+        s->orig_extradata_size = 0;
         //return -1;
     }
     else
     {
+        s->orig_extradata_size = vd_para->extradata_size;
         s->orig_extradata = (uint8_t*) malloc(vd_para->extradata_size +
                                               FF_INPUT_BUFFER_PADDING_SIZE);
         if (!s->orig_extradata) {
@@ -420,10 +322,11 @@ static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
     meta->setCString(kKeyMIMEType, MEDIA_MIMETYPE_VIDEO_AVC);
     meta->setInt32(kKeyWidth, vd_para->s_width);
     meta->setInt32(kKeyHeight, vd_para->s_height);
-    //meta->setData(kKeyAVCC, kTypeAVCC, vd_para->extradata, vd_para->extradata_size);
+    if(s->orig_extradata_size > 0)
+        meta->setData(kKeyAVCC, kTypeAVCC, vd_para->extradata, vd_para->extradata_size);
 
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "meta set ok \n");
-    //android::ProcessState::self()->startThreadPool();
+    android::ProcessState::self()->startThreadPool();
 
     s->source    = new sp<MediaSource>();
     *s->source   = new CustomSource(wrapper, meta);
@@ -491,7 +394,8 @@ static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
 
 fail:
     //av_bitstream_filter_close(s->bsfc);
-    av_freep(&s->orig_extradata);
+    if(s->orig_extradata_size)
+        av_freep(&s->orig_extradata);
     av_freep(&s->end_frame);
     delete s->in_queue;
     delete s->out_queue;
@@ -508,23 +412,14 @@ static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_fra
     status_t status;
     int orig_size = vd_frame->size;
 
-#if 0
-    AVPacket pkt = *avpkt;
-    AVFrame *ret_frame;
-#endif
     AVPicture_t *ret_frame;
-    
+
     if (!s->thread_started) {
         pthread_create(&s->decode_thread_id, NULL, &decode_thread, wrapper);
         s->thread_started = true;
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 1 start decode thread ok\n");
     }
-#if 0
-    if (avpkt && avpkt->data) {
-        av_bitstream_filter_filter(s->bsfc, avctx, NULL, &pkt.data, &pkt.size,
-                                   avpkt->data, avpkt->size, avpkt->flags & AV_PKT_FLAG_KEY);
-        avpkt = &pkt;
-    }
-#endif
+
     if (!s->source_done) {
         if(!s->dummy_buf) {
             s->dummy_buf = (uint8_t*)av_malloc(vd_frame->size);
@@ -545,29 +440,16 @@ static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_fra
                 return -1;
             }
             uint8_t *ptr = vd_frame->data;
-            
-#if 0
-            // The OMX.SEC decoder fails without this.
-            if (avpkt->size == orig_size + vd_frame->extradata_size) {
-                ptr += avctx->extradata_size;
-                frame->size = orig_size;
-            }
-#endif
             memcpy(frame->buffer, ptr, orig_size);
-#if 0
-            if (avpkt == &pkt)
-                av_free(avpkt->data);
-#endif
             frame->time = ++s->frame_index;
             (*s->ts_map)[s->frame_index].pts = vd_frame->pts;
             //(*s->ts_map)[s->frame_index].reordered_opaque = vd_frame->reordered_opaque;
-        } else {
-            frame->status  = ERROR_END_OF_STREAM;
-            s->source_done = true;
-        }
-
-        while (true) {
+        } 
+        
+        while (true) 
+        {
             if (s->thread_exited) {
+                __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decoder thread quit , sourdoen set to 1\n");
                 s->source_done = true;
                 break;
             }
@@ -575,14 +457,17 @@ static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_fra
             if (s->in_queue->size() >= 10) {
                 pthread_mutex_unlock(&s->in_mutex);
                 usleep(10000);
+                __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 10 frames in queue, wait decode\n");
                 continue;
             }
             s->in_queue->push_back(frame);
             pthread_cond_signal(&s->condition);
             pthread_mutex_unlock(&s->in_mutex);
+            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step push one frame to in queue ok\n");
             break;
         }
     }
+#if 0
     while (true) {
         pthread_mutex_lock(&s->out_mutex);
         if (!s->out_queue->empty()) break;
@@ -594,6 +479,14 @@ static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_fra
             return orig_size;
         }
     }
+#endif
+
+    if (s->out_queue->empty())
+    {
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step have no frame out\n");
+        return 0;
+    }
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step begin to read one frame out\n");
 
     frame = *s->out_queue->begin();
     s->out_queue->erase(s->out_queue->begin());
@@ -603,6 +496,7 @@ static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_fra
     status  = frame->status;
     av_freep(&frame);
 
+#if 0
     if (status == ERROR_END_OF_STREAM)
         return 0;
     if (status != OK) {
@@ -611,14 +505,15 @@ static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_fra
         //av_log(avctx, AV_LOG_ERROR, "Decode failed: %x\n", status);
         return -1;
     }
-
+#endif
     if (s->prev_frame)
         free(&s->prev_frame);
     s->prev_frame = ret_frame;
 
     //*got_frame = 1;
     *(AVPicture_t*)data = *ret_frame;
-    return orig_size;
+    return 1;
+    //return orig_size;
 }
 
 static int Stagefright_close(vd_wrapper_t *wrapper)

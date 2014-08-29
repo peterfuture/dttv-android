@@ -12,11 +12,11 @@ LOCAL_MODULE    := dtp_jni
 LOCAL_SRC_FILES := dtp_native_api.cpp ext_wrapper.c vo_android.c
 LOCAL_SRC_FILES += android_dtplayer.cpp
 
-LOCAL_CFLAGS += -D GL_GLEXT_PROTOTYPES
+LOCAL_CFLAGS += -D GL_GLEXT_PROTOTYPES -g
 
 #control
-ENABLE_OPENSL = yes
-ENABLE_AUDIOTRACK = no
+ENABLE_OPENSL = no
+ENABLE_AUDIOTRACK = yes
 ENABLE_ANDROID_OMX = yes
 
 ifeq ($(ENABLE_OPENSL),yes)

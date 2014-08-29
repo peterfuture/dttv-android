@@ -161,7 +161,7 @@ int ext_element_init()
     dtplayer_register_ext_vd(&vd_stagefright_ops);
 #endif
 #ifdef ENABLE_AUDIOTRACK
-	android_ao_init();
+	ao_audiotrack_init();
 #endif
     dtplayer_register_ext_ao(&ao_ex_ops);
     dtplayer_register_ext_vo(&vo_ex_ops);

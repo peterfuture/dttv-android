@@ -188,6 +188,14 @@ void* decode_thread(void *arg)
         frame->status = (*s->decoder)->read(&buffer);
         __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read one frame, status:%d  \n",frame->status);
         if (frame->status == OK) {
+
+            if(buffer->range_length() == 0) // invalid buf, release
+            {
+                buffer->release();
+                buffer = NULL;
+                continue;
+            }
+
             sp<MetaData> outFormat = (*s->decoder)->getFormat();
             outFormat->findInt32(kKeyWidth , &w);
             outFormat->findInt32(kKeyHeight, &h);
@@ -200,15 +208,7 @@ void* decode_thread(void *arg)
                 buffer->release();
                 goto push_frame;
             }
-#if 0
-            ret = ff_get_buffer(avctx, frame->vframe, AV_GET_BUFFER_FLAG_REF);
-            if (ret < 0) {
-                frame->status = ret;
-                decode_done   = 1;
-                buffer->release();
-                goto push_frame;
-            }
-#endif
+
             frame->vframe->data[0] = (uint8_t *)malloc(sizeof(w*h*2));
 
             // The OMX.SEC decoder doesn't signal the modified width/height
@@ -369,7 +369,7 @@ static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
 
     outFormat = (*s->decoder)->getFormat();
     outFormat->findInt32(kKeyColorFormat, &colorFormat);
-    
+   
     if (colorFormat == OMX_QCOM_COLOR_FormatYVU420SemiPlanar ||
         colorFormat == OMX_COLOR_FormatYUV420SemiPlanar)
         pix_fmt = DTAV_PIX_FMT_NV21;
@@ -384,8 +384,10 @@ static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
     
     outFormat->findCString(kKeyDecoderComponent, &s->decoder_component);
     if (s->decoder_component)
+    {
         s->decoder_component = strdup(s->decoder_component);
-
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------component:%s  \n",s->decoder_component);
+    }
     pthread_mutex_init(&s->in_mutex, NULL);
     pthread_mutex_init(&s->out_mutex, NULL);
     pthread_cond_init(&s->condition, NULL);

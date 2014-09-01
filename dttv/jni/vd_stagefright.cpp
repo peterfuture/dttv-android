@@ -434,7 +434,7 @@ static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_fra
             frame->status  = OK;
             frame->size    = vd_frame->size;
             frame->key     = vd_frame->key_frame;
-            frame->buffer  = (uint8_t*)av_malloc(vd_frame->size);
+            frame->buffer  = (uint8_t*)av_malloc(frame->size);
             if (!frame->buffer) {
                 av_freep(&frame);
                 return -1;
@@ -443,6 +443,7 @@ static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_fra
             memcpy(frame->buffer, ptr, orig_size);
             frame->time = ++s->frame_index;
             (*s->ts_map)[s->frame_index].pts = vd_frame->pts;
+            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame, %02x %02x %02x %02x %02x %02x\n",ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5]);
             //(*s->ts_map)[s->frame_index].reordered_opaque = vd_frame->reordered_opaque;
         } 
         

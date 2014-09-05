@@ -8,6 +8,7 @@
 #include "ao_wrapper.h"
 #include "vd_wrapper.h"
 #include "vo_wrapper.h"
+#include "vf_wrapper.h"
 /* 
  * DTPLAYER API DEFINITION
  *
@@ -26,6 +27,7 @@ void dtplayer_register_ext_ao(ao_wrapper_t *wrapper);
 void dtplayer_register_ext_ad(ad_wrapper_t *wrapper);
 void dtplayer_register_ext_vo(vo_wrapper_t *wrapper);
 void dtplayer_register_ext_vd(vd_wrapper_t *wrapper);
+void dtplayer_register_ext_vf(vf_wrapper_t *wrapper);
 
 /* 
  * do global initialization of dtplayer.

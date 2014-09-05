@@ -49,6 +49,17 @@ typedef struct _AVPicture_t_
     int duration;
 } AVPicture_t;
 
+typedef struct dt_av_pic
+{
+    /* The two fields is same as AVPicture */
+    uint8_t *data[8];
+    int linesize[8];
+    /* New fields for sync AV */
+    int64_t pts;
+    int64_t dts;
+    int duration;
+} dt_av_pic_t;
+
 /*video part*/
 
 //From ffmpeg

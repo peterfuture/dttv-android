@@ -87,10 +87,9 @@ typedef struct StagefrightContext {
 
 class CustomSource : public MediaSource {
 public:
-    CustomSource(vd_wrapper_t *wrapper, sp<MetaData> meta) {
-        dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)wrapper->parent;
+    CustomSource(dtvideo_decoder_t *decoder, sp<MetaData> meta) {
         dtvideo_para_t *vd_para = &(decoder->para);
-        s = (StagefrightContext*)wrapper->vd_priv;
+        s = (StagefrightContext*)decoder->vd_priv;
         source_meta = meta;
         frame_size  = (vd_para->s_width * vd_para->s_height * 3) / 2;
         buf_group.add_buffer(new MediaBuffer(frame_size));
@@ -250,7 +249,7 @@ void* decode_thread(void *arg)
             }
             buffer->release();
             } else if (frame->status == INFO_FORMAT_CHANGED) {
-                __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step info chaned  \n",frame->status);
+                __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step info chaned :%d \n",frame->status);
                 if (buffer)
                     buffer->release();
                 av_freep(frame);
@@ -280,14 +279,12 @@ push_frame:
     return 0;
 }
 
-static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
+static int Stagefright_init(dtvideo_decoder_t *decoder)
 {
-    dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)parent;
-    wrapper->parent = decoder;
-
+    vd_wrapper_t *wrapper = decoder->wrapper;
     StagefrightContext *s = (StagefrightContext *)malloc(sizeof(StagefrightContext));
     memset(s,0,sizeof(StagefrightContext));
-    wrapper->vd_priv = s;
+    decoder->vd_priv = s;
 
     dtvideo_para_t *vd_para = &(decoder->para);
 
@@ -329,7 +326,7 @@ static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
     android::ProcessState::self()->startThreadPool();
 
     s->source    = new sp<MediaSource>();
-    *s->source   = new CustomSource(wrapper, meta);
+    *s->source   = new CustomSource(decoder, meta);
     s->in_queue  = new List<Frame*>;
     s->out_queue = new List<Frame*>;
     s->ts_map    = new std::map<int64_t, TimeStamp>;
@@ -391,6 +388,7 @@ static int Stagefright_init(vd_wrapper_t *wrapper, void *parent)
     pthread_mutex_init(&s->in_mutex, NULL);
     pthread_mutex_init(&s->out_mutex, NULL);
     pthread_cond_init(&s->condition, NULL);
+    memcpy(&wrapper->para, &decoder->para, sizeof(dtvideo_para_t));
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "vd stagefright init ok \n");
     return 0;
 
@@ -406,10 +404,9 @@ fail:
     return ret;
 }
 
-static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_frame,AVPicture_t **data)
+static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_frame_t *vd_frame,dt_av_pic_t **data)
 {
-    dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)wrapper->parent;
-    StagefrightContext *s = (StagefrightContext*)wrapper->vd_priv;
+    StagefrightContext *s = (StagefrightContext*)decoder->vd_priv;
     Frame *frame;
     status_t status;
     int orig_size = vd_frame->size;
@@ -417,7 +414,7 @@ static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_fra
     AVPicture_t *ret_frame;
 
     if (!s->thread_started) {
-        pthread_create(&s->decode_thread_id, NULL, &decode_thread, wrapper);
+        pthread_create(&s->decode_thread_id, NULL, &decode_thread, decoder->wrapper);
         s->thread_started = true;
         __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 1 start decode thread ok\n");
     }
@@ -445,6 +442,7 @@ static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_fra
             memcpy(frame->buffer, ptr, orig_size);
             frame->time = ++s->frame_index;
             (*s->ts_map)[s->frame_index].pts = vd_frame->pts;
+            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame,size:%d  %02x %02x %02x %02x %02x %02x\n",frame->size,frame->buffer[0],frame->buffer[1],frame->buffer[2],frame->buffer[3],frame->buffer[4],frame->buffer[5]);
             __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame, %02x %02x %02x %02x %02x %02x\n",ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5]);
             //(*s->ts_map)[s->frame_index].reordered_opaque = vd_frame->reordered_opaque;
         } 
@@ -519,10 +517,13 @@ static int Stagefright_decode_frame(vd_wrapper_t *wrapper, dt_av_frame_t *vd_fra
     //return orig_size;
 }
 
-static int Stagefright_close(vd_wrapper_t *wrapper)
+static int Stagefright_info_changed(dtvideo_decoder_t *decoder)
 {
-    dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)wrapper->parent;
-    StagefrightContext *s = (StagefrightContext*)wrapper->vd_priv;
+    return 0;
+}
+static int Stagefright_close(dtvideo_decoder_t *decoder)
+{
+    StagefrightContext *s = (StagefrightContext*)decoder->vd_priv;
     Frame *frame;
 
     if (s->thread_started) {
@@ -622,6 +623,7 @@ void vd_stagefright_init()
     vd_stagefright_ops.type = DT_TYPE_VIDEO;
     vd_stagefright_ops.init = Stagefright_init;
     vd_stagefright_ops.decode_frame = Stagefright_decode_frame;
+    vd_stagefright_ops.info_changed = Stagefright_info_changed;
     vd_stagefright_ops.release = Stagefright_close;
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "vd stagefright setup ok \n");
 }

@@ -5,6 +5,8 @@
 #include "dt_av.h"
 #include "dtvideo_para.h"
 
+struct dtvideo_decoder;
+
 typedef enum
 {
     VDEC_STATUS_IDLE,
@@ -17,11 +19,13 @@ typedef struct vd_wrapper
 {
     char *name;
     dtvideo_format_t vfmt;        // not used, for ffmpeg
+    dtvideo_para_t para;          // info changed needed 
     int type;
 
-    int (*init) (struct vd_wrapper *wrapper, void *parent);
-    int (*decode_frame) (struct vd_wrapper *wrapper, dt_av_frame_t * frame, AVPicture_t ** pic);
-    int (*release) (struct vd_wrapper *wrapper);
+    int (*init) (struct dtvideo_decoder *decoder);
+    int (*decode_frame) (struct dtvideo_decoder *decoder, dt_av_frame_t * frame, dt_av_pic_t ** pic);
+    int (*info_changed) (struct dtvideo_decoder *decoder);
+    int (*release) (struct dtvideo_decoder *decoder);
     
     void *vd_priv;
     struct vd_wrapper *next;
@@ -45,7 +49,7 @@ typedef struct dtvideo_decoder
 
     dt_buffer_t *buf_out;
     void *parent;
-    void *decoder_priv;
+    void *vd_priv;
 }dtvideo_decoder_t;
 
 #endif

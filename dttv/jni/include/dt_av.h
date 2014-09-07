@@ -26,6 +26,7 @@ typedef enum DT_AVMediaType
     DT_TYPE_MAX
 } dt_media_type_t;
 
+// raw data
 typedef struct dt_av_pkt
 {
     uint8_t *data;
@@ -37,7 +38,8 @@ typedef struct dt_av_pkt
     dt_media_type_t type;
 } dt_av_pkt_t;
 
-typedef struct dt_av_pic
+// pcm - yuv - rgb
+typedef struct dt_av_frame
 {
     /* The two fields is same as AVPicture */
     uint8_t *data[8];
@@ -46,7 +48,7 @@ typedef struct dt_av_pic
     int64_t pts;
     int64_t dts;
     int duration;
-} dt_av_pic_t;
+} dt_av_frame_t;
 
 /*video part*/
 
@@ -244,4 +246,10 @@ typedef enum _AO_ID_
 } dtao_format_t;
 
 /*subtitle part*/
+
+
+dt_av_frame_t *dtav_new_frame();
+int dtav_unref_frame(dt_av_frame_t *frame);
+int dtav_free_frame(dt_av_frame_t *frame);
+
 #endif

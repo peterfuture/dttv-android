@@ -18,7 +18,7 @@ typedef struct vo_wrapper
 
     int (*vo_init) (struct dtvideo_output *vout);
     int (*vo_stop) (struct dtvideo_output *vout);
-    int (*vo_render) (struct dtvideo_output *vout,dt_av_pic_t * pic);
+    int (*vo_render) (struct dtvideo_output *vout,dt_av_frame_t * pic);
     void *handle;
     struct vo_wrapper *next;
     void *vo_priv;

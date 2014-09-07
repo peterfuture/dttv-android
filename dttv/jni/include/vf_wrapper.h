@@ -25,7 +25,7 @@ typedef struct vf_wrapper
     int type;
     int (*capable) (struct dtvideo_filter *vf);
     int (*init) (struct dtvideo_filter *vf);
-    int (*process) (struct dtvideo_filter *vf, dt_av_pic_t *pic);
+    int (*process) (struct dtvideo_filter *vf, dt_av_frame_t *pic);
     int (*release) (struct dtvideo_filter *vf);
     struct vf_wrapper *next;
 } vf_wrapper_t;

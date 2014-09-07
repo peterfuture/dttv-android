@@ -22,7 +22,6 @@
 extern "C" {
 
 #include "vd_wrapper.h"
-#include "dtvideo_pic.h"
 
 }
 
@@ -50,7 +49,7 @@ struct Frame {
     int64_t time;
     int key;
     uint8_t *buffer;
-    dt_av_pic_t *vframe; // for output
+    dt_av_frame_t *vframe; // for output
 };
 
 struct TimeStamp {
@@ -73,7 +72,7 @@ typedef struct StagefrightContext {
     bool source_done;
     volatile sig_atomic_t thread_started, thread_exited, stop_decode;
 
-    dt_av_pic_t *prev_frame;
+    dt_av_frame_t *prev_frame;
     std::map<int64_t, TimeStamp> *ts_map;
     int64_t frame_index;
 
@@ -225,7 +224,7 @@ void* decode_thread(void *arg)
             sp<MetaData> outFormat = (*s->decoder)->getFormat();
             outFormat->findInt32(kKeyWidth , &w);
             outFormat->findInt32(kKeyHeight, &h);
-            frame->vframe = (dt_av_pic_t *)malloc(sizeof(dt_av_pic_t));
+            frame->vframe = (dt_av_frame_t *)malloc(sizeof(dt_av_frame_t));
             if (!frame->vframe) {
                 //frame->status = AVERROR(ENOMEM);
                 frame->status = -1;
@@ -430,14 +429,14 @@ fail:
     return ret;
 }
 
-static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_frame,dt_av_pic_t **data)
+static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_frame,dt_av_frame_t **data)
 {
     StagefrightContext *s = (StagefrightContext*)decoder->vd_priv;
     Frame *frame;
     status_t status;
     int orig_size = vd_frame->size;
 
-    dt_av_pic_t *ret_frame;
+    dt_av_frame_t *ret_frame;
 
     if (!s->thread_started) {
         pthread_create(&s->decode_thread_id, NULL, &decode_thread, decoder);
@@ -516,10 +515,10 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_
         free(&s->prev_frame);
     s->prev_frame = ret_frame;
 
-    *data = (dt_av_pic_t *)malloc(sizeof(dt_av_pic_t));
+    *data = (dt_av_frame_t *)malloc(sizeof(dt_av_frame_t));
     //*got_frame = 1;
     
-    memcpy(*data,ret_frame,sizeof(dt_av_pic_t));
+    memcpy(*data,ret_frame,sizeof(dt_av_frame_t));
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode one frame ok, pts:%lld \n",ret_frame->pts);
     return 1;
     //return orig_size;
@@ -550,7 +549,7 @@ static int Stagefright_close(dtvideo_decoder_t *decoder)
                 frame = *s->out_queue->begin();
                 s->out_queue->erase(s->out_queue->begin());
                 if (frame->vframe)
-                    dtav_free_pic(frame->vframe);
+                    dtav_free_frame(frame->vframe);
                 av_freep(&frame);
             }
             pthread_mutex_unlock(&s->out_mutex);
@@ -598,7 +597,7 @@ static int Stagefright_close(dtvideo_decoder_t *decoder)
         frame = *s->out_queue->begin();
         s->out_queue->erase(s->out_queue->begin());
         if (frame->vframe)
-            dtav_free_pic(frame->vframe);
+            dtav_free_frame(frame->vframe);
         av_freep(&frame);
     }
 

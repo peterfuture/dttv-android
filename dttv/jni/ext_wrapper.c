@@ -19,7 +19,7 @@ static int vo_ex_init (dtvideo_output_t *vout)
     return ret;
 }
 
-static int vo_ex_render (dtvideo_output_t *vout,dt_av_pic_t * pict)
+static int vo_ex_render (dtvideo_output_t *vout,dt_av_frame_t * pict)
 {
     int ret = 0;
     ret = vo_android_ops.vo_render(vout,pict);

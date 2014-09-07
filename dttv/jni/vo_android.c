@@ -23,7 +23,7 @@ static vo_android_ctx_t vo_android_ctx;
 
 int update_frame(uint8_t *buf,int size);
 
-static void SaveFrame (dt_av_pic_t * pFrame, int width, int height, int iFrame)
+static void SaveFrame (dt_av_frame_t * pFrame, int width, int height, int iFrame)
 {
     FILE *pFile;
     char szFilename[32];
@@ -65,7 +65,7 @@ static int vo_android_init (dtvideo_output_t *vout)
     return 0;
 }
 
-static int vo_android_render (dtvideo_output_t *vout,dt_av_pic_t * pict)
+static int vo_android_render (dtvideo_output_t *vout,dt_av_frame_t * pict)
 {
     vo_wrapper_t *wrap = &vo_android_ops;
     vo_android_ctx_t *ctx = (vo_android_ctx_t *)wrap->handle;

@@ -112,19 +112,17 @@ public:
         Frame *frame;
         status_t ret;
 
-        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read, enter read \n");
         if (s->thread_exited)
             return ERROR_END_OF_STREAM;
         pthread_mutex_lock(&s->in_mutex);
 
-        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read, enter mutex lock, origsize:%d  \n",s->orig_extradata_size);
         
         while (s->in_queue->empty())
         {
-            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read, list empty wait \n");
+            //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read, list empty wait \n");
             pthread_cond_wait(&s->condition, &s->in_mutex);
         }
-        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read, list->size:%d \n",s->in_queue->size());
+        //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read, list->size:%d \n",s->in_queue->size());
         frame = *s->in_queue->begin();
         ret = frame->status;
 
@@ -144,7 +142,7 @@ public:
 
         s->in_queue->erase(s->in_queue->begin());
         pthread_mutex_unlock(&s->in_mutex);
-        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read one frame ok , size:%d key:%d \n",frame->size,frame->key);
+        //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read one frame ok , size:%d key:%d \n",frame->size,frame->key);
 
         av_freep(frame);
         return ret;
@@ -212,9 +210,8 @@ void* decode_thread(void *arg)
             goto push_frame;
         }
         memset(frame,0,sizeof(Frame));
-        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step start read one frame in decoder\n");
         frame->status = (*s->decoder)->read(&buffer);
-        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read one frame, status:%d  \n",frame->status);
+        //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read one frame, status:%d  \n",frame->status);
         if (frame->status == OK) {
 
             if(buffer->range_length() == 0) // invalid buf, release
@@ -235,20 +232,9 @@ void* decode_thread(void *arg)
                 buffer->release();
                 goto push_frame;
             }
-
             
-            if(pix_fmt == DTAV_PIX_FMT_NV21)
-            {
-                pic_size = w * h + w * h / 2;
-            }
-            if(pix_fmt == DTAV_PIX_FMT_YUV420P)
-            {
-                pic_size = w * h + w * h / 2;
-            }
-
-            //pic_size = buffer->range_length();
-
-            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step malloc buffer, size:%di rangesize:%d\n",pic_size,buffer->range_length());
+            pic_size = buffer->range_length();
+            //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step malloc buffer, size:%di rangesize:%d\n",pic_size,buffer->range_length());
             frame->vframe->data[0] = (uint8_t *)malloc(pic_size);
 
             // The OMX.SEC decoder doesn't signal the modified width/height
@@ -269,11 +255,14 @@ void* decode_thread(void *arg)
             memcpy(frame->vframe->data[0],tmp_buf,pic_size);
 
             buffer->meta_data()->findInt64(kKeyTime, &out_frame_index);
+            frame->vframe->pts = out_frame_index;
+#if 0
             if (out_frame_index && s->ts_map->count(out_frame_index) > 0) {
                 frame->vframe->pts = (*s->ts_map)[out_frame_index].pts;
                 //frame->vframe->reordered_opaque = (*s->ts_map)[out_frame_index].reordered_opaque;
                 s->ts_map->erase(out_frame_index);
             }
+#endif
             buffer->release();
             __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decoded one frame : pts:%llx outindex:%llx\n",frame->vframe->pts, out_frame_index);
             
@@ -476,8 +465,9 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_frame_t *v
             }
             uint8_t *ptr = vd_frame->data;
             memcpy(frame->buffer, ptr, orig_size);
-            frame->time = ++s->frame_index;
-            (*s->ts_map)[s->frame_index].pts = vd_frame->pts;
+            //frame->time = ++s->frame_index;
+            frame->time = vd_frame->pts;
+            //(*s->ts_map)[s->frame_index].pts = vd_frame->pts; // do not store pts
             //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame,size:%d  %02x %02x %02x %02x %02x %02x\n",frame->size,frame->buffer[0],frame->buffer[1],frame->buffer[2],frame->buffer[3],frame->buffer[4],frame->buffer[5]);
             //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame, %02x %02x %02x %02x %02x %02x\n",ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5]);
             //(*s->ts_map)[s->frame_index].reordered_opaque = vd_frame->reordered_opaque;
@@ -495,33 +485,20 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_frame_t *v
             if (s->in_queue->size() >= 10) {
                 pthread_mutex_unlock(&s->in_mutex);
                 usleep(10000);
-                __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 10 frames in queue, wait decode\n");
+                //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 10 frames in queue, wait decode\n");
                 continue;
             }
             s->in_queue->push_back(frame);
             pthread_cond_signal(&s->condition);
             pthread_mutex_unlock(&s->in_mutex);
-            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step push one frame to in queue ok\n");
+            //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step push one frame to in queue ok\n");
             break;
         }
     }
-#if 0
-    while (true) {
-        pthread_mutex_lock(&s->out_mutex);
-        if (!s->out_queue->empty()) break;
-        pthread_mutex_unlock(&s->out_mutex);
-        if (s->source_done) {
-            usleep(10000);
-            continue;
-        } else {
-            return orig_size;
-        }
-    }
-#endif
 
     if (s->out_queue->empty())
     {
-        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step have no frame out\n");
+        //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step have no frame out\n");
         return 0;
     }
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step begin to read one frame out\n");
@@ -534,16 +511,6 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_frame_t *v
     status  = frame->status;
     av_freep(&frame);
 
-#if 0
-    if (status == ERROR_END_OF_STREAM)
-        return 0;
-    if (status != OK) {
-        //if (status == AVERROR(ENOMEM))
-        //    return status;
-        //av_log(avctx, AV_LOG_ERROR, "Decode failed: %x\n", status);
-        return -1;
-    }
-#endif
     if (s->prev_frame)
         free(&s->prev_frame);
     s->prev_frame = ret_frame;

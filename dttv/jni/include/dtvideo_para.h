@@ -18,6 +18,7 @@ typedef struct
     int num, den;               //for pts calc
     int extradata_size;
     unsigned char extradata[VIDEO_EXTRADATA_SIZE];
+    int flag;                   // setting from player
     int video_filter;
     int video_output;
     void *avctx_priv;

@@ -21,6 +21,7 @@ typedef struct vd_wrapper
     dtvideo_format_t vfmt;        // not used, for ffmpeg
     dtvideo_para_t para;          // info changed needed 
     int type;
+    int is_hw;
 
     int (*init) (struct dtvideo_decoder *decoder);
     int (*decode_frame) (struct dtvideo_decoder *decoder, dt_av_frame_t * frame, dt_av_pic_t ** pic);

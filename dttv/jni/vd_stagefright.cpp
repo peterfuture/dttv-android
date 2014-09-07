@@ -49,8 +49,7 @@ struct Frame {
     int64_t time;
     int key;
     uint8_t *buffer;
-    AVPicture_t *vframe; // for output
-    //AVFrame *vframe;
+    dt_av_pic_t *vframe; // for output
 };
 
 struct TimeStamp {
@@ -73,7 +72,7 @@ typedef struct StagefrightContext {
     bool source_done;
     volatile sig_atomic_t thread_started, thread_exited, stop_decode;
 
-    AVPicture_t *prev_frame;
+    dt_av_pic_t *prev_frame;
     std::map<int64_t, TimeStamp> *ts_map;
     int64_t frame_index;
 
@@ -83,6 +82,7 @@ typedef struct StagefrightContext {
     OMXClient *client;
     sp<MediaSource> *decoder;
     const char *decoder_component;
+    int info_changed;
 }StagefrightContext;
 
 class CustomSource : public MediaSource {
@@ -157,12 +157,37 @@ private:
     int frame_size;
 };
 
+static int dt_get_line_size(int pix_fmt, int w, int plane)
+{
+    if(pix_fmt == DTAV_PIX_FMT_YUV420P)
+    {
+       switch(plane) 
+       {
+           case 0:
+               return w + 32;
+           default:
+               return w/2 + 16;
+       }
+    }
+
+    if(pix_fmt == DTAV_PIX_FMT_NV21)
+    {
+        switch(plane) 
+        {
+            case 0:
+                return w + 32;
+            default:
+                return w/2 + 16;
+       }
+    }
+
+    return -1; // not support
+}
+
 void* decode_thread(void *arg)
 {
-    vd_wrapper_t *wrapper = (vd_wrapper_t*)arg;
-    StagefrightContext *s = (StagefrightContext*)wrapper->vd_priv;
-    //const AVPixFmtDescriptor *pix_desc = av_pix_fmt_desc_get(avctx->pix_fmt);
-    //const AVPixFmtDescriptor *pix_desc = DTAV_PIX_FMT_YUV420P;
+    dtvideo_decoder_t *decoder = (dtvideo_decoder_t *)arg;
+    StagefrightContext *s = (StagefrightContext*)decoder->vd_priv;
     Frame* frame;
     MediaBuffer *buffer;
     int32_t w, h;
@@ -171,6 +196,9 @@ void* decode_thread(void *arg)
     int src_linesize[3];
     const uint8_t *src_data[3];
     int64_t out_frame_index = 0;
+    int pic_size = 0;
+
+    int pix_fmt = decoder->wrapper->para.s_pixfmt;
 
     do {
         buffer = NULL;
@@ -183,6 +211,7 @@ void* decode_thread(void *arg)
             s->end_frame  = NULL;
             goto push_frame;
         }
+        memset(frame,0,sizeof(Frame));
         __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step start read one frame in decoder\n");
         frame->status = (*s->decoder)->read(&buffer);
         __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step read one frame, status:%d  \n",frame->status);
@@ -198,8 +227,7 @@ void* decode_thread(void *arg)
             sp<MetaData> outFormat = (*s->decoder)->getFormat();
             outFormat->findInt32(kKeyWidth , &w);
             outFormat->findInt32(kKeyHeight, &h);
-            //frame->vframe = av_frame_alloc();
-            frame->vframe = (AVPicture_t *)malloc(sizeof(AVPicture_t));
+            frame->vframe = (dt_av_pic_t *)malloc(sizeof(dt_av_pic_t));
             if (!frame->vframe) {
                 //frame->status = AVERROR(ENOMEM);
                 frame->status = -1;
@@ -208,7 +236,20 @@ void* decode_thread(void *arg)
                 goto push_frame;
             }
 
-            frame->vframe->data[0] = (uint8_t *)malloc(sizeof(w*h*2));
+            
+            if(pix_fmt == DTAV_PIX_FMT_NV21)
+            {
+                pic_size = w * h + w * h / 2;
+            }
+            if(pix_fmt == DTAV_PIX_FMT_YUV420P)
+            {
+                pic_size = w * h + w * h / 2;
+            }
+
+            //pic_size = buffer->range_length();
+
+            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step malloc buffer, size:%di rangesize:%d\n",pic_size,buffer->range_length());
+            frame->vframe->data[0] = (uint8_t *)malloc(pic_size);
 
             // The OMX.SEC decoder doesn't signal the modified width/height
             if (s->decoder_component && !strncmp(s->decoder_component, "OMX.SEC", 7) &&
@@ -218,29 +259,15 @@ void* decode_thread(void *arg)
                     h = (h + 15)&~15;
                 }
             }
-#if 0
-            if (!avctx->width || !avctx->height || avctx->width > w || avctx->height > h) {
-                avctx->width  = w;
-                avctx->height = h;
-            }
-#endif
-#if 0
-            src_linesize[0] = av_image_get_linesize(avctx->pix_fmt, w, 0);
-            src_linesize[1] = av_image_get_linesize(avctx->pix_fmt, w, 1);
-            src_linesize[2] = av_image_get_linesize(avctx->pix_fmt, w, 2);
-#endif
-            src_linesize[0] = w*h;
-            src_linesize[1] = w*h/4;
-            src_linesize[2] = w*h/4;
 
-            src_data[0] = (uint8_t*)buffer->data();
-            src_data[1] = src_data[0] + src_linesize[0] * h;
-            //src_data[2] = src_data[1] + src_linesize[1] * -(-h>>pix_desc->log2_chroma_h);
-#if 0
-            av_image_copy(frame->vframe->data, frame->vframe->linesize,
-                          src_data, src_linesize,
-                          avctx->pix_fmt, avctx->width, avctx->height);
-#endif
+           //line size no need to set
+            frame->vframe->linesize[0] = dt_get_line_size(pix_fmt, w, 0);
+            frame->vframe->linesize[1] = dt_get_line_size(pix_fmt, w, 1);
+            frame->vframe->linesize[2] = dt_get_line_size(pix_fmt, w, 2);
+
+            uint8_t *tmp_buf = (uint8_t*)buffer->data();
+            memcpy(frame->vframe->data[0],tmp_buf,pic_size);
+
             buffer->meta_data()->findInt64(kKeyTime, &out_frame_index);
             if (out_frame_index && s->ts_map->count(out_frame_index) > 0) {
                 frame->vframe->pts = (*s->ts_map)[out_frame_index].pts;
@@ -248,7 +275,9 @@ void* decode_thread(void *arg)
                 s->ts_map->erase(out_frame_index);
             }
             buffer->release();
-            } else if (frame->status == INFO_FORMAT_CHANGED) {
+            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decoded one frame : pts:%llx outindex:%llx\n",frame->vframe->pts, out_frame_index);
+            
+        } else if (frame->status == INFO_FORMAT_CHANGED) {
                 __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step info chaned :%d \n",frame->status);
                 if (buffer)
                     buffer->release();
@@ -389,6 +418,13 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
     pthread_mutex_init(&s->out_mutex, NULL);
     pthread_cond_init(&s->condition, NULL);
     memcpy(&wrapper->para, &decoder->para, sizeof(dtvideo_para_t));
+
+    if(pix_fmt != wrapper->para.s_pixfmt)
+    {
+        wrapper->para.s_pixfmt = pix_fmt;
+        s->info_changed = 1;
+    }
+
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "vd stagefright init ok \n");
     return 0;
 
@@ -411,10 +447,10 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_frame_t *v
     status_t status;
     int orig_size = vd_frame->size;
 
-    AVPicture_t *ret_frame;
+    dt_av_pic_t *ret_frame;
 
     if (!s->thread_started) {
-        pthread_create(&s->decode_thread_id, NULL, &decode_thread, decoder->wrapper);
+        pthread_create(&s->decode_thread_id, NULL, &decode_thread, decoder);
         s->thread_started = true;
         __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 1 start decode thread ok\n");
     }
@@ -442,9 +478,10 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_frame_t *v
             memcpy(frame->buffer, ptr, orig_size);
             frame->time = ++s->frame_index;
             (*s->ts_map)[s->frame_index].pts = vd_frame->pts;
-            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame,size:%d  %02x %02x %02x %02x %02x %02x\n",frame->size,frame->buffer[0],frame->buffer[1],frame->buffer[2],frame->buffer[3],frame->buffer[4],frame->buffer[5]);
-            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame, %02x %02x %02x %02x %02x %02x\n",ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5]);
+            //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame,size:%d  %02x %02x %02x %02x %02x %02x\n",frame->size,frame->buffer[0],frame->buffer[1],frame->buffer[2],frame->buffer[3],frame->buffer[4],frame->buffer[5]);
+            //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame, %02x %02x %02x %02x %02x %02x\n",ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5]);
             //(*s->ts_map)[s->frame_index].reordered_opaque = vd_frame->reordered_opaque;
+            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, push frame, index:%llx pts:%llx \n",s->frame_index, vd_frame->pts);
         } 
         
         while (true) 
@@ -511,14 +548,23 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_frame_t *v
         free(&s->prev_frame);
     s->prev_frame = ret_frame;
 
+    *data = (dt_av_pic_t *)malloc(sizeof(dt_av_pic_t));
     //*got_frame = 1;
-    *(AVPicture_t*)data = *ret_frame;
+    
+    memcpy(*data,ret_frame,sizeof(dt_av_pic_t));
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode one frame ok, pts:%lld \n",ret_frame->pts);
     return 1;
     //return orig_size;
 }
 
 static int Stagefright_info_changed(dtvideo_decoder_t *decoder)
 {
+    StagefrightContext *s = (StagefrightContext*)decoder->vd_priv;
+    if(s->info_changed) 
+    {
+        s->info_changed = 0;
+        return 1;
+    }
     return 0;
 }
 static int Stagefright_close(dtvideo_decoder_t *decoder)

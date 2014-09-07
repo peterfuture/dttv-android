@@ -23,7 +23,7 @@ typedef struct demuxer_wrapper
     //int (*probe) (struct demuxer_wrapper *wrapper,void *parent);
     int (*probe) (struct demuxer_wrapper *wrapper,dt_buffer_t *buf);
     int (*open) (struct demuxer_wrapper * wrapper);
-    int (*read_frame) (struct demuxer_wrapper * wrapper, dt_av_frame_t * frame);
+    int (*read_frame) (struct demuxer_wrapper * wrapper, dt_av_pkt_t * frame);
     int (*setup_info) (struct demuxer_wrapper * wrapper, dt_media_info_t * info);
     int (*seek_frame) (struct demuxer_wrapper * wrapper, int64_t timestamp); // us
     int (*close) (struct demuxer_wrapper * wrapper);

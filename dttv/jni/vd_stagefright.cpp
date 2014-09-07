@@ -430,7 +430,7 @@ fail:
     return ret;
 }
 
-static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_frame_t *vd_frame,dt_av_pic_t **data)
+static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_frame,dt_av_pic_t **data)
 {
     StagefrightContext *s = (StagefrightContext*)decoder->vd_priv;
     Frame *frame;

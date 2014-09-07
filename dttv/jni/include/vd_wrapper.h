@@ -24,7 +24,7 @@ typedef struct vd_wrapper
     int is_hw;
 
     int (*init) (struct dtvideo_decoder *decoder);
-    int (*decode_frame) (struct dtvideo_decoder *decoder, dt_av_frame_t * frame, dt_av_pic_t ** pic);
+    int (*decode_frame) (struct dtvideo_decoder *decoder, dt_av_pkt_t * frame, dt_av_pic_t ** pic);
     int (*info_changed) (struct dtvideo_decoder *decoder);
     int (*release) (struct dtvideo_decoder *decoder);
     

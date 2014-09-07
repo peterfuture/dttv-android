@@ -26,7 +26,7 @@ typedef enum DT_AVMediaType
     DT_TYPE_MAX
 } dt_media_type_t;
 
-typedef struct dt_av_frame
+typedef struct dt_av_pkt
 {
     uint8_t *data;
     int size;
@@ -35,7 +35,7 @@ typedef struct dt_av_frame
     int duration;
     int key_frame; // flag from ffmpeg
     dt_media_type_t type;
-} dt_av_frame_t;
+} dt_av_pkt_t;
 
 typedef struct dt_av_pic
 {

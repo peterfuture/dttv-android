@@ -37,18 +37,6 @@ typedef struct dt_av_frame
     dt_media_type_t type;
 } dt_av_frame_t;
 
-/* AVPicture_t is wrapper of AVPicture */
-typedef struct _AVPicture_t_
-{
-    /* The two fields is same as AVPicture */
-    uint8_t *data[8];
-    int linesize[8];
-    /* New fields for sync AV */
-    int64_t pts;
-    int64_t dts;
-    int duration;
-} AVPicture_t;
-
 typedef struct dt_av_pic
 {
     /* The two fields is same as AVPicture */

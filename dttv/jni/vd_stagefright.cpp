@@ -22,6 +22,7 @@
 extern "C" {
 
 #include "vd_wrapper.h"
+#include "dtvideo_pic.h"
 
 }
 
@@ -549,7 +550,7 @@ static int Stagefright_close(dtvideo_decoder_t *decoder)
                 frame = *s->out_queue->begin();
                 s->out_queue->erase(s->out_queue->begin());
                 if (frame->vframe)
-                    av_frame_free(&frame->vframe);
+                    dtav_free_pic(frame->vframe);
                 av_freep(&frame);
             }
             pthread_mutex_unlock(&s->out_mutex);
@@ -597,7 +598,7 @@ static int Stagefright_close(dtvideo_decoder_t *decoder)
         frame = *s->out_queue->begin();
         s->out_queue->erase(s->out_queue->begin());
         if (frame->vframe)
-            av_frame_free(&frame->vframe);
+            dtav_free_pic(frame->vframe);
         av_freep(&frame);
     }
 

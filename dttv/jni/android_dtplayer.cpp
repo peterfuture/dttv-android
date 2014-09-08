@@ -421,6 +421,24 @@ extern "C" int update_frame(uint8_t *buf,int size)
     memcpy((uint8_t *)gl_ctx.frame,buf,cp_size);
     gl_ctx.invalid_frame = 1;
     dt_unlock (&gl_ctx.mutex);
+
+#if 0
+    //update_pixel_test();
+	glTexImage2D(GL_TEXTURE_2D,		/* target */
+			0,			/* level */
+			GL_RGB,			/* internal format */
+			gl_ctx.width,		/* width */
+			gl_ctx.height,		/* height */
+			0,			/* border */
+			GL_RGB,			/* format */
+			GL_UNSIGNED_SHORT_5_6_5,/* type */
+			gl_ctx.frame);		/* pixels */
+	glDrawTexiOES(0, 0, 0, gl_ctx.width, gl_ctx.height);
+    gl_ctx.invalid_frame = 0;
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "ondraw frame here\n");
+
+    requestRender();
+#endif
 }
 
 int dtp_onDrawFrame(JNIEnv *env, jobject obj)

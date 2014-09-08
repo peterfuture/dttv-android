@@ -94,6 +94,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 			glSurfaceView = (GlVideoView)findViewById(R.id.glvideo_view);
 			glSurfaceView.setRenderer(new GLSurfaceViewRender());
 	        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+	        //glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 	        //glSurfaceView.setOnTouchListener((OnTouchListener) this);
 		}
 

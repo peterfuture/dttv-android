@@ -110,31 +110,35 @@ typedef struct aout_sys_t
 static inline int bytesPerSample(dtaudio_output_t *aout)
 {
     dtaudio_para_t *para = &aout->para;
-    return para->dst_channels * para->data_width / 2;
+    return para->dst_channels * para->data_width / 8;
     //return 2 /* S16 */ * 2 /* stereo */;
 }
 
 // get us delay
+//
 static int TimeGet(dtaudio_output_t* aout, int64_t* drift)
 {
-    aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
-    int64_t us = 0;
+    aout_sys_t *sys = (aout_sys_t *)aout->ao_priv;
+
     SLAndroidSimpleBufferQueueState st;
     SLresult res = GetState(sys->playerBufferQueue, &st);
     if (unlikely(res != SL_RESULT_SUCCESS)) {
+        __android_log_print(ANDROID_LOG_DEBUG, TAG, "Could not query buffer queue state in TimeGet (%lu)", res);
         return -1;
     }
-
-    bool started = sys->started;
-
-    if (!started)
+    
+    dt_lock(&sys->lock);
+	bool started = sys->started;
+	dt_unlock(&sys->lock);
+	 
+	if (!started)
         return -1;
+    *drift = (CLOCK_FREQ * OPENSLES_BUFLEN * st.count / 1000)
+	     + sys->samples * CLOCK_FREQ / sys->rate;
 
-    us = (CLOCK_FREQ * OPENSLES_BUFLEN * st.count / 1000)
-        + sys->samples * CLOCK_FREQ / sys->rate;
-
-    *drift = us / 1000;
-
+//	__android_log_print(ANDROID_LOG_DEBUG, TAG, "latency %lld ms, %d/%d buffers, samples:%d", *drift / 1000,
+//            (int)st.count, OPENSLES_BUFFERS, sys->samples);
+	 
     return 0;
 }
 
@@ -231,6 +235,7 @@ static int WriteBuffer(dtaudio_output_t *aout)
         &sys->buf[unit_size * sys->next_buf], unit_size);
 
     sys->samples -= sys->samples_per_buf;
+    //__android_log_print(ANDROID_LOG_DEBUG,TAG, "minus sampels, %d minus %d \n",sys->samples, sys->samples_per_buf);
 
     if (r == SL_RESULT_SUCCESS) {
         if (++sys->next_buf == OPENSLES_BUFFERS)
@@ -248,10 +253,17 @@ static int WriteBuffer(dtaudio_output_t *aout)
 static int Play(dtaudio_output_t *aout, uint8_t *buf, int size)
 {
     aout_sys_t *sys = (aout_sys_t *)aout->ao_priv;
-	int ret = buf_put(&sys->dbt,buf,size);
+    int ret = 0;
+    //__android_log_print(ANDROID_LOG_DEBUG,TAG, "space:%d level:%d  size:%d  \n",buf_space(&sys->dbt), buf_level(&sys->dbt), size);
+    if(buf_space(&sys->dbt) > size)
+    {
+        ret = buf_put(&sys->dbt,buf,size);
+    }
     sys->samples += ret / bytesPerSample(aout);
+    //__android_log_print(ANDROID_LOG_DEBUG,TAG, "add sampels, %d add %d \n",sys->samples, ret / bytesPerSample(aout));
+
     /* Fill OpenSL buffer */
-    WriteBuffer(aout);
+    WriteBuffer(aout); // will read data in callback
     return ret;
 }
 
@@ -263,6 +275,8 @@ static void PlayedCallback (SLAndroidSimpleBufferQueueItf caller, void *pContext
 
     assert (caller == sys->playerBufferQueue);
     sys->started = 1;
+    //__android_log_print(ANDROID_LOG_DEBUG,TAG, "opensl callback called \n");
+    
 }
 /*****************************************************************************
  *
@@ -495,7 +509,7 @@ static int Open (dtaudio_output_t *aout)
 
     dt_lock_init(&sys->lock, NULL);
 	
-    if(buf_init(&sys->dbt,para->dst_samplerate * 2 / 10) < 0) // 100ms
+    if(buf_init(&sys->dbt,para->dst_samplerate * 4 / 10) < 0) // 100ms
         return -1;
     aout->ao_priv = (void *)sys;
     return 0;
@@ -571,17 +585,24 @@ static int64_t ao_opensl_get_latency (dtaudio_output_t *aout)
 {
     int64_t latency;
     int ret = 0;
+    int level = 0;
     aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
 
+#if 1
+    TimeGet(aout,&latency);
+    if(latency == -1)
+        return 0;
+    latency = 9 * latency / 100;
+#else 
     dtaudio_para_t *para = &aout->para;
-    int level = ao_opensl_level(aout);
-	unsigned int sample_num;
+    level = ao_opensl_level(aout);
+	int sample_num;
 	float pts_ratio = 0.0;
 	pts_ratio = (double) 90000 / para->dst_samplerate;
 	sample_num = level / bytesPerSample(aout);
 	latency += (sample_num * pts_ratio);
+#endif
     //__android_log_print(ANDROID_LOG_DEBUG,TAG, "opensl latency, level:%d latency:%lld \n",level, latency);
-
     return latency;
 }
 

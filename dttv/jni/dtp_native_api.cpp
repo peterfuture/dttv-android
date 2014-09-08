@@ -56,6 +56,8 @@ int DTPlayer::setListenner(dtpListenner *listenner)
 
 int DTPlayer::setDataSource(const char *file_name)
 {
+    int ret = 0;
+	dt_media_info_t info;
     ext_element_init();
     dtplayer_para_t para;
     para.no_audio = para.no_video = para.no_sub = -1;
@@ -78,7 +80,7 @@ int DTPlayer::setDataSource(const char *file_name)
     if(handle != NULL)
     {
 	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "last player is running\n");
-        return -1;
+        goto FAILED;
     }
 
     //reset var
@@ -91,11 +93,10 @@ int DTPlayer::setDataSource(const char *file_name)
     if (!handle)
     {
 	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "player init failed \n");
-        return -1;
+        goto FAILED;
     }
     //get media info
-	dt_media_info_t info;
-	int ret = dtplayer_get_mediainfo(handle, &info);
+	ret = dtplayer_get_mediainfo(handle, &info);
 	if(ret < 0)
 	{
 	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Get mediainfo failed, quit \n");
@@ -109,8 +110,11 @@ int DTPlayer::setDataSource(const char *file_name)
     
     mDtpHandle = handle;
     status = PLAYER_INITED;
-
     return 0;
+
+FAILED:
+    Notify(MEDIA_ERROR); // start next player
+    return -1;
 }
 
 int DTPlayer::prePare()

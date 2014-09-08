@@ -186,7 +186,13 @@ int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
     mClass = (jclass)env->NewGlobalRef(clazz);
     notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
 
-    return dtPlayer->setDataSource(file_name);
+    ret = dtPlayer->setDataSource(file_name);
+    if(ret < 0)
+    {
+        delete dtPlayer;
+        dtPlayer = NULL;
+    }
+    return ret;
 }
 
 int dtp_prePare(JNIEnv *env, jobject obj)
@@ -236,8 +242,10 @@ int dtp_stop(JNIEnv *env, jobject obj)
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter stop ");
     int ret = 0;
     if(!dtPlayer)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "player already destroyed, quit ");
         return -1;
-
+    }
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "native stop enter \n ");
     ret = dtPlayer->stop();
     {

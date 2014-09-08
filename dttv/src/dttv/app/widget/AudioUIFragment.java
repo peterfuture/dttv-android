@@ -318,8 +318,9 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		}
 		try {
 			//dtPlayer.release();
-			/*dtPlayer.reset();*/			
-			dtPlayer.setDataSource(uri);
+			/*dtPlayer.reset();*/		
+			if(dtPlayer.setDataSource(uri) == -1)
+				return;
 			dtPlayer.prepare();
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block

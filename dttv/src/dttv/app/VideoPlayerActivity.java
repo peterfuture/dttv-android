@@ -136,6 +136,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 				return;
 			}
 			//here to set video size
+			
 			int width = dtPlayer.getVideoWidth();
 			int height = dtPlayer.getVideoHeight();
 			Log.d(TAG,"--width:"+width+"  height:"+height);

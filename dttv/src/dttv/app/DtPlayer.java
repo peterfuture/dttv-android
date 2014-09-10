@@ -74,6 +74,7 @@ public class DtPlayer {
 	public DtPlayer(Context ctx) {
 		// TODO Auto-generated constructor stub
 		this(ctx,false);
+		native_setup();
 	}
 	
 	public DtPlayer(Context ctx,boolean isHardWare) {
@@ -383,6 +384,7 @@ public class DtPlayer {
 		mOnCachingUpdateListener = null;
 		mOnHWRenderFailedListener = null;
 		native_stop();
+		native_release();
 		closeFD();
 	}
 	
@@ -652,7 +654,8 @@ public class DtPlayer {
 	}
 	//----------------------------------
 	
-	public native void native_init();
+	public native void native_setup();
+	public native void native_release();
 	public native void native_release_surface();
 	public native void native_set_video_surface(Surface surface);
 	public native int native_setDataSource(String path);

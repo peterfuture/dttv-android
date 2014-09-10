@@ -3,9 +3,16 @@
 #endif
 #define LOG_TAG "DTPLAYER-JNI"
 
+
 #include "android_runtime/AndroidRuntime.h"  
+#include "android_os_Parcel.h"
+#include "android_util_Binder.h"
+#include <binder/Parcel.h>
 #include <jni.h>
+#include <utils/Mutex.h>
 #include <android/log.h>
+#include <binder/IPCThreadState.h>
+#include <binder/IServiceManager.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,6 +33,10 @@ extern "C"{
 #include "dt_lock.h"
 }
 
+//#define USE_LISTENNER 0
+
+//-----------------------------------------------------------
+//opengl code
 #define RGB565(r, g, b)  (((r) << (5+6)) | ((g) << 6) | (b))
 
 #define GLRENDER_STATUS_IDLE 0
@@ -68,21 +79,34 @@ using namespace android;
 
 // ------------------------------------------------------------
 
+//------------------------------------------------------------
+//jni code
+struct fields_t {
+    jfieldID    context;
+    jfieldID    surface_texture;
+
+    jmethodID   post_event;
+
+    jmethodID   proxyConfigGetHost;
+    jmethodID   proxyConfigGetPort;
+    jmethodID   proxyConfigGetExclusionList;
+};
+static fields_t fields;
+dt_lock_t sLock;
 // ----------------------------------------------------------------------------
 
 static const char * const kClassName = "dttv/app/DtPlayer";
 static DTPlayer *dtPlayer = NULL; // player handle
-
 //================================================
 
 static JavaVM *gvm = NULL;
 static jclass mClass = NULL;
 static jmethodID notify_cb = NULL;
 
-
 // Notify to Java
 int Notify(int status)
 {
+#ifndef USE_LISTENNER 
     JNIEnv *env = NULL;
     int isAttached = 0; 
 
@@ -98,18 +122,6 @@ int Notify(int status)
     }
     else
         __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm getenv ok \n ");
-#if 0 
-    mClass = env->FindClass("dttv/app/DtPlayer");
-    if(!mClass)
-    {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm getenv failed \n ");
-        goto END;
-    }
-    else
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "env find class ok \n ");
-
-    notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
-#endif
     
     if(!notify_cb || !mClass)
     {
@@ -128,7 +140,7 @@ int Notify(int status)
 END:
     if(isAttached)
         gvm->DetachCurrentThread();  
-
+#endif
     return 0;
 }
 
@@ -137,7 +149,7 @@ dtpListenner::dtpListenner(JNIEnv *env, jobject thiz)
     jclass clazz = env->GetObjectClass(thiz);
     mClass = (jclass)env->NewGlobalRef(clazz);
     mObj = env->NewGlobalRef(thiz);
-//    notify_cb = env->GetMethodID(mClass, "updateState", "(I)V");
+    notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
 }
 
 dtpListenner::~dtpListenner()
@@ -149,23 +161,80 @@ dtpListenner::~dtpListenner()
 
 int dtpListenner::notify(int status)
 {
-#if 0
-    JNIEnv *env = AndroidRuntime::getJNIEnv();
-    //jmethodID notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
+    JNIEnv *env = NULL;
+    int isAttached = 0; 
+    if(gvm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm getenv failed use AttachCurrentThread \n ");
+        if(gvm->AttachCurrentThread(&env, NULL) != JNI_OK)
+        {
+            __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm AttachCurrentThread failed \n ");
+            return -1;
+        }
+        isAttached = 1;
+    }
+    
     if(!notify_cb || !mClass)
     {
         __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "updateState can not found ");
-        return -1;
+        goto END;
     }
-    //env->CallSTATICVoidMethod(mClass,notify_cb,status);
-    env->CallVoidMethod(mObj,notify_cb,status);
-#endif
+    
+    env->CallStaticVoidMethod(mClass,notify_cb,status);
+    //env->CallVoidMethod(mObj,notify_cb,status);
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "NOtify with listener \n ");
+END:
+    if(isAttached)
+        gvm->DetachCurrentThread();  
+
     return 0;
+}
+
+static DTPlayer * setMediaPlayer(JNIEnv *env, jobject thiz, DTPlayer *player)
+{
+    dt_lock(&sLock);
+    DTPlayer *old = (DTPlayer *)env->GetIntField(thiz, fields.context);
+    env->SetIntField(thiz, fields.context, (int)player);
+    dt_unlock(&sLock);
+    return old;
+}
+
+static DTPlayer *getMediaPlayer(JNIEnv *env, jobject thiz)
+{
+    dt_lock(&sLock);
+    DTPlayer *dtp = (DTPlayer *)env->GetIntField(thiz, fields.context);
+    dt_unlock(&sLock);
+    return dtp;
 }
 
 //================================================
 
-int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
+static void dtp_setup(JNIEnv *env, jobject obj)
+{
+#ifdef USE_LISTENNER
+    DTPlayer *mp = new DTPlayer();
+    if(!mp)
+    {
+        return;
+    }
+    dtpListenner *listenner = new dtpListenner(env, obj);
+    mp->setListenner(listenner);
+    setMediaPlayer(env, obj, mp);
+#endif
+}
+
+static void dtp_release(JNIEnv *env, jobject obj)
+{
+#ifdef USE_LISTENNER
+    DTPlayer *mp = setMediaPlayer(env, obj, 0);
+    if(mp)
+    {
+        delete mp;
+    }
+#endif
+}
+
+int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
 {
     int ret = 0;
     jboolean isCopy;
@@ -184,10 +253,11 @@ int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
         return -1;
     }
 
+#ifndef USE_LISTENNER
     jclass clazz = env->GetObjectClass(obj);
     mClass = (jclass)env->NewGlobalRef(clazz);
     notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
-
+#endif
     ret = dtPlayer->setDataSource(file_name);
     if(ret < 0)
     {
@@ -258,6 +328,9 @@ int dtp_stop(JNIEnv *env, jobject obj)
     {
         usleep(10000);
     }
+
+    delete dtPlayer;
+    dtPlayer = NULL;
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "native stop exit \n ");
     return 0;
 }
@@ -496,6 +569,8 @@ END:
 
 static JNINativeMethod g_Methods[] = {
     //New API
+    {"native_setup",              "(Ljava/lang;)I",           (void*) dtp_setup},
+    {"native_release",            "(Ljava/lang;)I",           (void*) dtp_release},
     {"native_setDataSource",      "(Ljava/lang/String;)I",    (void*) dtp_setDataSource},
     {"native_prePare",            "()I",                      (void*) dtp_prePare},
     {"native_prePareAsync",       "()I",                      (void*) dtp_prepareAsync},
@@ -551,7 +626,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
     /* success -- return valid version number */
     result = JNI_VERSION_1_4;
-
+    dt_lock_init(&sLock, NULL);
 bail:
     return result;
 }

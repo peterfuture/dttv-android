@@ -46,6 +46,8 @@ DTPlayer::~DTPlayer()
     status = 0;
     mCurrentPosition = mSeekPosition = -1;
     mDtpHandle = NULL;
+    if(mListenner)
+        delete mListenner;
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "DTPLAYER Destructor called \n");
 }
 

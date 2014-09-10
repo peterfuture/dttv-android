@@ -16,4 +16,10 @@
 	    android:layout_height="wrap_content"
 	    android:text="open pager"
 	    android:onClick="open_pager" />
+	<LinearLayout
+	    android:id="@+id/test_glsurfaceview"
+	    android:layout_width="match_parent"
+	    android:layout_height="500dp"
+	    android:orientation="horizontal" >
+	</LinearLayout>
 </LinearLayout>

@@ -11,16 +11,21 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.ConfigurationInfo;
+import android.content.res.Configuration;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -41,13 +46,15 @@ import dttv.app.widget.GlVideoView;
  * @author shihx1
  *	
  */
-public class VideoPlayerActivity extends Activity implements OnClickListener{
+public class VideoPlayerActivity extends Activity implements OnClickListener,OnTouchListener{
 	private String TAG = "VideoPlayerActivity";
 	private DtPlayer dtPlayer;
 	private String mPath;
 	
 	private View mBarView;
-	private RelativeLayout playerBarLay;
+	private RelativeLayout playerBarLay,playerRootviewLay;
+	private RelativeLayout topBarLay;
+	private ImageButton rotateBtn;
 	private TextView currentTimeTxt,totalTimeTxt;
 	private ImageButton preBtn,nextBtn,pauseBtn,ratioBtn;
 	private SeekBar playerProgressBar;
@@ -75,13 +82,16 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
     private int screenHeight,screenWidth;
     private int surface_width = 320;
     private int surface_height = 240;
+    private int currentPosition = -1;
 	
 	@SuppressLint("ShowToast")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
-		super.onCreate(savedInstanceState);		
+		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.video_play);
+		Log.i(TAG, "enter onCreate");
 		mState = PLAYER_IDLE;		
 		dtPlayer = new DtPlayer(this);
 		if(OpenglES2Support() == 0)
@@ -98,9 +108,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 	        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 	        //glSurfaceView.setOnTouchListener((OnTouchListener) this);
 		}
-
-		initExtraData();
 		initView();
+		initExtraData();
 		initListener();
 	}
 	
@@ -169,7 +178,10 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 	
 	private void initView(){
 		mBarView = (View)findViewById(R.id.audio_player_bar_lay);
-		playerBarLay = (RelativeLayout)mBarView.findViewById(R.id.dt_play_bar_lay);
+		playerBarLay = (RelativeLayout)mBarView.findViewById(R.id.audio_player_bar_lay);
+		playerRootviewLay = (RelativeLayout)findViewById(R.id.dt_player_rootview);
+		topBarLay = (RelativeLayout)findViewById(R.id.dt_top_play_bar_lay);
+		rotateBtn = (ImageButton)findViewById(R.id.dt_player_rotate_btn);
 		currentTimeTxt = (TextView)mBarView.findViewById(R.id.dt_play_current_time);
 		totalTimeTxt = (TextView)mBarView.findViewById(R.id.dt_play_total_time);
 		preBtn = (ImageButton)mBarView.findViewById(R.id.dt_play_prev_btn);
@@ -192,6 +204,11 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 		nextBtn.setOnClickListener(this);
 		pauseBtn.setOnClickListener(this);
 		ratioBtn.setOnClickListener(this);
+		rotateBtn.setOnClickListener(this);
+		playerBarLay.setOnTouchListener(this);
+		topBarLay.setOnTouchListener(this);
+		rotateBtn.setOnTouchListener(this);
+		playerRootviewLay.setOnTouchListener(this);
 	}
 	
 	class PrePareListener implements OnPreparedListener{
@@ -261,7 +278,14 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 		}
 		
 	}
-	
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		/*if(dtPlayer!=null){
+			dtPlayer.seekTo(currentPosition);
+			dtPlayer.start();
+		}*/
+	};
 	
 	Handler doActionHandler = new Handler(Looper.getMainLooper()){
 		public void handleMessage(android.os.Message msg) {
@@ -269,6 +293,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 			switch(msgId){
 			case Constant.REFRESH_TIME_MSG:
 				int currentTime = dtPlayer.getCurrentPosition();
+				currentPosition = currentTime;
 				int duration = dtPlayer.getDuration();
 				if(currentTime < 0)
 					currentTime = 0;
@@ -282,7 +307,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 	            //startTimerTask();
 				break;
 			case Constant.HIDE_OPREATE_BAR_MSG:
-				playerBarLay.setVisibility(View.GONE);
+				//playerBarLay.setVisibility(View.GONE);
+				Log.i(TAG, "enter HIDE_OPREATE_BAR_MSG");
+				showToolsBar(false);
 				break;
 			}
 		};
@@ -343,6 +370,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 		// TODO Auto-generated method stub
 		switch(v.getId()){
 		case R.id.dt_play_next_btn:
+			
 			break;
 		case R.id.dt_play_prev_btn:
 			break;
@@ -350,9 +378,26 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 			handlePausePlay();
 			break;
 		case R.id.dt_play_ratio_btn:
-			setVideoScale(temp_flag);
+			//setVideoScale(temp_flag);
+			break;
+		case R.id.dt_player_rotate_btn:
+			changeConfigration();
 			break;
 		}
+	}
+	
+	private void changeConfigration(){
+		if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		}else{
+			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		}
+	}
+	
+	private void showToolsBar(boolean isNeed){
+		playerBarLay.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
+		topBarLay.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
+		rotateBtn.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
 	}
 	
 	private void handlePausePlay(){
@@ -478,6 +523,16 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 		}
 		Log.i(TAG, "lp.width is:"+lp.width+"----lp.height is:"+lp.height);
 		glSurfaceView.setLayoutParams(lp);
+	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		// TODO Auto-generated method stub
+		Log.i(TAG, "enter onTouch");
+		showToolsBar(true);
+		doActionHandler.removeMessages(Constant.HIDE_OPREATE_BAR_MSG);
+		doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_OPREATE_BAR_MSG, 5*Constant.REFRESH_TIME);
+		return false;
 	}
 	
 }

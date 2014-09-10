@@ -30,6 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import dttv.app.DtPlayer.OnCompletionListener;
 import dttv.app.DtPlayer.OnPreparedListener;
+import dttv.app.DtPlayer.OnFreshVideo;
 import dttv.app.utils.Constant;
 import dttv.app.utils.Log;
 import dttv.app.utils.TimesUtil;
@@ -93,8 +94,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 			//opengl
 			glSurfaceView = (GlVideoView)findViewById(R.id.glvideo_view);
 			glSurfaceView.setRenderer(new GLSurfaceViewRender());
-	        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-	        //glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+	        //glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+	        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 	        //glSurfaceView.setOnTouchListener((OnTouchListener) this);
 		}
 
@@ -184,6 +185,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
 	
 	private void initListener(){
 		dtPlayer.setOnPreparedListener(new PrePareListener());
+		dtPlayer.setOnFreshVideo(new FreshVideo());
 		dtPlayer.setOnCompletionListener(new OnCompleteListener());
 		playerProgressBar.setOnSeekBarChangeListener(new OnSeekChangeListener());
 		preBtn.setOnClickListener(this);
@@ -207,6 +209,16 @@ public class VideoPlayerActivity extends Activity implements OnClickListener{
             }
             startTimerTask();
             //setVideoScale(1);
+		}
+	}
+	
+	class FreshVideo implements OnFreshVideo{
+		@Override
+		public void onFresh(DtPlayer mp) {
+			// TODO Auto-generated method stub
+			Log.i(Constant.LOGTAG, "fresh video");
+			glSurfaceView.requestRender();
+			
 		}
 	}
 	

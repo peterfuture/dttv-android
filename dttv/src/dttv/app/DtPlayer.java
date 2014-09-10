@@ -47,6 +47,7 @@ public class DtPlayer {
 	
 	private OnHWRenderFailedListener mOnHWRenderFailedListener;
 	private OnPreparedListener mOnPreparedListener;
+	private OnFreshVideo mOnFreshVideo;
 	private OnCompletionListener mOnCompletionListener;
 	private OnBufferingUpdateListener mOnBufferingUpdateListener;
 	private OnCachingUpdateListener mOnCachingUpdateListener;
@@ -64,6 +65,8 @@ public class DtPlayer {
 	private static final int MEDIA_BUFFERING_UPDATE = 3;
 	private static final int MEDIA_SEEK_COMPLETE = 4;
 	private static final int MEDIA_SET_VIDEO_SIZE = 5;
+	private static final int MEDIA_FRESH_VIDEO = 99; // ugly code
+	
 	private static final int MEDIA_ERROR = 100;
 	private static final int MEDIA_INFO = 200;
 	private static final int MEDIA_CACHE = 300;
@@ -237,6 +240,9 @@ public class DtPlayer {
 		case MEDIA_ERROR:
 			mEventHandler.sendEmptyMessage(MEDIA_ERROR);
 			break;
+		case MEDIA_FRESH_VIDEO:
+			mEventHandler.sendEmptyMessage(MEDIA_FRESH_VIDEO);
+			break;
 		}
 	}
 	
@@ -341,6 +347,10 @@ public class DtPlayer {
 					mOnVideoSizeChangedListener.onVideoSizeChanged(
 							mMediaPlayer, msg.arg1, msg.arg2);
 				break;
+			case MEDIA_FRESH_VIDEO:
+				if(mOnFreshVideo != null)
+					mOnFreshVideo.onFresh(mMediaPlayer);
+				break;
 			case MEDIA_ERROR:
 				
 				break;
@@ -375,6 +385,7 @@ public class DtPlayer {
 		stayAwake(false);
 		updateSurfaceScreenOn();
 		mOnPreparedListener = null;
+		mOnFreshVideo = null;
 		mOnBufferingUpdateListener = null;
 		mOnCompletionListener = null;
 		mOnSeekCompleteListener = null;
@@ -394,6 +405,10 @@ public class DtPlayer {
 	
 	public interface OnPreparedListener{
 		void onPrepared(DtPlayer mp);
+	}
+	
+	public interface OnFreshVideo{
+		void onFresh(DtPlayer mp);
 	}
 	
 	public interface OnCompletionListener{
@@ -522,6 +537,10 @@ public class DtPlayer {
 	 */
 	public void setOnPreparedListener(OnPreparedListener listener) {
 		mOnPreparedListener = listener;
+	}
+	
+	public void setOnFreshVideo(OnFreshVideo listener) {
+		mOnFreshVideo = listener;
 	}
 
 	/**
@@ -654,8 +673,8 @@ public class DtPlayer {
 	}
 	//----------------------------------
 	
-	public native void native_setup();
-	public native void native_release();
+	public native int native_setup();
+	public native int native_release();
 	public native void native_release_surface();
 	public native void native_set_video_surface(Surface surface);
 	public native int native_setDataSource(String path);

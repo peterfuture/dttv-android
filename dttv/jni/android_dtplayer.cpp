@@ -209,21 +209,22 @@ static DTPlayer *getMediaPlayer(JNIEnv *env, jobject thiz)
 
 //================================================
 
-static void dtp_setup(JNIEnv *env, jobject obj)
+static int dtp_setup(JNIEnv *env, jobject obj)
 {
 #ifdef USE_LISTENNER
     DTPlayer *mp = new DTPlayer();
     if(!mp)
     {
-        return;
+        return -1;
     }
     dtpListenner *listenner = new dtpListenner(env, obj);
     mp->setListenner(listenner);
     setMediaPlayer(env, obj, mp);
+    return 0;
 #endif
 }
 
-static void dtp_release(JNIEnv *env, jobject obj)
+static int dtp_release(JNIEnv *env, jobject obj)
 {
 #ifdef USE_LISTENNER
     DTPlayer *mp = setMediaPlayer(env, obj, 0);
@@ -231,6 +232,7 @@ static void dtp_release(JNIEnv *env, jobject obj)
     {
         delete mp;
     }
+    return 0;
 #endif
 }
 
@@ -511,6 +513,8 @@ extern "C" int update_frame(uint8_t *buf,int size)
 
     gl_ctx.invalid_frame = 1;
     dt_unlock (&gl_ctx.mutex);
+
+    Notify(MEDIA_FRESH_VIDEO); // update view
 }
 
 int dtp_onDrawFrame(JNIEnv *env, jobject obj)
@@ -523,8 +527,10 @@ int dtp_onDrawFrame(JNIEnv *env, jobject obj)
         goto END;
     
     if(gl_ctx.invalid_frame == 0)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, No frame to draw \n");
         goto END;
-
+    }
     //update_pixel_test();
     glClear(GL_COLOR_BUFFER_BIT);
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "clear buffer first2\n");
@@ -569,8 +575,8 @@ END:
 
 static JNINativeMethod g_Methods[] = {
     //New API
-    {"native_setup",              "(Ljava/lang;)I",           (void*) dtp_setup},
-    {"native_release",            "(Ljava/lang;)I",           (void*) dtp_release},
+    {"native_setup",              "()I",                      (void*) dtp_setup},
+    {"native_release",            "()I",                      (void*) dtp_release},
     {"native_setDataSource",      "(Ljava/lang/String;)I",    (void*) dtp_setDataSource},
     {"native_prePare",            "()I",                      (void*) dtp_prePare},
     {"native_prePareAsync",       "()I",                      (void*) dtp_prepareAsync},

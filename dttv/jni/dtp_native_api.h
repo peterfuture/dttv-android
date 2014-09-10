@@ -12,6 +12,7 @@ const static int MEDIA_PLAYBACK_COMPLETE = 2;
 const static int MEDIA_BUFFERING_UPDATE = 3;
 const static int MEDIA_SEEK_COMPLETE = 4;
 const static int MEDIA_SET_VIDEO_SIZE = 5;
+const static int MEDIA_FRESH_VIDEO = 99; // ugly code
 const static int MEDIA_ERROR = 100;
 const static int MEDIA_INVALID_CMD = 101;
 const static int MEDIA_INFO = 200;

@@ -56,8 +56,7 @@ static GLuint s_disable_caps[] = {
 	0
 };
 typedef struct{
-	uint16_t *frame0; // double buffer
-	uint16_t *frame1;
+	uint16_t *frame;
     int next_canvas;
     int frame_size;
 	int width;
@@ -420,25 +419,8 @@ int dtp_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
     gl_ctx.width = w;
 	gl_ctx.height = h;
 	gl_ctx.frame_size = w*h*2;
-    if(gl_ctx.frame0)
-        free(gl_ctx.frame0);
-    if(gl_ctx.frame1)
-        free(gl_ctx.frame1);
-
-	gl_ctx.frame0 = (uint16_t *)malloc(gl_ctx.frame_size); // rgb565
-	gl_ctx.frame1 = (uint16_t *)malloc(gl_ctx.frame_size); // rgb565
-	if(gl_ctx.frame0 == NULL)
-    {
-	    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged, size:%d malloc failed \n",gl_ctx.frame_size);
-        gl_ctx.frame0 = NULL;
-	    //goto END;
-    }
-    if(gl_ctx.frame1 == NULL)
-    {
-	    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged, size:%d malloc failed \n",gl_ctx.frame_size);
-        gl_ctx.frame1 = NULL;
-	    //goto END;
-    }
+    if(gl_ctx.frame)
+        free(gl_ctx.frame);
 
     gl_ctx.status = GLRENDER_STATUS_RUNNING;
 
@@ -476,7 +458,7 @@ END:
 
 static int update_pixel_test()
 {
-    uint16_t *pixels = gl_ctx.frame0;
+    uint16_t *pixels = gl_ctx.frame;
     int x, y;
     int s_x = 50;
     int s_y = 100;
@@ -498,18 +480,15 @@ extern "C" int update_frame(uint8_t *buf,int size)
         __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame,in size:%d larger than out size:%d  \n",gl_ctx.frame_size,gl_ctx.frame_size);
         return 0;
     }
-    if(!gl_ctx.frame0 || !gl_ctx.frame1) // buf not ready
-    {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, buf not ready\n");
-        return 0;
-    }
     dt_lock (&gl_ctx.mutex);
+    
+    if(gl_ctx.frame) // too slow
+        free(gl_ctx.frame);
+    
     cp_size = (size < gl_ctx.frame_size)?size:gl_ctx.frame_size;
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, cpsize:%d size:%d bufsize:%d \n",cp_size,size,gl_ctx.frame_size);
-    if(gl_ctx.next_canvas == 0)
-        memcpy((uint8_t *)gl_ctx.frame0,buf,cp_size);
-    else
-        memcpy((uint8_t *)gl_ctx.frame1,buf,cp_size);
+    
+    gl_ctx.frame = (uint16_t *)buf;
 
     gl_ctx.invalid_frame = 1;
     dt_unlock (&gl_ctx.mutex);
@@ -523,21 +502,20 @@ int dtp_onDrawFrame(JNIEnv *env, jobject obj)
 
     if(gl_ctx.status == GLRENDER_STATUS_IDLE)
         goto END;
-    if(!gl_ctx.frame0 || !gl_ctx.frame1)
-        goto END;
     
     if(gl_ctx.invalid_frame == 0)
     {
         __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, No frame to draw \n");
         goto END;
     }
+
+    if(!gl_ctx.frame)
+        goto END;
     //update_pixel_test();
     glClear(GL_COLOR_BUFFER_BIT);
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "clear buffer first2\n");
     
-    if(gl_ctx.next_canvas == 0)
-    {
-        glTexImage2D(GL_TEXTURE_2D,		/* target */
+    glTexImage2D(GL_TEXTURE_2D,		/* target */
 			0,			/* level */
 			GL_RGB,			/* internal format */
 			gl_ctx.width,		/* width */
@@ -545,26 +523,14 @@ int dtp_onDrawFrame(JNIEnv *env, jobject obj)
 			0,			/* border */
 			GL_RGB,			/* format */
 			GL_UNSIGNED_SHORT_5_6_5,/* type */
-			gl_ctx.frame0);		/* pixels */
-        gl_ctx.next_canvas = 1;
-    }
-    else
-    {
-        glTexImage2D(GL_TEXTURE_2D,		/* target */
-			0,			/* level */
-			GL_RGB,			/* internal format */
-			gl_ctx.width,		/* width */
-			gl_ctx.height,		/* height */
-			0,			/* border */
-			GL_RGB,			/* format */
-			GL_UNSIGNED_SHORT_5_6_5,/* type */
-			gl_ctx.frame1);		/* pixels */
-        gl_ctx.next_canvas = 0;
+			gl_ctx.frame);		/* pixels */
+    gl_ctx.next_canvas = 0;
 
-    }
 	glDrawTexiOES(0, 0, 0, gl_ctx.width, gl_ctx.height);
     gl_ctx.invalid_frame = 0;
-
+    if(gl_ctx.frame)
+        free(gl_ctx.frame);
+    gl_ctx.frame = NULL;
 END:
     //glClear(GL_COLOR_BUFFER_BIT);
     dt_unlock(&gl_ctx.mutex);

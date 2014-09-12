@@ -72,6 +72,7 @@ static int vo_android_render (dtvideo_output_t *vout,dt_av_frame_t * pict)
     
     dt_lock (&ctx->vo_mutex);
     update_frame(pict->data[0],ctx->dw*ctx->dh*2);
+    pict->data[0] = NULL;
     __android_log_print(ANDROID_LOG_DEBUG,TAG,"render one frame ok\n");
     dt_unlock (&ctx->vo_mutex);
     return 0;

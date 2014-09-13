@@ -15,33 +15,7 @@ developed with dtplayer(android version) and ffmpeg.
 Build
 ========
 
-1 Setup ndk & sdk & toolchain
-
-export ANDROID_SDK=/PATH/TO/adt_x64/sdk
-
-export ANDROID_NDK=/PATH/TO/android-ndk-r9
-
-export ANDROID_TOOL_CHAIN=/opt/toolchains/android-ndk-r8d-android-14-arm-linux-androideabi-4.6/
-
-export ANDROID_TOOL_CHAIN_BIN=/opt/toolchains/android-ndk-r8d-android-14-arm-linux-androideabi-4.6/bin/
-
-export PATH=$PATH:$ANDROID_TOOL_CHAIN_BIN
-
-export PATH=$PATH:$ANDROID_NDK
-
-$ANDROID_NDK/build/tools/make-standalone-toolchain.sh --platform=android-14 --install-dir=$ANDROID_TOOL_CHAIN
-
-2 Setup AOSP
-
-export AOSP_TREE = /PATH/TO/AOSP
-
-export AOSP_OUT = $(AOSP_TREE)/out/target/product/platform/
-
-3 ndk-build
-
-cd dttv/jni & ndk-build (refer to readme under jni)
-
-4 build apk with eclipse
+https://github.com/peterfuture/dttv-android/wiki/How-to-build-dttv-android
 
 
 REF REPO

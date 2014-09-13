@@ -21,17 +21,11 @@
 #include "dtp_native_api.h"
 
 
-#define USE_OPENGL_V1
-//#define USE_OPENGL_V2
-
-
 // ------------------------------------------------------------
 //OPENGL ESV2
 
 #ifdef USE_OPENGL_V2
 
-#include "Shader.vert"
-#include "Shader.frag"
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
@@ -51,13 +45,12 @@
 
 //-----------------------------------------------------------
 
-
-#ifdef USE_OPENGL_V1
-
 #define RGB565(r, g, b)  (((r) << (5+6)) | ((g) << 6) | (b))
 #define GLRENDER_STATUS_IDLE 0
 #define GLRENDER_STATUS_RUNNING 1
 #define GLRENDER_STATUS_QUIT 2
+
+#ifdef USE_OPENGL_V1
 
 static GLuint s_disable_caps[] = {
     GL_FOG,
@@ -103,6 +96,9 @@ typedef struct{
     GLuint g_texVId;
     GLuint simpleProgram;
     uint8_t *g_buffer;
+    int buffer_size;
+	int status;
+    int invalid_frame;
     dt_lock_t mutex;
 }gles2_ctx_t;
 
@@ -443,16 +439,44 @@ static void check_gl_error(const char* op)
 		__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG,"after %s() glError (0x%x)\n", op, error);
 }
 
-
-
-
-
-
-
-
+static void checkGlError(const char* op)
+{
+	GLint error;
+	for (error = glGetError(); error; error = glGetError())
+		__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG,"after %s() glError (0x%x)\n", op, error);
+}
 #ifdef USE_OPENGL_V2
 
-static GLuint gles2_bindTexture(GLuint texture, const char *buffer, GLuint w , GLuint h)
+static const char* FRAG_SHADER = 
+    "varying lowp vec2 tc;\n"
+    "uniform sampler2D SamplerY;\n"
+    "uniform sampler2D SamplerU;\n"
+    "uniform sampler2D SamplerV;\n"
+    "void main(void)\n"
+    "{\n"
+        "mediump vec3 yuv;\n"
+        "lowp vec3 rgb;\n"
+        "yuv.x = texture2D(SamplerY, tc).r;\n"
+        "yuv.y = texture2D(SamplerU, tc).r - 0.5;\n"
+        "yuv.z = texture2D(SamplerV, tc).r - 0.5;\n"
+        "rgb = mat3( 1,   1,   1,\n"
+             "0,       -0.39465,  2.03211,\n"
+             "1.13983,   -0.58060,  0) * yuv;\n"
+        "gl_FragColor = vec4(rgb, 1);\n"
+    "}\n";
+
+static const char* VERTEX_SHADER =
+    "attribute vec4 vPosition;    \n"
+    "attribute vec2 a_texCoord;   \n"
+    "varying vec2 tc;     \n"
+    "void main()                  \n"
+    "{                            \n" 
+    "   gl_Position = vPosition;  \n"
+    "   tc = a_texCoord;  \n" 
+    "}                            \n";
+
+
+static GLuint gles2_bindTexture(GLuint texture, const uint8_t *buffer, GLuint w , GLuint h)
 {
     checkGlError("glGenTextures"); 
     glBindTexture ( GL_TEXTURE_2D, texture );  
@@ -506,19 +530,20 @@ static void gles2_renderFrame()
 
     glClearColor(0.5f, 0.5f, 0.5f, 1);
     checkGlError("glClearColor");
+    
     glClear(GL_COLOR_BUFFER_BIT);
     checkGlError("glClear");
 
-    GLint tex_y = glGetUniformLocation(simpleProgram, "SamplerY");
+    GLint tex_y = glGetUniformLocation(gl_ctx.simpleProgram, "SamplerY");
     checkGlError("glGetUniformLocation");
-    GLint tex_u = glGetUniformLocation(simpleProgram, "SamplerU");
+    GLint tex_u = glGetUniformLocation(gl_ctx.simpleProgram, "SamplerU");
     checkGlError("glGetUniformLocation");
-    GLint tex_v = glGetUniformLocation(simpleProgram, "SamplerV");
+    GLint tex_v = glGetUniformLocation(gl_ctx.simpleProgram, "SamplerV");
     checkGlError("glGetUniformLocation");
 
-    glBindAttribLocation(simpleProgram, ATTRIB_VERTEX, "vPosition");
+    glBindAttribLocation(gl_ctx.simpleProgram, ATTRIB_VERTEX, "vPosition");
     checkGlError("glBindAttribLocation");
-    glBindAttribLocation(simpleProgram, ATTRIB_TEXTURE, "a_texCoord");
+    glBindAttribLocation(gl_ctx.simpleProgram, ATTRIB_TEXTURE, "a_texCoord");
     checkGlError("glBindAttribLocation");
 
     glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, squareVertices); 
@@ -533,21 +558,21 @@ static void gles2_renderFrame()
 
     glActiveTexture(GL_TEXTURE0);
     checkGlError("glActiveTexture");
-    glBindTexture(GL_TEXTURE_2D, g_texYId);
+    glBindTexture(GL_TEXTURE_2D, gl_ctx.g_texYId);
     checkGlError("glBindTexture");
     glUniform1i(tex_y, 0);
     checkGlError("glUniform1i");
 
     glActiveTexture(GL_TEXTURE1);
     checkGlError("glActiveTexture");
-    glBindTexture(GL_TEXTURE_2D, g_texUId);
+    glBindTexture(GL_TEXTURE_2D, gl_ctx.g_texUId);
     checkGlError("glBindTexture");
     glUniform1i(tex_u, 1);
     checkGlError("glUniform1i");
 
     glActiveTexture(GL_TEXTURE2);
     checkGlError("glActiveTexture");
-    glBindTexture(GL_TEXTURE_2D, g_texVId);
+    glBindTexture(GL_TEXTURE_2D, gl_ctx.g_texVId);
     checkGlError("glBindTexture");
     glUniform1i(tex_v, 2);
     checkGlError("glUniform1i");
@@ -578,7 +603,7 @@ static GLuint buildShader(const char* source, GLenum shaderType)
                 if (buf)  
                 {  
                     glGetShaderInfoLog(shaderHandle, infoLen, NULL, buf);  
-                    log_easy("error::Could not compile shader %d:\n%s\n", shaderType, buf);  
+		            __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG," error: Could not compile shader %d \n %s\n", shaderType, buf);
                     free(buf);  
                 }  
                 glDeleteShader(shaderHandle);  
@@ -615,7 +640,7 @@ static GLuint buildProgram(const char* vertexShaderSource,
                 char* buf = (char*) malloc(bufLength);  
                 if (buf) {  
                     glGetProgramInfoLog(programHandle, bufLength, NULL, buf);  
-                    log_easy("error::Could not link program:\n%s\n", buf);  
+		            __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG," error: Could not link programe: %s\n", buf);
                     free(buf);  
                 }  
             }  
@@ -630,13 +655,19 @@ static GLuint buildProgram(const char* vertexShaderSource,
 
 static void gles2_init()   
 {
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    checkGlError("glClearColor");
+
     memset(&gl_ctx,0,sizeof(gles2_ctx_t));
     gl_ctx.g_buffer = NULL;  
     gl_ctx.simpleProgram = buildProgram(VERTEX_SHADER, FRAG_SHADER);  
-    glUseProgram(simpleProgram);  
+    glUseProgram(gl_ctx.simpleProgram); 
     glGenTextures(1, &gl_ctx.g_texYId);  
     glGenTextures(1, &gl_ctx.g_texUId);  
-    glGenTextures(1, &gl_ctx.g_texVId);  
+    glGenTextures(1, &gl_ctx.g_texVId); 
+    checkGlError("glGenTextures");
+
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "opengl esv2 init ok\n ");
 }
 
 static void gles2_uninit()  
@@ -648,6 +679,71 @@ static void gles2_uninit()
         free(gl_ctx.g_buffer);  
         gl_ctx.g_buffer = NULL;  
     }  
+}
+
+static int gles2_surface_changed(int w, int h)
+{
+    gl_ctx.g_width = w;
+	gl_ctx.g_height = h;
+	gl_ctx.buffer_size = w*h + w*h/2;
+    if(gl_ctx.g_buffer)
+        free(gl_ctx.g_buffer);
+
+    gl_ctx.g_buffer = NULL;
+    gl_ctx.status = GLRENDER_STATUS_RUNNING;
+ 
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    checkGlError("glClearColor");
+    
+    int width = gl_ctx.g_width;
+    int height = gl_ctx.g_height;
+
+    glViewport(0, 0, width, height);
+
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "on surface changed\n ");
+}
+
+static int gles2_update_frame(uint8_t *buffer, int size)
+{
+    if(gl_ctx.g_buffer)
+        free(gl_ctx.g_buffer);
+
+    gl_ctx.g_buffer = buffer;
+
+    gl_ctx.invalid_frame = 1;
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update frame v2\n ");
+    return 0;
+}
+
+static int gles2_draw_frame()
+{
+    if(gl_ctx.status == GLRENDER_STATUS_IDLE)
+        return 0;
+    
+    if(gl_ctx.invalid_frame == 0)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, No frame to draw \n");
+        return 0;
+    }
+
+    if(!gl_ctx.g_buffer)
+        return 0;
+
+    int width = gl_ctx.g_width;
+    int height = gl_ctx.g_height;
+
+    //glViewport(0, 0, width, height);  
+    gles2_bindTexture(gl_ctx.g_texYId, gl_ctx.g_buffer, width, height);  
+    gles2_bindTexture(gl_ctx.g_texUId, gl_ctx.g_buffer + width * height, width/2, height/2);  
+    gles2_bindTexture(gl_ctx.g_texVId, gl_ctx.g_buffer + width * height * 5 / 4, width/2, height/2);  
+
+    gles2_renderFrame();
+    if(gl_ctx.g_buffer)
+        free(gl_ctx.g_buffer);
+    gl_ctx.g_buffer = NULL;
+    gl_ctx.invalid_frame = 0;
+    return 0;
 }
 
 #endif

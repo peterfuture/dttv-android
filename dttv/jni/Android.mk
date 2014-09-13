@@ -18,6 +18,8 @@ LOCAL_CFLAGS += -D GL_GLEXT_PROTOTYPES -g
 ENABLE_OPENSL = yes
 ENABLE_AUDIOTRACK = no
 ENABLE_ANDROID_OMX = yes
+ENABLE_OPENGL_V2 = yes
+ENABLE_OPENGL_V1 = no
 
 ifeq ($(ENABLE_OPENSL),yes)
 	LOCAL_CFLAGS += -D ENABLE_OPENSL
@@ -34,6 +36,17 @@ endif
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_LDLIBS    := -llog -lz
+
+
+ifeq ($(ENABLE_OPENGL_V1),yes)
+	LOCAL_CFLAGS += -D USE_OPENGL_V1
+	LOCAL_LDLIBS += -lGLESv1_CM
+endif
+
+ifeq ($(ENABLE_OPENGL_V2),yes)
+	LOCAL_CFLAGS += -D USE_OPENGL_V2
+	LOCAL_LDLIBS += -lGLESv2
+endif
 
 #android env
 LOCAL_C_INCLUDES += $(AOSP_TREE)/libnativehelper/include/     #runtime

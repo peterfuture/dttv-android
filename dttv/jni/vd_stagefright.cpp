@@ -443,7 +443,10 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_
         s->thread_started = true;
         __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 1 start decode thread ok\n");
     }
-
+    
+    if(vd_frame->size <= 0)
+        goto OUT;
+    
     if (!s->source_done) {
         if(!s->dummy_buf) {
             s->dummy_buf = (uint8_t*)av_malloc(vd_frame->size);
@@ -495,7 +498,7 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_
             break;
         }
     }
-
+OUT:
     if (s->out_queue->empty())
     {
         //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step have no frame out\n");
@@ -510,10 +513,6 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_
     ret_frame = frame->vframe;
     status  = frame->status;
     av_freep(&frame);
-
-    if (s->prev_frame)
-        free(&s->prev_frame);
-    s->prev_frame = ret_frame;
 
     *data = (dt_av_frame_t *)malloc(sizeof(dt_av_frame_t));
     //*got_frame = 1;

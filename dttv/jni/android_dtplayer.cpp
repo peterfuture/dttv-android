@@ -3,7 +3,6 @@
 #endif
 #define LOG_TAG "DTPLAYER-JNI"
 
-
 #include "android_runtime/AndroidRuntime.h"  
 #include "android_os_Parcel.h"
 #include "android_util_Binder.h"
@@ -22,26 +21,44 @@
 #include "dtp_native_api.h"
 
 
+#define USE_OPENGL_V1
+//#define USE_OPENGL_V2
+
+
 // ------------------------------------------------------------
 //OPENGL ESV2
 
+#ifdef USE_OPENGL_V2
+
+#include "Shader.vert"
+#include "Shader.frag"
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+
+#endif
+
+
+#ifdef USE_OPENGL_V1
+
 #include <GLES/gl.h>
 #include <GLES/glext.h>
-//#include <GLES2/gl2.h>
-//#include <GLES2/gl2ext.h>
-extern "C"{
+
+#endif
+
 #include "dt_lock.h"
-}
 
 //#define USE_LISTENNER 0
 
 //-----------------------------------------------------------
-//opengl code
-#define RGB565(r, g, b)  (((r) << (5+6)) | ((g) << 6) | (b))
 
+
+#ifdef USE_OPENGL_V1
+
+#define RGB565(r, g, b)  (((r) << (5+6)) | ((g) << 6) | (b))
 #define GLRENDER_STATUS_IDLE 0
 #define GLRENDER_STATUS_RUNNING 1
 #define GLRENDER_STATUS_QUIT 2
+
 static GLuint s_disable_caps[] = {
     GL_FOG,
 	GL_LIGHTING,
@@ -63,12 +80,36 @@ typedef struct{
 	int height;
 	int status;
     int invalid_frame;
-
     GLuint s_texture;
+
     dt_lock_t mutex;
 }gl_ctx_t;
-
 static gl_ctx_t gl_ctx;
+
+#endif
+
+#ifdef USE_OPENGL_V2
+//For OPENGLESV2
+enum {  
+    ATTRIB_VERTEX,  
+    ATTRIB_TEXTURE,  
+}; 
+typedef struct{
+    int g_width;
+    int g_height;
+
+    GLuint g_texYId;
+    GLuint g_texUId;
+    GLuint g_texVId;
+    GLuint simpleProgram;
+    uint8_t *g_buffer;
+    dt_lock_t mutex;
+}gles2_ctx_t;
+
+static gles2_ctx_t gl_ctx;
+
+#endif
+
 // ------------------------------------------------------------
 
 
@@ -393,7 +434,7 @@ int dtp_getDuration(JNIEnv *env, jobject obj)
 
 
 //-----------------------------------------------------
-//OPENGL ESV2
+//OPENGL -- common
 
 static void check_gl_error(const char* op)
 {
@@ -402,20 +443,225 @@ static void check_gl_error(const char* op)
 		__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG,"after %s() glError (0x%x)\n", op, error);
 }
 
-int dtp_onSurfaceCreated(JNIEnv *env, jobject obj)
+
+
+
+
+
+
+
+#ifdef USE_OPENGL_V2
+
+static GLuint gles2_bindTexture(GLuint texture, const char *buffer, GLuint w , GLuint h)
 {
-    //glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
-    memset(&gl_ctx,0,sizeof(gl_ctx_t));
-    dt_lock_init (&gl_ctx.mutex, NULL);
-    return 0;
+    checkGlError("glGenTextures"); 
+    glBindTexture ( GL_TEXTURE_2D, texture );  
+    checkGlError("glBindTexture");  
+    glTexImage2D ( GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);  
+    checkGlError("glTexImage2D");  
+    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );  
+    checkGlError("glTexParameteri");  
+    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );  
+    checkGlError("glTexParameteri");  
+    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );  
+    checkGlError("glTexParameteri");  
+    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );  
+    checkGlError("glTexParameteri");
+
+    return texture; 
 }
 
-int dtp_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
+static void gles2_renderFrame() 
 {
-    dt_lock(&gl_ctx.mutex);
-    
-	__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged, w:%d h:%d \n",w,h);
-    //realloc frame buffer
+#if 0
+    // Galaxy Nexus 4.2.2
+    static GLfloat squareVertices[] = {
+        -1.0f, -1.0f,
+        1.0f, -1.0f,
+        -1.0f,  1.0f,
+        1.0f,  1.0f,
+    };
+
+    static GLfloat coordVertices[] = {
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+        0.0f,  0.0f,
+        1.0f,  0.0f,
+    };
+#else
+    // HUAWEIG510-0010 4.1.1 
+    static GLfloat squareVertices[] = {
+        0.0f, 0.0f,
+        1.0f, 0.0f,
+        0.0f,  1.0f,
+        1.0f,  1.0f,
+    };
+    static GLfloat coordVertices[] = {
+        -1.0f, 1.0f,
+        1.0f, 1.0f,
+        -1.0f,  -1.0f,
+        1.0f,  -1.0f,
+    };
+#endif
+
+    glClearColor(0.5f, 0.5f, 0.5f, 1);
+    checkGlError("glClearColor");
+    glClear(GL_COLOR_BUFFER_BIT);
+    checkGlError("glClear");
+
+    GLint tex_y = glGetUniformLocation(simpleProgram, "SamplerY");
+    checkGlError("glGetUniformLocation");
+    GLint tex_u = glGetUniformLocation(simpleProgram, "SamplerU");
+    checkGlError("glGetUniformLocation");
+    GLint tex_v = glGetUniformLocation(simpleProgram, "SamplerV");
+    checkGlError("glGetUniformLocation");
+
+    glBindAttribLocation(simpleProgram, ATTRIB_VERTEX, "vPosition");
+    checkGlError("glBindAttribLocation");
+    glBindAttribLocation(simpleProgram, ATTRIB_TEXTURE, "a_texCoord");
+    checkGlError("glBindAttribLocation");
+
+    glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, squareVertices); 
+    checkGlError("glVertexAttribPointer");
+    glEnableVertexAttribArray(ATTRIB_VERTEX);
+    checkGlError("glEnableVertexAttribArray");
+
+    glVertexAttribPointer(ATTRIB_TEXTURE, 2, GL_FLOAT, 0, 0, coordVertices);
+    checkGlError("glVertexAttribPointer");
+    glEnableVertexAttribArray(ATTRIB_TEXTURE);
+    checkGlError("glEnableVertexAttribArray");
+
+    glActiveTexture(GL_TEXTURE0);
+    checkGlError("glActiveTexture");
+    glBindTexture(GL_TEXTURE_2D, g_texYId);
+    checkGlError("glBindTexture");
+    glUniform1i(tex_y, 0);
+    checkGlError("glUniform1i");
+
+    glActiveTexture(GL_TEXTURE1);
+    checkGlError("glActiveTexture");
+    glBindTexture(GL_TEXTURE_2D, g_texUId);
+    checkGlError("glBindTexture");
+    glUniform1i(tex_u, 1);
+    checkGlError("glUniform1i");
+
+    glActiveTexture(GL_TEXTURE2);
+    checkGlError("glActiveTexture");
+    glBindTexture(GL_TEXTURE_2D, g_texVId);
+    checkGlError("glBindTexture");
+    glUniform1i(tex_v, 2);
+    checkGlError("glUniform1i");
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    checkGlError("glDrawArrays");
+}
+
+
+static GLuint buildShader(const char* source, GLenum shaderType)   
+{  
+    GLuint shaderHandle = glCreateShader(shaderType);  
+  
+    if (shaderHandle)  
+    {  
+        glShaderSource(shaderHandle, 1, &source, 0);  
+        glCompileShader(shaderHandle);  
+  
+        GLint compiled = 0;  
+        glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compiled);  
+        if (!compiled)  
+        {  
+            GLint infoLen = 0;  
+            glGetShaderiv(shaderHandle, GL_INFO_LOG_LENGTH, &infoLen);  
+            if (infoLen)  
+            {  
+                char* buf = (char*) malloc(infoLen);  
+                if (buf)  
+                {  
+                    glGetShaderInfoLog(shaderHandle, infoLen, NULL, buf);  
+                    log_easy("error::Could not compile shader %d:\n%s\n", shaderType, buf);  
+                    free(buf);  
+                }  
+                glDeleteShader(shaderHandle);  
+                shaderHandle = 0;  
+            }  
+        }  
+  
+    }  
+      
+    return shaderHandle;  
+}
+
+static GLuint buildProgram(const char* vertexShaderSource,  
+        const char* fragmentShaderSource)   
+{  
+    GLuint vertexShader = buildShader(vertexShaderSource, GL_VERTEX_SHADER);  
+    GLuint fragmentShader = buildShader(fragmentShaderSource, GL_FRAGMENT_SHADER);  
+    GLuint programHandle = glCreateProgram();  
+  
+    if (programHandle)  
+    {  
+        glAttachShader(programHandle, vertexShader);  
+        checkGlError("glAttachShader");  
+        glAttachShader(programHandle, fragmentShader);  
+        checkGlError("glAttachShader");  
+        glLinkProgram(programHandle);  
+  
+        GLint linkStatus = GL_FALSE;  
+        glGetProgramiv(programHandle, GL_LINK_STATUS, &linkStatus);  
+        if (linkStatus != GL_TRUE) {  
+            GLint bufLength = 0;  
+            glGetProgramiv(programHandle, GL_INFO_LOG_LENGTH, &bufLength);  
+            if (bufLength) {  
+                char* buf = (char*) malloc(bufLength);  
+                if (buf) {  
+                    glGetProgramInfoLog(programHandle, bufLength, NULL, buf);  
+                    log_easy("error::Could not link program:\n%s\n", buf);  
+                    free(buf);  
+                }  
+            }  
+            glDeleteProgram(programHandle);  
+            programHandle = 0;  
+        }  
+  
+    }  
+  
+    return programHandle;  
+}
+
+static void gles2_init()   
+{
+    memset(&gl_ctx,0,sizeof(gles2_ctx_t));
+    gl_ctx.g_buffer = NULL;  
+    gl_ctx.simpleProgram = buildProgram(VERTEX_SHADER, FRAG_SHADER);  
+    glUseProgram(simpleProgram);  
+    glGenTextures(1, &gl_ctx.g_texYId);  
+    glGenTextures(1, &gl_ctx.g_texUId);  
+    glGenTextures(1, &gl_ctx.g_texVId);  
+}
+
+static void gles2_uninit()  
+{  
+    gl_ctx.g_width = 0;  
+    gl_ctx.g_height = 0;  
+    if (gl_ctx.g_buffer)  
+    {  
+        free(gl_ctx.g_buffer);  
+        gl_ctx.g_buffer = NULL;  
+    }  
+}
+
+#endif
+
+
+#ifdef USE_OPENGL_V1
+
+static void gles1_init()
+{
+    memset(&gl_ctx,0,sizeof(gl_ctx_t));
+}
+
+static int gles1_surface_changed(int w, int h)
+{
     gl_ctx.width = w;
 	gl_ctx.height = h;
 	gl_ctx.frame_size = w*h*2;
@@ -450,37 +696,18 @@ int dtp_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged ok\n");
-END:
-    dt_unlock(&gl_ctx.mutex);
+
     return 0;
 }
 
-static int update_pixel_test()
-{
-    uint16_t *pixels = gl_ctx.frame;
-    int x, y;
-    int s_x = 50;
-    int s_y = 100;
-    memset(pixels, 0, 320*240*2);
-	/* fill in a square of 5 x 5 at s_x, s_y */
-	for (y = s_y; y < s_y + 5; y++) {
-		for (x = s_x; x < s_x + 5; x++) {
-			int idx = x + y * gl_ctx.width;
-			pixels[idx++] = RGB565(31, 31, 0);
-		}
-	}
-}
-
-extern "C" int update_frame(uint8_t *buf,int size)
+static int gles1_update_frame(uint8_t *buf,int size)
 {
     int cp_size = size;
     if(size > gl_ctx.frame_size)
     {
         __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame,in size:%d larger than out size:%d  \n",gl_ctx.frame_size,gl_ctx.frame_size);
-        return 0;
+        return -1;
     }
-    dt_lock (&gl_ctx.mutex);
     
     if(gl_ctx.frame) // too slow
         free(gl_ctx.frame);
@@ -491,26 +718,22 @@ extern "C" int update_frame(uint8_t *buf,int size)
     gl_ctx.frame = (uint16_t *)buf;
 
     gl_ctx.invalid_frame = 1;
-    dt_unlock (&gl_ctx.mutex);
-
-    Notify(MEDIA_FRESH_VIDEO); // update view
+    return 0;
 }
 
-int dtp_onDrawFrame(JNIEnv *env, jobject obj)
+static int gles1_draw_frame()
 {
-    dt_lock(&gl_ctx.mutex);
-
     if(gl_ctx.status == GLRENDER_STATUS_IDLE)
-        goto END;
+        return 0;
     
     if(gl_ctx.invalid_frame == 0)
     {
         __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, No frame to draw \n");
-        goto END;
+        return 0;
     }
 
     if(!gl_ctx.frame)
-        goto END;
+        return 0;
     //update_pixel_test();
     glClear(GL_COLOR_BUFFER_BIT);
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "clear buffer first2\n");
@@ -531,8 +754,77 @@ int dtp_onDrawFrame(JNIEnv *env, jobject obj)
     if(gl_ctx.frame)
         free(gl_ctx.frame);
     gl_ctx.frame = NULL;
+    return 0;
+}
+
+#endif
+
+
+
+int dtp_onSurfaceCreated(JNIEnv *env, jobject obj)
+{
+#ifdef USE_OPENGL_V1
+    gles1_init();
+#endif
+#ifdef USE_OPENGL_V2
+    gles2_init();
+#endif
+    dt_lock_init (&gl_ctx.mutex, NULL);
+    return 0;
+}
+
+int dtp_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
+{
+    dt_lock(&gl_ctx.mutex);
+	__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged, w:%d h:%d \n",w,h);
+
+#ifdef USE_OPENGL_V1
+    gles1_surface_changed(w, h);
+#endif
+
+#ifdef USE_OPENGL_V2
+    gles2_surface_changed(w, h);
+#endif
+
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged ok\n");
 END:
-    //glClear(GL_COLOR_BUFFER_BIT);
+    dt_unlock(&gl_ctx.mutex);
+    return 0;
+}
+
+extern "C" int update_frame(uint8_t *buf,int size)
+{
+    int ret = 0;
+    dt_lock (&gl_ctx.mutex);
+
+#ifdef USE_OPENGL_V1
+    ret = gles1_update_frame(buf, size);
+#endif
+
+#ifdef USE_OPENGL_V2
+    ret = gles2_update_frame(buf, size);
+#endif
+    
+    dt_unlock (&gl_ctx.mutex);
+    
+    if(ret < 0)
+        return ret;
+
+    Notify(MEDIA_FRESH_VIDEO); // update view
+}
+
+int dtp_onDrawFrame(JNIEnv *env, jobject obj)
+{
+    dt_lock(&gl_ctx.mutex);
+
+#ifdef USE_OPENGL_V1
+    gles1_draw_frame();
+#endif
+
+#ifdef USE_OPENGL_V2
+    gles2_draw_frame();
+#endif
+
     dt_unlock(&gl_ctx.mutex);
     return 0;
 }

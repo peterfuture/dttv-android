@@ -497,7 +497,7 @@ static GLuint gles2_bindTexture(GLuint texture, const uint8_t *buffer, GLuint w 
 
 static void gles2_renderFrame() 
 {
-#if 1
+#if 0
     // Galaxy Nexus 4.2.2
     static GLfloat squareVertices[] = {
         -1.0f, -1.0f,

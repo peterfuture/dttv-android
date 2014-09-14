@@ -69,6 +69,8 @@ private:
     static int mSeekPosition;
     int mDuration;
     dtpListenner *mListenner;
+
+    int audio_pp_id;   // audio effect id
 };
 
 }

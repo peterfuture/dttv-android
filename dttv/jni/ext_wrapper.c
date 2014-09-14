@@ -69,6 +69,11 @@ static int ao_ex_init (dtaudio_output_t *aout, dtaudio_para_t *para)
 static int ao_ex_play (dtaudio_output_t *aout, uint8_t * buf, int size)
 {
     int ret = 0;
+
+#ifdef ENABLE_AUDIO_EFFECT
+    
+#endif
+
 #ifdef ENABLE_AUDIOTRACK
     ret = ao_android_ops.ao_write(aout, buf,size);
 #endif

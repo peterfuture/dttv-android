@@ -13,6 +13,8 @@ LOCAL_SRC_FILES := dtp_native_api.cpp ext_wrapper.c vo_android.c
 LOCAL_SRC_FILES += android_dtplayer.cpp
 
 LOCAL_CFLAGS += -D GL_GLEXT_PROTOTYPES -g
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_LDLIBS    := -llog -lz
 
 #control
 ENABLE_OPENSL = yes
@@ -20,6 +22,7 @@ ENABLE_AUDIOTRACK = no
 ENABLE_ANDROID_OMX = yes
 ENABLE_OPENGL_V2 = yes
 ENABLE_OPENGL_V1 = no
+ENABLE_ANDROID_AE = no
 
 ifeq ($(ENABLE_OPENSL),yes)
 	LOCAL_CFLAGS += -D ENABLE_OPENSL
@@ -34,9 +37,10 @@ ifeq ($(ENABLE_ANDROID_OMX),yes)
 	LOCAL_SRC_FILES += vd_stagefright.cpp
 endif
 
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
-LOCAL_LDLIBS    := -llog -lz
-
+ifeq ($(ENABLE_ANDROID_AE),yes)
+	LOCAL_CFLAGS += -D ENABLE_ANDROID_AE
+	LOCAL_SRC_FILES += plugin/ae_android.c
+endif
 
 ifeq ($(ENABLE_OPENGL_V1),yes)
 	LOCAL_CFLAGS += -D USE_OPENGL_V1

@@ -927,6 +927,15 @@ int dtp_onDrawFrame(JNIEnv *env, jobject obj)
 
 //-----------------------------------------------------
 
+//-----------------------------------------------------
+// Audio Effect Interface
+static int dtp_setAudioEffect(int effect_id)
+{
+    return 0;
+}
+
+//-----------------------------------------------------
+
 static JNINativeMethod g_Methods[] = {
     //New API
     {"native_setup",              "()I",                      (void*) dtp_setup},
@@ -949,6 +958,8 @@ static JNINativeMethod g_Methods[] = {
     {"native_onSurfaceCreated",   "()I",                      (void*) dtp_onSurfaceCreated},
     {"native_onSurfaceChanged",   "(II)I",                    (void*) dtp_onSurfaceChanged},
     {"native_onDrawFrame",        "()I",                      (void*) dtp_onDrawFrame},
+    
+    {"native_setAudioEffect",   "(I)I",                      (void*) dtp_setAudioEffect},
 };
 
 static int register_android_dtplayer(JNIEnv *env)

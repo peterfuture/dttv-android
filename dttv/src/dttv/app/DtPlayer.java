@@ -701,6 +701,8 @@ public class DtPlayer {
 	public native int native_onSurfaceCreated();
 	public native int native_onSurfaceChanged(int w, int h);
 	public native int native_onDrawFrame();
+	
+	public native int native_setAudioEffect(int t);
 	/**
 	 * Set whether cache the online playback file
 	 * @param cache

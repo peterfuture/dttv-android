@@ -11,7 +11,7 @@ int android_ae_capacity()
 
 int android_ae_init(int ae_id)
 {
-    return ae_android_ops.init(&ae_android_ops, ae_id)
+    return ae_android_ops.init(&ae_android_ops, ae_id);
 }
 
 int android_ae_process(dt_av_frame_t *frame)
@@ -21,12 +21,12 @@ int android_ae_process(dt_av_frame_t *frame)
 
 int android_reset_ae(int ae_id)
 {
-    return ae_android_ops.reset(ae_id);
+    return ae_android_ops.reset(&ae_android_ops, ae_id);
 }
 
 int android_ae_release()
 {
-    return ae_android_ops.release();
+    return ae_android_ops.release(&ae_android_ops);
 }
 
 static int ae_android_capacity()

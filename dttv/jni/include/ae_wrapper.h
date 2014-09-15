@@ -1,5 +1,8 @@
 #ifndef AE_WRAPPER_H
 
+#include "dt_av.h"
+#include "dtaudio_para.h"
+
 struct dtaudio_effect;
 
 enum{
@@ -30,6 +33,7 @@ typedef struct{
     int (*release) (struct dtaudio_effect *ae);
     
     char *name;
+    int id;
     int type;
     int status;
     struct ae_wrapper *next;

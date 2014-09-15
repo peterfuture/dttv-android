@@ -959,7 +959,7 @@ static JNINativeMethod g_Methods[] = {
     {"native_onSurfaceChanged",   "(II)I",                    (void*) dtp_onSurfaceChanged},
     {"native_onDrawFrame",        "()I",                      (void*) dtp_onDrawFrame},
     
-    {"native_setAudioEffect",     "(I)I",                      (void*) dtp_setAudioEffect},
+    {"native_setAudioEffect",     "(I)I",                     (void*) dtp_setAudioEffect},
 };
 
 static int register_android_dtplayer(JNIEnv *env)

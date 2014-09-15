@@ -40,6 +40,7 @@ endif
 ifeq ($(ENABLE_ANDROID_AE),yes)
 	LOCAL_CFLAGS += -D ENABLE_ANDROID_AE
 	LOCAL_SRC_FILES += plugin/ae_android.c
+	LOCAL_LDLIBS += -lbundlewrapper -lreverbwrapper
 endif
 
 ifeq ($(ENABLE_OPENGL_V1),yes)

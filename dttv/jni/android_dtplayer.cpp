@@ -99,6 +99,7 @@ typedef struct{
     int buffer_size;
 	int status;
     int invalid_frame;
+    int vertex_index;
     dt_lock_t mutex;
 }gles2_ctx_t;
 
@@ -393,6 +394,15 @@ int dtp_setVideoSize(JNIEnv *env, jobject obj, int w, int h)
     dtPlayer->setVideoSize(w, h);
 }
 
+int dtp_setVideoMode(JNIEnv *env, jobject obj, int mode)
+{
+    if(!dtPlayer)
+        return -1;
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setMode, mode:%d \n ", mode);
+    //dtPlayer->setVideoMode(mode);
+    return 0;
+}
+
 int dtp_getVideoWidth(JNIEnv *env, jobject obj)
 {
     if(!dtPlayer)
@@ -497,7 +507,6 @@ static GLuint gles2_bindTexture(GLuint texture, const uint8_t *buffer, GLuint w 
 
 static void gles2_renderFrame() 
 {
-#if 0
     // Galaxy Nexus 4.2.2
     static GLfloat squareVertices[] = {
         -1.0f, -1.0f,
@@ -512,21 +521,20 @@ static void gles2_renderFrame()
         0.0f,  0.0f,
         1.0f,  0.0f,
     };
-#else
+    
     // HUAWEIG510-0010 4.1.1 
-    static GLfloat squareVertices[] = {
+    static GLfloat squareVertices1[] = {
         0.0f, 0.0f,
         1.0f, 0.0f,
         0.0f,  1.0f,
         1.0f,  1.0f,
     };
-    static GLfloat coordVertices[] = {
+    static GLfloat coordVertices1[] = {
         -1.0f, 1.0f,
         1.0f, 1.0f,
         -1.0f,  -1.0f,
         1.0f,  -1.0f,
     };
-#endif
 
     glClearColor(0.5f, 0.5f, 0.5f, 1);
     checkGlError("glClearColor");
@@ -546,12 +554,20 @@ static void gles2_renderFrame()
     glBindAttribLocation(gl_ctx.simpleProgram, ATTRIB_TEXTURE, "a_texCoord");
     checkGlError("glBindAttribLocation");
 
-    glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, squareVertices); 
+    if(gl_ctx.vertex_index == 0)
+        glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, squareVertices); 
+    else
+        glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, squareVertices1); 
+        
     checkGlError("glVertexAttribPointer");
     glEnableVertexAttribArray(ATTRIB_VERTEX);
     checkGlError("glEnableVertexAttribArray");
-
-    glVertexAttribPointer(ATTRIB_TEXTURE, 2, GL_FLOAT, 0, 0, coordVertices);
+    
+    if(gl_ctx.vertex_index == 0)
+        glVertexAttribPointer(ATTRIB_TEXTURE, 2, GL_FLOAT, 0, 0, coordVertices);
+    else
+        glVertexAttribPointer(ATTRIB_TEXTURE, 2, GL_FLOAT, 0, 0, coordVertices1);
+    
     checkGlError("glVertexAttribPointer");
     glEnableVertexAttribArray(ATTRIB_TEXTURE);
     checkGlError("glEnableVertexAttribArray");
@@ -667,7 +683,14 @@ static void gles2_init()
     glGenTextures(1, &gl_ctx.g_texVId); 
     checkGlError("glGenTextures");
 
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "opengl esv2 init ok\n ");
+
+    char *glExtension = (char *)glGetString(GL_EXTENSIONS);
+    if(strstr(glExtension, "MTK") != NULL)
+        gl_ctx.vertex_index = 0; 
+    else
+        gl_ctx.vertex_index = 1;
+
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "opengl esv2 init ok, ext:%s \n ", glExtension);
 }
 
 static void gles2_uninit()  
@@ -948,6 +971,7 @@ static JNINativeMethod g_Methods[] = {
     {"native_seekTo",             "(I)I",                     (void*) dtp_seekTo},
     {"native_stop",               "()I",                      (void*) dtp_stop},
     {"native_reset",              "()I",                      (void*) dtp_reset},
+    {"native_setVideoMode",       "(I)I",                     (void*) dtp_setVideoMode},
     {"native_setVideoSize",       "(II)I",                    (void*) dtp_setVideoSize},
     {"native_getVideoWidth",      "()I",                      (void*) dtp_getVideoWidth},
     {"native_getVideoHeight",     "()I",                      (void*) dtp_getVideoHeight},

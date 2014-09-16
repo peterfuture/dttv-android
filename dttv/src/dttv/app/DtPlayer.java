@@ -686,6 +686,7 @@ public class DtPlayer {
 	public native int native_stop() throws IllegalStateException;
 	public native int native_pause() throws IllegalStateException;
 	public native int native_reset();
+	public native int native_setVideoMode(int mode); 
 	public native int native_setVideoSize(int w, int h); 
 	public native int native_getVideoWidth();
 	public native int native_getVideoHeight(); 

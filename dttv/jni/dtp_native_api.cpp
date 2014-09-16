@@ -278,6 +278,46 @@ int DTPlayer::reset()
     return 0;
 }
 
+int DTPlayer::setVideoMode(int mode)
+{
+    vstream_info_t *vstream = NULL;
+    void *handle = mDtpHandle;
+    if(!handle)
+        return -1;
+    
+    vstream = media_info.vstreams[0];
+
+    int orig_width = vstream->width;
+    int orig_height = vstream->height; 
+
+    int dw, dh;
+    //reset w h
+    switch(mode)
+    {
+        case DT_SCREEN_MODE_NORMAL:
+            dw = orig_width;
+            dh = orig_height;
+            break;
+        case DT_SCREEN_MODE_FULL:
+            dw = orig_width;
+            dh = orig_height;
+            break;
+        case DT_SCREEN_MODE_16_9:
+            dw = orig_width;
+            dh = orig_height;
+            break;
+        case DT_SCREEN_MODE_4_3:
+            dw = orig_width;
+            dh = orig_height;
+            break;
+        default:
+            return 0;
+    }
+
+    dtplayer_set_video_size(handle, dw, dh);
+    return 0;
+}
+
 int DTPlayer::setVideoSize(int w, int h)
 {
     void *handle = mDtpHandle;

@@ -231,6 +231,14 @@ typedef enum DT_AVPixelFormat
 
 } dt_pixfmt_t;
 
+enum{
+    DT_SCREEN_MODE_NORMAL,
+    DT_SCREEN_MODE_FULL,
+    DT_SCREEN_MODE_4_3,
+    DT_SCREEN_MODE_16_9
+};
+
+
 /*audio part*/
 typedef enum _AO_ID_
 {

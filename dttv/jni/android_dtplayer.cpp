@@ -399,8 +399,7 @@ int dtp_setVideoMode(JNIEnv *env, jobject obj, int mode)
     if(!dtPlayer)
         return -1;
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setMode, mode:%d \n ", mode);
-    //dtPlayer->setVideoMode(mode);
-    return 0;
+    return dtPlayer->setVideoMode(mode);
 }
 
 int dtp_getVideoWidth(JNIEnv *env, jobject obj)

@@ -21,7 +21,6 @@ const static int MEDIA_HW_ERROR = 400;
 const static int MEDIA_TIMED_TEXT = 1000;
 const static int MEDIA_CACHING_UPDATE = 2000;
 
-
 class DTPlayer{
 public:
     DTPlayer();
@@ -36,6 +35,7 @@ public:
     int stop();
     int release();
     int reset();
+    int setVideoMode(int mode);
     int setVideoSize(int w, int h);
     int getVideoHeight();
     int getVideoWidth();

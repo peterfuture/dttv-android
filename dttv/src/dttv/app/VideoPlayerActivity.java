@@ -71,6 +71,13 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	
 	private static final int PLAYER_STOP = 0x100;
 	private static final int PLAYER_EXIT = 0x101;
+	
+	private static final int SCREEN_MODE_NORMAL = 0x0;
+	private static final int VIDEO_MODE_FULLSCREEN = 0x1;
+	private static final int VIDEO_MODE_4_3 = 0x2;
+	private static final int VIDEO_MODE_16_9 = 0x3;
+	
+	
 	private int mState = PLAYER_IDLE;
 	
 	private final int SCREEN_169value = 0;

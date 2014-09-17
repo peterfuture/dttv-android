@@ -45,7 +45,9 @@ public class SlideTabsFragment extends Fragment implements I_OnMyKey{
     private I_KeyIntercept mIntercept;
     private int mode;
     
-    
+    public SlideTabsFragment(){
+    	super();
+    }
     public SlideTabsFragment(ChangeActionModeListener listener,I_KeyIntercept i_KeyIntercept) {
 		// TODO Auto-generated constructor stub
     	mChangeActionModeListener = listener;
@@ -116,6 +118,7 @@ public class SlideTabsFragment extends Fragment implements I_OnMyKey{
         mPagerAdapter = new MyPagerAdapter(getActivity().getSupportFragmentManager());
         mViewPager.setAdapter(mPagerAdapter);
         mViewPager.setOnPageChangeListener(mPageChangeListener);
+        mViewPager.setOffscreenPageLimit(2);
 
         mTabWidget.setCurrentTab(0);
         //mTabWidget.setOnFocusChangeListener(mTabChangeListener);

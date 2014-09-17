@@ -36,6 +36,7 @@ import dttv.app.R;
 import dttv.app.impl.I_OnMyKey;
 import dttv.app.utils.Constant;
 import dttv.app.utils.MusicUtils;
+import dttv.app.utils.PlayerUtil;
 import dttv.app.utils.TimesUtil;
 
 
@@ -45,11 +46,6 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	static final String TAG = "AudioUIFragment";
 	View rootView;
 	ListView audio_listview;
-	private RelativeLayout dt_play_bar_lay;
-	private TextView currentTimeTxt,totalTimeTxt;
-	private ImageButton preBtn,nextBtn,pauseBtn;
-	private SeekBar playerProgressBar;
-	private DtPlayer dtPlayer;
 	private Cursor mCursor;
 	//private SimpleCursorAdapter adapter;*/
 	private int currentPosition;
@@ -68,7 +64,6 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	public void onActivityCreated(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onActivityCreated(savedInstanceState);
-		dtPlayer = new DtPlayer(getActivity());
 		initViews();
 		initListener();
 		initFillData();
@@ -76,87 +71,18 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	
 	private void initViews(){
 		audio_listview = (ListView)rootView.findViewById(R.id.audio_listview);
-		dt_play_bar_lay = (RelativeLayout)rootView.findViewById(R.id.dt_play_bar_lay);
-		currentTimeTxt = (TextView)rootView.findViewById(R.id.dt_play_current_time);
-		totalTimeTxt = (TextView)rootView.findViewById(R.id.dt_play_total_time);
-		preBtn = (ImageButton)rootView.findViewById(R.id.dt_play_prev_btn);
-		pauseBtn = (ImageButton)rootView.findViewById(R.id.dt_play_pause_btn);
-		nextBtn = (ImageButton)rootView.findViewById(R.id.dt_play_next_btn);
-		playerProgressBar = (SeekBar)rootView.findViewById(R.id.dt_play_progress_seekbar);
 	}
 	
 	private void initListener(){
 		audio_listview.setOnItemClickListener(new ListItemClickListener());
-		dtPlayer.setOnPreparedListener(new PrePareListener());
-		dtPlayer.setOnCompletionListener(new OnCompleteListener());
-		playerProgressBar.setOnSeekBarChangeListener(new OnSeekChangeListener());
-		preBtn.setOnClickListener(this);
-		nextBtn.setOnClickListener(this);
-		pauseBtn.setOnClickListener(this);
 	}
 	
-	class PrePareListener implements OnPreparedListener{
-		@Override
-		public void onPrepared(DtPlayer mp) {
-			// TODO Auto-generated method stub
-			Log.i(Constant.LOGTAG, "enter onPrepared");
-			//Toast.makeText(getActivity(), "enter onPrepared", 1).show();
-			dtPlayer.start();
-			int duration = mp.getDuration();
-            if(duration>0){
-            	totalTimeTxt.setText(TimesUtil.getTime(duration));
-            	playerProgressBar.setMax(duration);
-            }
-            startTimerTask();
-		}
-	}
-	
-	class OnCompleteListener implements OnCompletionListener{
-		@Override
-		public void onCompletion(DtPlayer mp) {
-			// TODO Auto-generated method stub
-			Log.i(TAG, "enter play onCompletion function");
-			playNextSong();
-		}
-	}
-	
-	class OnSeekChangeListener implements OnSeekBarChangeListener{
-
-		@Override
-		public void onProgressChanged(SeekBar seekBar, int progress,
-				boolean fromUser) {
-			// TODO Auto-generated method stub
-			if(trick_seek == 1)
-			{
-				//int currentTime = seekBar.getProgress();
-				//dtPlayer.seekTo(currentTime);
-			}
-			//Log.d(Constant.LOGTAG, "----1---SeekTo:"+currentTime);
-		}
-
-		@Override
-		public void onStartTrackingTouch(SeekBar seekBar) {
-			// TODO Auto-generated method stub
-			trick_seek = 1;
-		}
-
-		@Override
-		public void onStopTrackingTouch(SeekBar seekBar) {
-			// TODO Auto-generated method stub
-			int currentTime = seekBar.getProgress();
-			dtPlayer.seekTo(currentTime);
-			dtPlayer.start();
-			trick_seek = 0;
-			Log.d(Constant.LOGTAG, "----2---SeekTo:"+currentTime);
-		}
-		
-	}
 	
 	@Override
 	public void onResume() {
 		// TODO Auto-generated method stub
-		if(dtPlayer!=null)
-			dtPlayer.start();
+		/*if(dtPlayer!=null)
+			dtPlayer.start();*/
 		super.onResume();
 	}
 	
@@ -166,65 +92,21 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		public void onItemClick(AdapterView<?> ad, View v, int position,
 				long arg3) {
 			// TODO Auto-generated method stub
-			dt_play_bar_lay.setVisibility(View.VISIBLE);
+			/*dt_play_bar_lay.setVisibility(View.VISIBLE);
 			//String uri = ad.getChildAt(position);
 			currentPosition = position;
-			playSong(currentPosition);
-			/*String uri = ((TextView)v.findViewById(R.id.media_row_uri)).getText().toString();
-			Toast.makeText(getActivity(), uri, 1).show();*/
+			playSong(currentPosition);*/
+			String uri = playList.get(position);
+			String name = ((TextView)v.findViewById(R.id.media_row_name)).getText().toString();
+			Toast.makeText(getActivity(), name, 1).show();
+			PlayerUtil.getInstance().beginToPlayer(getActivity(), uri, name);
 		}
 	}
 	
-	Handler doActionHandler = new Handler(Looper.getMainLooper()){
-		public void handleMessage(android.os.Message msg) {
-			int msgId = msg.what;
-			switch(msgId){
-			case Constant.REFRESH_TIME_MSG:
-				int currentTime = dtPlayer.getCurrentPosition();
-				int duration = dtPlayer.getDuration();
-				if(currentTime < 0)
-					currentTime = 0;
-				if(currentTime > duration)
-					currentTime = duration;
-				currentTimeTxt.setText(TimesUtil.getTime(currentTime));
-				playerProgressBar.setProgress(currentTime);
-				break;
-			case Constant.BEGIN_MEDIA_MSG:
-				
-	            //startTimerTask();
-				break;
-			case Constant.HIDE_OPREATE_BAR_MSG:
-				dt_play_bar_lay.setVisibility(View.GONE);
-				break;
-			}
-		};
-	};
-	
-	private Timer mTimer;
-	private void startTimerTask(){
-		mTimer = new Timer();
-		mTimer.schedule(new TimerTask() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				doActionHandler.sendEmptyMessage(Constant.REFRESH_TIME_MSG);
-			}
-		}, Constant.REFRESH_TIME, Constant.REFRESH_TIME);
-	}
-	
-	private void releaseTimerAndHandler(){
-		//isEnableTime = false;
-		if(mTimer!=null)
-			mTimer.cancel();
-		doActionHandler.removeCallbacksAndMessages(null);
-	}
-
     @Override
     public void onPause()
     {
-    	releaseTimerAndHandler();
-    	dtPlayer.pause();
+    	//releaseTimerAndHandler();
         super.onPause();
         Log.d(TAG,"--PAUSE--");    
     }
@@ -270,8 +152,6 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	@Override
 	public void onDestroy() {
 		// TODO Auto-generated method stub
-		dtPlayer.stop();
-		dtPlayer.release();
 		mCursor.close();
 		audio_listview = null;
 		super.onDestroy();
@@ -284,7 +164,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	@Override
 	public void onClick(View v) {
 		// TODO Auto-generated method stub
-		switch(v.getId()){
+		/*switch(v.getId()){
 		case R.id.dt_play_next_btn:
 			Log.i(TAG, "click next song btn");
 			playNextSong();
@@ -295,18 +175,18 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		case R.id.dt_play_pause_btn:
 			handlePausePlay();
 			break;
-		}
+		}*/
 	}
 	
-	private void playNextSong(){
+	/*private void playNextSong(){
 		Log.i(TAG, "enter play nextSong function");
 		currentPosition = currentPosition + 1;
 		if(currentPosition < playList.size()){
 			playSong(currentPosition);
 		}
-	}
+	}*/
 	
-	private void playSong(int index){
+	/*private void playSong(int index){
 		dtPlayer.stop();
 		String uri = playList.get(index);
 		Log.i(TAG, "setDataSource uri is:"+uri);
@@ -318,7 +198,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		}
 		try {
 			//dtPlayer.release();
-			/*dtPlayer.reset();*/		
+			dtPlayer.reset();		
 			if(dtPlayer.setDataSource(uri) == -1)
 				return;
 			dtPlayer.prepare();
@@ -342,11 +222,11 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		if(currentPosition>0){
 			playSong(currentPosition);
 		}
-	}
+	}*/
 	
 	
 	
-	private void handlePausePlay(){
+	/*private void handlePausePlay(){
 		try {
 			if(dtPlayer.isPlaying()){
 				dtPlayer.pause();
@@ -360,5 +240,5 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
-	}
+	}*/
 }

@@ -380,7 +380,6 @@ public class DtPlayer {
 		}
 		return mMeta;
 	}*/
-	@Deprecated
 	public void release(){
 		stayAwake(false);
 		updateSurfaceScreenOn();
@@ -397,6 +396,7 @@ public class DtPlayer {
 		native_stop();
 		native_release();
 		closeFD();
+		mEventHandler  = null;
 	}
 	
 	public interface OnHWRenderFailedListener{

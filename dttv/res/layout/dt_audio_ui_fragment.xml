@@ -12,5 +12,5 @@
          >
         
     </ListView>
-	<include layout="@layout/operation_bar" />
+	<!-- <include layout="@layout/operation_bar" /> -->
 </RelativeLayout>

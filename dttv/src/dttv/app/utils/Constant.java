@@ -17,4 +17,6 @@ public class Constant {
 	public static final int LOCAL_VIDEO = 0;
 	public static final int LOCAL_AUDIO = 1;
 	public static final int LOCAL_FILE = 2;
+	
+	public static final String MEIDA_NAME_STR = "dttv.app.media_name";
 }

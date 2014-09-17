@@ -32,6 +32,10 @@
             android:id="@+id/dt_media_name_txt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:textSize="18sp"
+            android:textColor="@color/txt_color"
+            android:layout_centerVertical="true"
              />
         <LinearLayout
             android:layout_width="wrap_content"

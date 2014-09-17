@@ -8,6 +8,7 @@ import dttv.app.R;
 import dttv.app.VideoPlayerActivity;
 import dttv.app.impl.I_OnMyKey;
 import dttv.app.utils.Constant;
+import dttv.app.utils.PlayerUtil;
 import android.annotation.SuppressLint;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
@@ -23,6 +24,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.TextView;
 
 
 @SuppressLint("NewApi")
@@ -69,16 +71,11 @@ public class VideoUIFragment extends Fragment implements I_OnMyKey{
 				long arg3) {
 			// TODO Auto-generated method stub
 			String uri = playList.get(position);
-			startVideoPlayer(uri);
+			String name = ((TextView)v.findViewById(R.id.media_row_name)).getText().toString();
+			PlayerUtil.getInstance().beginToPlayer(getActivity(), uri, name);
 		}
 	}
 	
-	private void startVideoPlayer(String uri){
-		Intent retIntent = new Intent();
-		retIntent.setClass(getActivity(), VideoPlayerActivity.class);
-		retIntent.putExtra(Constant.FILE_MSG, uri);
-		startActivity(retIntent);
-	}
 	
 	class QueryHandler extends AsyncQueryHandler {
         QueryHandler(ContentResolver res) {

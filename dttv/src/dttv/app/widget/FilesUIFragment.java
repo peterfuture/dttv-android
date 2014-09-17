@@ -17,6 +17,7 @@ import dttv.app.impl.I_OnMyKey;
 import dttv.app.model.Item;
 import dttv.app.multithread.DataAsyncTask;
 import dttv.app.utils.Constant;
+import dttv.app.utils.MultiMediaTypeUtil;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
@@ -50,6 +51,7 @@ public class FilesUIFragment extends Fragment implements I_Async ,OnBackStackCha
 	private String chosenFile;
 	private DataAsyncTask mAsyncTask;
 	private List<Item> fileList;
+	MultiMediaTypeUtil mediaTypeUtil;
 	
 	private static int currentAction = -1;
 	private static final int SELECT_DIRECTORY = 1;
@@ -92,6 +94,8 @@ public class FilesUIFragment extends Fragment implements I_Async ,OnBackStackCha
 		pathDirsList = new ArrayList<String>();
 		mAsyncTask = new DataAsyncTask(this);
 		fileList  = new ArrayList<Item>();
+		mediaTypeUtil = new MultiMediaTypeUtil();
+		mediaTypeUtil.initReflect();
 		if (Environment.getExternalStorageDirectory().isDirectory()
 				&& Environment.getExternalStorageDirectory().canRead())
 			path = Environment.getExternalStorageDirectory();
@@ -130,10 +134,10 @@ public class FilesUIFragment extends Fragment implements I_Async ,OnBackStackCha
 				// TODO Auto-generated method stub
 				chosenFile = fileList.get(position).file;
 				File sel = new File(path + "/" + chosenFile);
-				if(position==0){
+				/*if(position==0){
 					loadDirectoryUp();
 					return;
-				}
+				}*/
 				if(sel.isDirectory()){
 					if (sel.canRead()) {
 						// Adds chosen directory to list
@@ -225,7 +229,7 @@ public class FilesUIFragment extends Fragment implements I_Async ,OnBackStackCha
 				if(item.isDirectory()){
 					item.setIcon(R.drawable.dt_browser_folder);
 				}else{
-					item.setIcon(R.drawable.dt_browser_file);
+					item.setIcon(getDrawableId(path+"/"+item.file));
 				}
 				fileList.add(item);
 			}
@@ -234,6 +238,22 @@ public class FilesUIFragment extends Fragment implements I_Async ,OnBackStackCha
 				Collections.sort(fileList, new ItemFileNameComparator());
 			}
 		}
+	}
+	
+	private int getDrawableId(String path){
+		Log.i(TAG, "path is:"+path);
+		int res;
+		//res = mediaTypeUtil.isAudioFile(mediaTypeUtil.getMediaFileType(path)) == true ? R.drawable.dt_player_audio_icon : -1;
+		if(mediaTypeUtil.isAudioFile(mediaTypeUtil.getMediaFileType(path))){
+			res = R.drawable.dt_player_audio_icon;
+		}else if(mediaTypeUtil.isVideoFile(mediaTypeUtil.getMediaFileType(path))){
+			res = R.drawable.dt_player_video_icon;
+		}else if(mediaTypeUtil.isImageFile(mediaTypeUtil.getMediaFileType(path))){
+			res = R.drawable.dt_browser_file;
+		}else{
+			res = R.drawable.dt_browser_file;
+		}
+		return res;
 	}
 	
 	public class ItemFileNameComparator implements Comparator<Item> {

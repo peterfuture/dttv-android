@@ -535,9 +535,6 @@ static void gles2_renderFrame()
         1.0f,  -1.0f,
     };
 
-
-    gl_ctx.vertex_index = 0;
-
     glClearColor(0.5f, 0.5f, 0.5f, 1);
     checkGlError("glClearColor");
     
@@ -687,10 +684,10 @@ static void gles2_init()
 
 
     char *glExtension = (char *)glGetString(GL_EXTENSIONS);
-    if(strstr(glExtension, "MTK") != NULL)
-        gl_ctx.vertex_index = 0; 
+    if(strstr(glExtension, "GL_AMD_compressed_ATC_texture") != NULL)
+        gl_ctx.vertex_index = 1; 
     else
-        gl_ctx.vertex_index = 1;
+        gl_ctx.vertex_index = 0;
 
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "opengl esv2 init ok, ext:%s \n ", glExtension);
 }

@@ -19,11 +19,13 @@
 /*CODEC*/
 
 /*HOST*/
-#define AVSYNC_THRESHOLD 150    //ms
-#define AVSYNC_THRESHOLD_MAX  3*1000 //ms
+#define AVSYNC_THRESHOLD 100    //ms
+#define AVSYNC_THRESHOLD_MAX  5*1000 //ms
 #define AVSYNC_DROP_THRESHOLD  30*1000 //ms
 
 /*PORT*/ 
 /*AUDIO*/ 
 /*VIDEO*/
+#define VIDEO_EXTRADATA_SIZE 4096
+
 #endif

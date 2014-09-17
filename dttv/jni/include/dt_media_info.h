@@ -2,6 +2,7 @@
 #define DT_MEDIA_INFO_H
 
 #include "dt_type.h"
+#include "dt_av.h"
 #include "dt_macro.h"
 
 #include "stdint.h"
@@ -29,7 +30,7 @@ typedef struct
     dtratio frame_rate_ratio;
     dtratio time_base;
     int extradata_size;
-    uint8_t *extradata;
+    uint8_t extradata[VIDEO_EXTRADATA_SIZE];
     dtvideo_format_t format;
     void *codec_priv;
 } vstream_info_t;

@@ -88,7 +88,7 @@ typedef struct StagefrightContext {
 class CustomSource : public MediaSource {
 public:
     CustomSource(dtvideo_decoder_t *decoder, sp<MetaData> meta) {
-        dtvideo_para_t *vd_para = &(decoder->para);
+        dtvideo_para_t *vd_para = decoder->para;
         s = (StagefrightContext*)decoder->vd_priv;
         source_meta = meta;
         frame_size  = (vd_para->s_width * vd_para->s_height * 3) / 2;
@@ -304,7 +304,7 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
     memset(s,0,sizeof(StagefrightContext));
     decoder->vd_priv = s;
 
-    dtvideo_para_t *vd_para = &(decoder->para);
+    dtvideo_para_t *vd_para = decoder->para;
 
     sp<MetaData> meta, outFormat;
     int32_t colorFormat = 0;

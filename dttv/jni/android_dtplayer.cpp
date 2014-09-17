@@ -535,6 +535,9 @@ static void gles2_renderFrame()
         1.0f,  -1.0f,
     };
 
+
+    gl_ctx.vertex_index = 0;
+
     glClearColor(0.5f, 0.5f, 0.5f, 1);
     checkGlError("glClearColor");
     

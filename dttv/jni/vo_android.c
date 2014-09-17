@@ -57,8 +57,8 @@ static int vo_android_init (dtvideo_output_t *vout)
     //vo_android_ctx.dw = getActivityWidth();
     //vo_android_ctx.dh = getActivityHeight();
     
-    vo_android_ctx.dw = vout->para.d_width;
-    vo_android_ctx.dh = vout->para.d_height;
+    vo_android_ctx.dw = vout->para->d_width;
+    vo_android_ctx.dh = vout->para->d_height;
 
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "android vo init OK, width:%d height:%d \n",vo_android_ctx.dw, vo_android_ctx.dh);
 

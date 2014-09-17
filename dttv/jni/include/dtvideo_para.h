@@ -1,8 +1,8 @@
 #ifndef DTVIDEO_PARA_H
 #define DTVIDEO_PARA_H
 
+#include <dt_macro.h>
 #include <stdint.h>
-#define VIDEO_EXTRADATA_SIZE 4096
 typedef struct
 {
     int vfmt;

@@ -32,8 +32,9 @@ typedef struct vf_wrapper
 
 typedef struct dtvideo_filter
 {
-    dtvideo_para_t para;
+    dtvideo_para_t *para;
     vf_wrapper_t *wrapper;
+    dt_lock_t mutex;
     int status;
     void *vf_priv;
     void *parent;

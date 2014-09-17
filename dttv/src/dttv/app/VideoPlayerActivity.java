@@ -199,6 +199,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		getWindowManager().getDefaultDisplay().getMetrics(dm);
 		screenHeight = dm.heightPixels;
 		screenWidth = dm.widthPixels;
+		Log.i(TAG, "screen size, w:" + screenWidth + "h:" + screenHeight);
 	}
 	
 	private void initListener(){
@@ -534,6 +535,12 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		Log.i(TAG, "lp.width is:"+lp.width+"----lp.height is:"+lp.height);
 		//glSurfaceView.setLayoutParams(lp);
 		Log.i(TAG, "before setVideoSize");
+		
+		ViewGroup.LayoutParams layoutParams=glSurfaceView.getLayoutParams();
+		layoutParams.width=lp.width;
+		layoutParams.height=lp.height;
+		glSurfaceView.setLayoutParams(layoutParams);
+		
 		dtPlayer.setVideoSize(lp.width, lp.height);
 		Log.i(TAG, "after setVideoSize");
 		//dtPlayer.onSurfaceChanged(lp.width, lp.height);

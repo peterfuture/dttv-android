@@ -55,7 +55,7 @@ typedef struct
 typedef struct dtvideo_output
 {
     /*param */
-    dtvideo_para_t para;
+    dtvideo_para_t *para;
     vo_wrapper_t *wrapper;
     vo_status_t status;
     pthread_t output_thread_pid;

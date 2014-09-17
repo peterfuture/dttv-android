@@ -23,7 +23,7 @@
 #define unlikely(x)	(x)
 #endif
 
-#define VIDEO_OUT_MAX_COUNT 30
+#define VIDEO_OUT_MAX_COUNT 4
 #define AUDIO_OUT_MAX_COUNT 4
 
 typedef struct _node_

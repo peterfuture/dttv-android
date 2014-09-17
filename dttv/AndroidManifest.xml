@@ -78,6 +78,7 @@
             android:name="dttv.app.VideoPlayerActivity"
             android:label="@string/video_activity_play"
             android:launchMode="singleTask"
+            android:screenOrientation="landscape"
             android:configChanges="orientation|keyboardHidden|screenSize" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

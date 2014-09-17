@@ -55,7 +55,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	private RelativeLayout playerBarLay,playerRootviewLay;
 	private RelativeLayout topBarLay;
 	private ImageButton rotateBtn;
-	private TextView currentTimeTxt,totalTimeTxt;
+	private TextView currentTimeTxt,totalTimeTxt,media_name_txt;
 	private ImageButton preBtn,nextBtn,pauseBtn,ratioBtn;
 	private SeekBar playerProgressBar;
 	private GlVideoView glSurfaceView;
@@ -72,10 +72,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	private static final int PLAYER_STOP = 0x100;
 	private static final int PLAYER_EXIT = 0x101;
 	
-	private static final int SCREEN_MODE_NORMAL = 0x0;
-	private static final int VIDEO_MODE_FULLSCREEN = 0x1;
-	private static final int VIDEO_MODE_4_3 = 0x2;
-	private static final int VIDEO_MODE_16_9 = 0x3;
 	
 	
 	private int mState = PLAYER_IDLE;
@@ -145,6 +141,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	private void initExtraData(){
 		Intent intent = getIntent();
 		mPath = intent.getStringExtra(Constant.FILE_MSG);
+		String mediaName = intent.getStringExtra(Constant.MEIDA_NAME_STR);
+		media_name_txt.setText(mediaName);
 		Toast.makeText(this, "mPath is:"+mPath, 1).show();
 		try {
 			mState = PLAYER_INITING;
@@ -188,6 +186,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		playerBarLay = (RelativeLayout)mBarView.findViewById(R.id.audio_player_bar_lay);
 		playerRootviewLay = (RelativeLayout)findViewById(R.id.dt_player_rootview);
 		topBarLay = (RelativeLayout)findViewById(R.id.dt_top_play_bar_lay);
+		media_name_txt = (TextView)findViewById(R.id.dt_media_name_txt);
 		rotateBtn = (ImageButton)findViewById(R.id.dt_player_rotate_btn);
 		currentTimeTxt = (TextView)mBarView.findViewById(R.id.dt_play_current_time);
 		totalTimeTxt = (TextView)mBarView.findViewById(R.id.dt_play_total_time);
@@ -367,6 +366,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		// TODO Auto-generated method stub
 		mState = PLAYER_STOP;
 		dtPlayer.release();
+		dtPlayer.stop();
 		super.onStop();
 	}
 	
@@ -385,7 +385,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 			handlePausePlay();
 			break;
 		case R.id.dt_play_ratio_btn:
-			//setVideoScale(temp_flag);
+			setVideoScale(temp_flag);
 			break;
 		case R.id.dt_player_rotate_btn:
 			changeConfigration();
@@ -427,7 +427,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
-		//dtPlayer.release();
+		dtPlayer.release();
+		dtPlayer = null;
 		super.onDestroy();
 	}
 		
@@ -469,12 +470,14 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
     }  
 	
 	//-----------------------------OPENGL----------------------------//
-	private int temp_flag = 2;
+	private int temp_flag = -1;
 	private void setVideoScale(int flag){
 		temp_flag ++;
 		flag = temp_flag % 5;
 		Log.i(TAG, "setVideoScale flag is:"+flag);
-		LayoutParams lp = (LayoutParams) glSurfaceView.getLayoutParams();
+		//LayoutParams lp = (LayoutParams) glSurfaceView.getLayoutParams();
+		LayoutParams lp = new LayoutParams(surface_width, surface_height);
+		Log.i(TAG, "begin");
 		switch(flag){
 		case SCREEN_169value:
 			if(screenWidth * 9 > screenHeight * 16){
@@ -497,8 +500,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 			ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_1_1);
 			break;
 		case SCREEN_ORIGINAL:
-			lp.width = surface_width;
-			lp.height = surface_height;
+			lp.width = dtPlayer.getVideoWidth();
+			lp.height = dtPlayer.getVideoHeight();
 			ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_fullscreen);
 			break;
 		case SCREEN_FULLSCREEN:
@@ -529,7 +532,11 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 			break;
 		}
 		Log.i(TAG, "lp.width is:"+lp.width+"----lp.height is:"+lp.height);
-		glSurfaceView.setLayoutParams(lp);
+		//glSurfaceView.setLayoutParams(lp);
+		Log.i(TAG, "before setVideoSize");
+		dtPlayer.setVideoSize(lp.width, lp.height);
+		Log.i(TAG, "after setVideoSize");
+		//dtPlayer.onSurfaceChanged(lp.width, lp.height);
 	}
 
 	@Override

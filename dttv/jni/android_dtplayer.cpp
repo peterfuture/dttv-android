@@ -149,16 +149,14 @@ int Notify(int status)
 
     if(gvm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK)
     {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm getenv failed use AttachCurrentThread \n ");
+        //__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm getenv failed use AttachCurrentThread \n ");
         if(gvm->AttachCurrentThread(&env, NULL) != JNI_OK)
         {
-            __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm AttachCurrentThread failed \n ");
+            //__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm AttachCurrentThread failed \n ");
             return -1;
         }
         isAttached = 1;
     }
-    else
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm getenv ok \n ");
     
     if(!notify_cb || !mClass)
     {
@@ -734,7 +732,7 @@ static int gles2_update_frame(uint8_t *buffer, int size)
     gl_ctx.g_buffer = buffer;
     if(size == gl_ctx.buffer_size)
         gl_ctx.invalid_frame = 1;
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update frame v2 , size:%d bufsize:%d \n ", size, gl_ctx.buffer_size);
+    //__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update frame v2 , size:%d bufsize:%d \n ", size, gl_ctx.buffer_size);
     return 0;
 }
 
@@ -831,7 +829,7 @@ static int gles1_update_frame(uint8_t *buf,int size)
         free(gl_ctx.frame);
     
     cp_size = (size < gl_ctx.frame_size)?size:gl_ctx.frame_size;
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, cpsize:%d size:%d bufsize:%d \n",cp_size,size,gl_ctx.frame_size);
+    //__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, cpsize:%d size:%d bufsize:%d \n",cp_size,size,gl_ctx.frame_size);
     
     gl_ctx.frame = (uint16_t *)buf;
 

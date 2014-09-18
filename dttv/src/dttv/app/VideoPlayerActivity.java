@@ -240,7 +240,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		@Override
 		public void onFresh(DtPlayer mp) {
 			// TODO Auto-generated method stub
-			Log.i(Constant.LOGTAG, "fresh video");
+			//Log.i(Constant.LOGTAG, "fresh video");
 			glSurfaceView.requestRender();
 			
 		}

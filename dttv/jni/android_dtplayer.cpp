@@ -732,9 +732,9 @@ static int gles2_update_frame(uint8_t *buffer, int size)
         free(gl_ctx.g_buffer);
 
     gl_ctx.g_buffer = buffer;
-
-    gl_ctx.invalid_frame = 1;
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update frame v2\n ");
+    if(size == gl_ctx.buffer_size)
+        gl_ctx.invalid_frame = 1;
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update frame v2 , size:%d bufsize:%d \n ", size, gl_ctx.buffer_size);
     return 0;
 }
 
@@ -745,7 +745,7 @@ static int gles2_draw_frame()
     
     if(gl_ctx.invalid_frame == 0)
     {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, No frame to draw \n");
+        //__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, No frame to draw \n");
         return 0;
     }
 
@@ -821,7 +821,7 @@ static int gles1_surface_changed(int w, int h)
 static int gles1_update_frame(uint8_t *buf,int size)
 {
     int cp_size = size;
-    if(size > gl_ctx.frame_size)
+    if(size != gl_ctx.frame_size)
     {
         __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame,in size:%d larger than out size:%d  \n",gl_ctx.frame_size,gl_ctx.frame_size);
         return -1;
@@ -905,8 +905,9 @@ int dtp_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
 #endif
 
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged ok\n");
-END:
+    
     dt_unlock(&gl_ctx.mutex);
+    dtp_setVideoSize(env, obj, w, h);
     return 0;
 }
 

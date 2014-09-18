@@ -540,9 +540,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		layoutParams.width=lp.width;
 		layoutParams.height=lp.height;
 		glSurfaceView.setLayoutParams(layoutParams);
-		
-		dtPlayer.setVideoSize(lp.width, lp.height);
-		Log.i(TAG, "after setVideoSize");
+	
+//		dtPlayer.setVideoSize(lp.width, lp.height);
+//		Log.i(TAG, "after setVideoSize");
 		//dtPlayer.onSurfaceChanged(lp.width, lp.height);
 	}
 

@@ -196,7 +196,7 @@ void* decode_thread(void *arg)
     int64_t out_frame_index = 0;
     int pic_size = 0;
 
-    int pix_fmt = decoder->wrapper->para.s_pixfmt;
+    int pix_fmt = decoder->wrapper->para->s_pixfmt;
 
     do {
         buffer = NULL;
@@ -406,11 +406,11 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
     pthread_mutex_init(&s->in_mutex, NULL);
     pthread_mutex_init(&s->out_mutex, NULL);
     pthread_cond_init(&s->condition, NULL);
-    memcpy(&wrapper->para, &decoder->para, sizeof(dtvideo_para_t));
+    wrapper->para = decoder->para;
 
-    if(pix_fmt != wrapper->para.s_pixfmt)
+    if(pix_fmt != wrapper->para->s_pixfmt)
     {
-        wrapper->para.s_pixfmt = pix_fmt;
+        wrapper->para->s_pixfmt = pix_fmt;
         s->info_changed = 1;
     }
 

@@ -19,7 +19,7 @@ typedef struct vd_wrapper
 {
     char *name;
     dtvideo_format_t vfmt;        // not used, for ffmpeg
-    dtvideo_para_t para;          // info changed needed 
+    dtvideo_para_t *para;          // info changed needed 
     int type;
     int is_hw;
 

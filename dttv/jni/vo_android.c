@@ -69,11 +69,12 @@ static int vo_android_render (dtvideo_output_t *vout,dt_av_frame_t * pict)
 {
     vo_wrapper_t *wrap = &vo_android_ops;
     vo_android_ctx_t *ctx = (vo_android_ctx_t *)wrap->handle;
+    int size = ctx->dw * ctx->dh * 1.5; // yuv 420 size
     
     dt_lock (&ctx->vo_mutex);
-    update_frame(pict->data[0],ctx->dw*ctx->dh*2);
+    update_frame(pict->data[0], size);
     pict->data[0] = NULL;
-    __android_log_print(ANDROID_LOG_DEBUG,TAG,"render one frame ok\n");
+    //__android_log_print(ANDROID_LOG_DEBUG,TAG,"render one frame ok\n");
     dt_unlock (&ctx->vo_mutex);
     return 0;
 }

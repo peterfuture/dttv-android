@@ -52,6 +52,10 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	private List<String> playList;
 	private int trick_seek = 0;
 	
+	public AudioUIFragment() {
+		// TODO Auto-generated constructor stub
+	}
+	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {

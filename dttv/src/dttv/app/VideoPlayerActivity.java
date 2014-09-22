@@ -60,6 +60,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	private SeekBar playerProgressBar;
 	private GlVideoView glSurfaceView;
 	private int seek_flag = 0;
+	private boolean isDisableScale= false;
 	
 	private static final int PLAYER_IDLE = 0x0;
 	private static final int PLAYER_INITING = 0x1;
@@ -493,7 +494,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		case SCREEN_43value:
 			if(screenWidth*3 > screenHeight*4){
 				lp.height = screenHeight;
-				lp.width = screenWidth * 4 /3;
+				lp.width = screenHeight * 4 /3;
 			}else{
 				lp.height = screenWidth * 3/4;
 				lp.width = screenWidth;

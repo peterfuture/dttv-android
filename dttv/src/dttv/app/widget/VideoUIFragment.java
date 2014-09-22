@@ -35,6 +35,11 @@ public class VideoUIFragment extends Fragment implements I_OnMyKey{
 	
 	private List<String> playList;
 	//private AsyncQueryHandler mQueryHandler;
+	
+	public VideoUIFragment() {
+		// TODO Auto-generated constructor stub
+	}
+	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {

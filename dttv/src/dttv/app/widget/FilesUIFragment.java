@@ -59,6 +59,10 @@ public class FilesUIFragment extends Fragment implements I_Async ,OnBackStackCha
 	
 	private I_KeyIntercept mKeyIntercept;
 	
+	public FilesUIFragment() {
+		// TODO Auto-generated constructor stub
+	}
+	
 	public FilesUIFragment(I_KeyIntercept intercept) {
 		// TODO Auto-generated constructor stub
 		mKeyIntercept = intercept;

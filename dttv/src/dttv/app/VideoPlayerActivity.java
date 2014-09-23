@@ -76,12 +76,13 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	
 	
 	private int mState = PLAYER_IDLE;
-	
-	private final int SCREEN_169value = 0;
-    private final int SCREEN_43value = 1;
-    private final int SCREEN_ORIGINAL = 2;
-    private final int SCREEN_FULLSCREEN = 3;
+    
+    private final int SCREEN_ORIGINAL = 0;
+	private final int SCREEN_169value = 1;
+    private final int SCREEN_FULLSCREEN = 2;
+    private final int SCREEN_43value = 3;
     private final int SCREEN_NORMALSCALE = 4;
+
     
     private int screenHeight,screenWidth;
     private int surface_width = 320;
@@ -201,6 +202,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		screenHeight = dm.heightPixels;
 		screenWidth = dm.widthPixels;
 		Log.i(TAG, "screen size, w:" + screenWidth + "h:" + screenHeight);
+		
+		ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_16_9);
 	}
 	
 	private void initListener(){
@@ -472,10 +475,10 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
     }  
 	
 	//-----------------------------OPENGL----------------------------//
-	private int temp_flag = -1;
+	private int temp_flag = 0;
 	private void setVideoScale(int flag){
 		temp_flag ++;
-		flag = temp_flag % 5;
+		flag = temp_flag % 3;
 		Log.i(TAG, "setVideoScale flag is:"+flag);
 		//LayoutParams lp = (LayoutParams) glSurfaceView.getLayoutParams();
 		LayoutParams lp = new LayoutParams(surface_width, surface_height);
@@ -489,7 +492,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 				lp.height = screenWidth *9/16;
 				lp.width = screenWidth;
 			}
-			ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_4_3);
+			ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_fullscreen);
 			break;
 		case SCREEN_43value:
 			if(screenWidth*3 > screenHeight*4){
@@ -504,7 +507,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		case SCREEN_ORIGINAL:
 			lp.width = dtPlayer.getVideoWidth();
 			lp.height = dtPlayer.getVideoHeight();
-			ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_fullscreen);
+			ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_16_9);
 			break;
 		case SCREEN_FULLSCREEN:
 			lp.width = screenWidth;

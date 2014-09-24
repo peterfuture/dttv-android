@@ -30,7 +30,6 @@ import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ProgressBar;
->>>>>>> 9ad27bcea65656907ff423fdf1d7ec3fb2b695ef
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;

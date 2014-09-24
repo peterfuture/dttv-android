@@ -27,15 +27,15 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageButton;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
-import android.widget.LinearLayout.LayoutParams;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 import dttv.app.DtPlayer.OnCompletionListener;
-import dttv.app.DtPlayer.OnPreparedListener;
 import dttv.app.DtPlayer.OnFreshVideo;
+import dttv.app.DtPlayer.OnPreparedListener;
 import dttv.app.utils.Constant;
 import dttv.app.utils.Log;
 import dttv.app.utils.TimesUtil;
@@ -113,6 +113,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 	        //glSurfaceView.setOnTouchListener((OnTouchListener) this);
 		}
+
+		getWindow().setBackgroundDrawableResource(R.color.bg_black);
+		
 		initView();
 		initExtraData();
 		initListener();
@@ -163,8 +166,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 				ViewGroup.LayoutParams layoutParams=glSurfaceView.getLayoutParams();
 				layoutParams.width=width;
 				layoutParams.height=height;
-				glSurfaceView.setLayoutParams(layoutParams);
-				
+				glSurfaceView.setLayoutParams(layoutParams);				
 				dtPlayer.setVideoSize(width,height);
 			}
 			dtPlayer.prepare();

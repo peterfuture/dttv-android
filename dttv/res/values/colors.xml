@@ -2,4 +2,5 @@
 <resources>
     <color name="txt_color">#ffffffff</color>
     <color name="opreate_bar_bg_color">#50000000</color>
+    <color name="bg_black">#000000</color>
 </resources>

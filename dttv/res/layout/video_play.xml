@@ -68,4 +68,27 @@
         layout="@layout/operation_bar"
         android:visibility="gone" />
     
+    <ProgressBar
+         android:id="@+id/bright_progressbar"
+         android:layout_width="20dp"
+         android:layout_height="200dp"
+         android:progressDrawable="@drawable/brightbar_progress"
+         android:indeterminateOnly="false"
+         android:progress="100"
+         android:max="255"
+         android:visibility="gone"
+         android:layout_marginLeft="50dp"
+         android:layout_centerVertical="true"  />
+     <ProgressBar
+         android:id="@+id/volume_progress"
+         android:layout_marginRight="100dp"
+         android:layout_width="20dp"
+         android:layout_height="200dp"
+         android:progressDrawable="@drawable/soundbar_progress"
+         android:indeterminateOnly="false"
+         android:progress="5"
+         android:max="15"
+         android:visibility="gone"
+         android:layout_centerVertical="true"
+         android:layout_alignParentRight="true" />
 </RelativeLayout>

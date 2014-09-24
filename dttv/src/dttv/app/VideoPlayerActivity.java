@@ -20,6 +20,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -28,6 +29,8 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.ProgressBar;
+>>>>>>> 9ad27bcea65656907ff423fdf1d7ec3fb2b695ef
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -37,9 +40,12 @@ import dttv.app.DtPlayer.OnCompletionListener;
 import dttv.app.DtPlayer.OnFreshVideo;
 import dttv.app.DtPlayer.OnPreparedListener;
 import dttv.app.utils.Constant;
+import dttv.app.utils.ControlLightness;
 import dttv.app.utils.Log;
 import dttv.app.utils.TimesUtil;
+import dttv.app.utils.VolumeUtil;
 import dttv.app.widget.GlVideoView;
+import dttv.app.widget.OnTouchMoveListener;
 /**
  * VideoPlayer Activity
  * 
@@ -88,6 +94,14 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
     private int surface_width = 320;
     private int surface_height = 240;
     private int currentPosition = -1;
+    
+    private final int HANDLE_UP = 0x0110;
+	private final int HANDLE_DOWN = HANDLE_UP+1;
+	private ProgressBar brightProgressBar,volumeProgressBar;
+	private VolumeUtil volumeUtil;
+	private int mScreenWidth;
+	private int mScreenHeight;
+	private int currentLightness;
 	
 	@SuppressLint("ShowToast")
 	@Override
@@ -109,6 +123,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 			//opengl
 			glSurfaceView = (GlVideoView)findViewById(R.id.glvideo_view);
 			glSurfaceView.setRenderer(new GLSurfaceViewRender());
+			glSurfaceView.setTouchMoveListener(new GLMoveTouchListener());
 	        //glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 	        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 	        //glSurfaceView.setOnTouchListener((OnTouchListener) this);
@@ -117,8 +132,21 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		getWindow().setBackgroundDrawableResource(R.color.bg_black);
 		
 		initView();
+		initDisplay();
 		initExtraData();
 		initListener();
+	}
+	
+	private void initDisplay(){
+		DisplayMetrics displayMetrics =  new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+		mScreenWidth = displayMetrics.widthPixels;
+		mScreenHeight = displayMetrics.heightPixels;
+		if(mScreenWidth==0){
+			Display display = getWindowManager().getDefaultDisplay();
+			mScreenWidth = display.getWidth();
+			mScreenHeight = display.getHeight();
+		}
 	}
 	
 	private int OpenglES2Support()
@@ -183,6 +211,12 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		currentLightness = ControlLightness.getInstance().getLightness(this);
+		if(currentLightness>=255){
+			currentLightness = 255;
+		}else if(currentLightness<=0){
+			currentLightness = 0;
+		}
 	}
 	
 	private void initView(){
@@ -206,6 +240,13 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		Log.i(TAG, "screen size, w:" + screenWidth + "h:" + screenHeight);
 		
 		ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_16_9);
+		
+		brightProgressBar = (ProgressBar)findViewById(R.id.bright_progressbar);
+		volumeProgressBar = (ProgressBar)findViewById(R.id.volume_progress);
+		
+		volumeUtil = new VolumeUtil(this);
+		volumeProgressBar.setMax(volumeUtil.getMaxVolume());
+		volumeProgressBar.setProgress(volumeUtil.getCurrentVolume());
 	}
 	
 	private void initListener(){
@@ -316,13 +357,15 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 				playerProgressBar.setProgress(currentTime);
 				break;
 			case Constant.BEGIN_MEDIA_MSG:
-				
 	            //startTimerTask();
 				break;
 			case Constant.HIDE_OPREATE_BAR_MSG:
 				//playerBarLay.setVisibility(View.GONE);
 				Log.i(TAG, "enter HIDE_OPREATE_BAR_MSG");
 				showToolsBar(false);
+				break;
+			case Constant.HIDE_PROGRESS_BAR_MSG:
+				showProgressBar(false);
 				break;
 			}
 		};
@@ -414,6 +457,11 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		rotateBtn.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
 	}
 	
+	private void showProgressBar(boolean isShow){
+		brightProgressBar.setVisibility(isShow == true ? View.VISIBLE : View.GONE);
+		volumeProgressBar.setVisibility(isShow == true ? View.VISIBLE : View.GONE);
+	}
+	
 	private void handlePausePlay(){
 		try {
 			if(dtPlayer.isPlaying()){
@@ -437,6 +485,43 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		dtPlayer.release();
 		dtPlayer = null;
 		super.onDestroy();
+	}
+	
+	//--------------------------onMoveTouch-------------------------//
+	
+	class GLMoveTouchListener implements OnTouchMoveListener{
+
+		@Override
+		public void onTouchMoveUp(float posX) {
+			// TODO Auto-generated method stub
+			if(posX<(mScreenWidth/2-10)){//left up handle audiovolume
+				//Log.i(TAG, "left up handle audiovolume");
+				handleAudioVolume(HANDLE_UP);
+			}else if(posX>(mScreenWidth/2+10)){//right up handle lightless
+				//Log.i(TAG, "right up handle lightless");
+				handleLightless(HANDLE_UP);
+			}
+		}
+
+		@Override
+		public void onTouchMoveDown(float posX) {
+			// TODO Auto-generated method stub
+			if(posX<(mScreenWidth/2-10)){//left down handle audiovolume
+				Log.i(TAG, "left down handle audiovolume");
+				handleAudioVolume(HANDLE_DOWN);
+			}else if(posX>(mScreenWidth/2+10)){//right down handle lightless
+				//Log.i(TAG, "right down handle lightless");
+				handleLightless(HANDLE_DOWN);
+			}
+		}
+
+		@Override
+		public void onTouch(MotionEvent event) {
+			// TODO Auto-generated method stub
+			showToolsBar(true);
+			doActionHandler.removeMessages(Constant.HIDE_OPREATE_BAR_MSG);
+			doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_OPREATE_BAR_MSG, 5*Constant.REFRESH_TIME);
+		}
 	}
 		
 	//---------------------------OPENGL------------------------------//
@@ -560,6 +645,41 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		doActionHandler.removeMessages(Constant.HIDE_OPREATE_BAR_MSG);
 		doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_OPREATE_BAR_MSG, 5*Constant.REFRESH_TIME);
 		return false;
+	}
+	
+	private void handleAudioVolume(int type){
+		switch(type){
+		case HANDLE_UP:
+			volumeUtil.upVolume(0);
+			break;
+		case HANDLE_DOWN:
+			volumeUtil.downVolume(0);
+			break;
+		}
+		volumeProgressBar.setVisibility(View.VISIBLE);
+		volumeProgressBar.setProgress(volumeUtil.getCurrentVolume());
+		doActionHandler.removeMessages(Constant.HIDE_PROGRESS_BAR_MSG);
+		doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_PROGRESS_BAR_MSG, 5*Constant.REFRESH_TIME);
+	}
+	
+	private void handleLightless(int type){
+		currentLightness = ControlLightness.getInstance().getLightness(this);
+		Log.i(TAG, "currentLightness is:"+currentLightness);
+		switch(type){
+		case HANDLE_UP:
+			currentLightness+=5;
+			currentLightness = currentLightness >= 255 ? 255:currentLightness;
+			break;
+		case HANDLE_DOWN:
+			currentLightness-=5;
+			currentLightness = currentLightness <= 0 ? 0 : currentLightness;
+			break;
+		}
+		ControlLightness.getInstance().setBrightness(this, currentLightness);
+		brightProgressBar.setVisibility(View.VISIBLE);
+		brightProgressBar.setProgress(currentLightness);
+		doActionHandler.removeMessages(Constant.HIDE_PROGRESS_BAR_MSG);
+		doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_PROGRESS_BAR_MSG, 5*Constant.REFRESH_TIME);
 	}
 	
 }

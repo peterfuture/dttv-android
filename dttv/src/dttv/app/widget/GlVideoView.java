@@ -24,6 +24,7 @@ public class GlVideoView extends GLSurfaceView{
 	
 	public GlVideoView(Context context, AttributeSet attrs) {
 		super(context, attrs);
+		setEGLContextClientVersion(2);
 		// TODO Auto-generated constructor stub
 		paint = new Paint();
 	}

@@ -18,6 +18,11 @@ Build
 https://github.com/peterfuture/dttv-android/wiki/How-to-build-dttv-android
 
 
+Test
+========
+
+prebuild apk path: dttv-android/bin/dttv.apk
+
 REF REPO
 ========
 

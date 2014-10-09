@@ -7,10 +7,11 @@
 struct dtvideo_filter;
 
 typedef enum{
-    VF_CAP_NOP     = 0x0,
-    VF_CAP_CONVERT = 0x1,
-    VF_CAP_CROP    = 0x2,
-    VF_CAP_MAX     = 0x80000
+    VF_CAP_NOP                = 0x0,
+    VF_CAP_COLORSPACE_CONVERT = 0x1,
+    VF_CAP_CLIP               = 0x2,
+
+    VF_CAP_MAX                = 0x80000
 }vf_cap_t;
 
 typedef enum{
@@ -23,7 +24,7 @@ typedef struct vf_wrapper
 {
     char *name;
     int type;
-    int (*capable) (struct dtvideo_filter *vf);
+    int (*capable) (vf_cap_t cap);
     int (*init) (struct dtvideo_filter *vf);
     int (*process) (struct dtvideo_filter *vf, dt_av_frame_t *pic);
     int (*release) (struct dtvideo_filter *vf);
@@ -32,7 +33,7 @@ typedef struct vf_wrapper
 
 typedef struct dtvideo_filter
 {
-    dtvideo_para_t *para;
+    dtvideo_para_t para;
     vf_wrapper_t *wrapper;
     dt_lock_t mutex;
     int status;

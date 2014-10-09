@@ -56,8 +56,9 @@ typedef struct{
     GLuint g_texUId;
     GLuint g_texVId;
     GLuint simpleProgram;
-    uint8_t *g_buffer;
-    int buffer_size;
+
+    dt_av_frame_t frame;
+
 	int status;
     int invalid_frame;
     int vertex_index;
@@ -633,7 +634,6 @@ static void gles2_init()
     checkGlError("glClearColor");
 
     memset(&gl_ctx,0,sizeof(gles2_ctx_t));
-    gl_ctx.g_buffer = NULL;  
     gl_ctx.simpleProgram = buildProgram(VERTEX_SHADER, FRAG_SHADER);  
     glUseProgram(gl_ctx.simpleProgram); 
     glGenTextures(1, &gl_ctx.g_texYId);  
@@ -655,24 +655,19 @@ static void gles2_uninit()
 {  
     gl_ctx.g_width = 0;  
     gl_ctx.g_height = 0;  
-    if (gl_ctx.g_buffer)  
+    if (gl_ctx.frame.data[0])  
     {  
-        free(gl_ctx.g_buffer);  
-        gl_ctx.g_buffer = NULL;  
-    }  
+        free(gl_ctx.frame.data[0]);  
+        gl_ctx.frame.data[0] = NULL;  
+    }
 }
 
 static int gles2_surface_changed(int w, int h)
 {
     gl_ctx.g_width = w;
 	gl_ctx.g_height = h;
-	gl_ctx.buffer_size = w*h + w*h/2;
-    if(gl_ctx.g_buffer)
-        free(gl_ctx.g_buffer);
-
-    gl_ctx.g_buffer = NULL;
     gl_ctx.status = GLRENDER_STATUS_RUNNING;
- 
+    
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     checkGlError("glClearColor");
@@ -683,18 +678,6 @@ static int gles2_surface_changed(int w, int h)
     glViewport(0, 0, width, height);
 
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "on surface changed\n ");
-}
-
-static int gles2_update_frame(uint8_t *buffer, int size)
-{
-    if(gl_ctx.g_buffer)
-        free(gl_ctx.g_buffer);
-
-    gl_ctx.g_buffer = buffer;
-    if(size == gl_ctx.buffer_size)
-        gl_ctx.invalid_frame = 1;
-    //__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update frame v2 , size:%d bufsize:%d \n ", size, gl_ctx.buffer_size);
-    return 0;
 }
 
 static int gles2_draw_frame()
@@ -708,21 +691,25 @@ static int gles2_draw_frame()
         return 0;
     }
 
-    if(!gl_ctx.g_buffer)
+    if(!gl_ctx.frame.data[0])
         return 0;
 
+
+    //Fixme: scale to dst width
+    
     int width = gl_ctx.g_width;
     int height = gl_ctx.g_height;
-
+    dt_av_frame_t *frame = &gl_ctx.frame;
+    uint8_t *data = frame->data[0];
     //glViewport(0, 0, width, height);  
-    gles2_bindTexture(gl_ctx.g_texYId, gl_ctx.g_buffer, width, height);  
-    gles2_bindTexture(gl_ctx.g_texUId, gl_ctx.g_buffer + width * height, width/2, height/2);  
-    gles2_bindTexture(gl_ctx.g_texVId, gl_ctx.g_buffer + width * height * 5 / 4, width/2, height/2);  
+    gles2_bindTexture(gl_ctx.g_texYId, data, width, height);  
+    gles2_bindTexture(gl_ctx.g_texUId, data + width * height, width/2, height/2);  
+    gles2_bindTexture(gl_ctx.g_texVId, data + width * height * 5 / 4, width/2, height/2);  
 
     gles2_renderFrame();
-    if(gl_ctx.g_buffer)
-        free(gl_ctx.g_buffer);
-    gl_ctx.g_buffer = NULL;
+    if(frame->data[0])
+        free(frame->data[0]);
+    frame->data[0] = NULL;
     gl_ctx.invalid_frame = 0;
     return 0;
 }
@@ -754,20 +741,19 @@ int dtp_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
     return 0;
 }
 
-extern "C" int update_frame(uint8_t *buf,int size)
+extern "C" int update_frame(dt_av_frame_t *frame)
 {
     int ret = 0;
     dt_lock (&gl_ctx.mutex);
-
-#ifdef USE_OPENGL_V2
-    ret = gles2_update_frame(buf, size);
-#endif
-    
+    dt_av_frame_t *orig_frame = &gl_ctx.frame;
+    // check frame not displayed
+    if(orig_frame->data[0])
+    {
+        free(orig_frame->data[0]);
+    }
+    memcpy(&gl_ctx.frame, frame, sizeof(dt_av_frame_t));
+    gl_ctx.invalid_frame = 1;
     dt_unlock (&gl_ctx.mutex);
-    
-    if(ret < 0)
-        return ret;
-
     Notify(MEDIA_FRESH_VIDEO); // update view
 }
 

@@ -434,7 +434,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 			handlePausePlay();
 			break;
 		case R.id.dt_play_ratio_btn:
-			setVideoScale(temp_flag);
+			//Fix
+			//setVideoScale(temp_flag);
 			break;
 		case R.id.dt_player_rotate_btn:
 			changeConfigration();

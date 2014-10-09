@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-/* need to equal to ffmpeg def */
+// Equal to ffmpeg
 typedef enum DT_AVMediaType
 {
     DT_TYPE_UNKNOWN = -1,
@@ -26,7 +26,7 @@ typedef enum DT_AVMediaType
     DT_TYPE_MAX
 } dt_media_type_t;
 
-// raw data
+// original packet
 typedef struct dt_av_pkt
 {
     uint8_t *data;
@@ -34,23 +34,28 @@ typedef struct dt_av_pkt
     int64_t pts;
     int64_t dts;
     int duration;
-    int key_frame; // flag from ffmpeg
+    int key_frame;
     dt_media_type_t type;
 } dt_av_pkt_t;
 
-// pcm - yuv - rgb
-typedef struct dt_av_frame
+typedef struct
 {
-    /* The two fields is same as AVPicture */
+    // Equal to ffmpeg
     uint8_t *data[8];
     int linesize[8];
-    /* New fields for sync AV */
+
+    // For video pp
+    int width;
+    int height;
+    int pixfmt;
+
+    // For avsync
     int64_t pts;
     int64_t dts;
     int duration;
 } dt_av_frame_t;
 
-/*video part*/
+// Video Part
 
 typedef enum dtvideo_flag{
     DTV_FLAG_NONE = 0x0,

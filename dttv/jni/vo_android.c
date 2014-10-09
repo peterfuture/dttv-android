@@ -21,7 +21,7 @@ typedef struct{
 
 static vo_android_ctx_t vo_android_ctx;
 
-int update_frame(uint8_t *buf,int size);
+int update_frame(dt_av_frame_t *frame);
 
 static void SaveFrame (dt_av_frame_t * pFrame, int width, int height, int iFrame)
 {
@@ -65,15 +65,15 @@ static int vo_android_init (dtvideo_output_t *vout)
     return 0;
 }
 
-static int vo_android_render (dtvideo_output_t *vout,dt_av_frame_t * pict)
+static int vo_android_render (dtvideo_output_t *vout,dt_av_frame_t * frame)
 {
     vo_wrapper_t *wrap = &vo_android_ops;
     vo_android_ctx_t *ctx = (vo_android_ctx_t *)wrap->handle;
     int size = ctx->dw * ctx->dh * 1.5; // yuv 420 size
     
     dt_lock (&ctx->vo_mutex);
-    update_frame(pict->data[0], size);
-    pict->data[0] = NULL;
+    update_frame(frame);
+    frame->data[0] = NULL;
     //__android_log_print(ANDROID_LOG_DEBUG,TAG,"render one frame ok\n");
     dt_unlock (&ctx->vo_mutex);
     return 0;

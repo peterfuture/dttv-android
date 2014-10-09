@@ -52,6 +52,7 @@ void *dtplayer_init (dtplayer_para_t * para);
 int dtplayer_get_mediainfo (void *handle, dt_media_info_t *info);
 
 /*
+ * Note: will be removed soon
  * set Video Size: 
  *
  * @param handle - dtplayer handle

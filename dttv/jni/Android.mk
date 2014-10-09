@@ -21,7 +21,6 @@ ENABLE_OPENSL = no
 ENABLE_AUDIOTRACK = yes
 ENABLE_ANDROID_OMX = yes
 ENABLE_OPENGL_V2 = yes
-ENABLE_OPENGL_V1 = no
 ENABLE_ANDROID_AE = no
 
 ifeq ($(ENABLE_OPENSL),yes)
@@ -41,11 +40,6 @@ ifeq ($(ENABLE_ANDROID_AE),yes)
 	LOCAL_CFLAGS += -D ENABLE_ANDROID_AE
 	LOCAL_SRC_FILES += plugin/ae_android.c
 	LOCAL_LDLIBS += -lbundlewrapper -lreverbwrapper
-endif
-
-ifeq ($(ENABLE_OPENGL_V1),yes)
-	LOCAL_CFLAGS += -D USE_OPENGL_V1
-	LOCAL_LDLIBS += -lGLESv1_CM
 endif
 
 ifeq ($(ENABLE_OPENGL_V2),yes)

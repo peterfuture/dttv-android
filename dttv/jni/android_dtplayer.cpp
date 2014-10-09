@@ -31,14 +31,6 @@
 
 #endif
 
-
-#ifdef USE_OPENGL_V1
-
-#include <GLES/gl.h>
-#include <GLES/glext.h>
-
-#endif
-
 #include "dt_lock.h"
 
 //#define USE_LISTENNER 0
@@ -49,37 +41,6 @@
 #define GLRENDER_STATUS_IDLE 0
 #define GLRENDER_STATUS_RUNNING 1
 #define GLRENDER_STATUS_QUIT 2
-
-#ifdef USE_OPENGL_V1
-
-static GLuint s_disable_caps[] = {
-    GL_FOG,
-	GL_LIGHTING,
-	GL_CULL_FACE,
-	GL_ALPHA_TEST,
-	GL_BLEND,
-	GL_COLOR_LOGIC_OP,
-	GL_DITHER,
-	GL_STENCIL_TEST,
-	GL_DEPTH_TEST,
-	GL_COLOR_MATERIAL,
-	0
-};
-typedef struct{
-	uint16_t *frame;
-    int next_canvas;
-    int frame_size;
-	int width;
-	int height;
-	int status;
-    int invalid_frame;
-    GLuint s_texture;
-
-    dt_lock_t mutex;
-}gl_ctx_t;
-static gl_ctx_t gl_ctx;
-
-#endif
 
 #ifdef USE_OPENGL_V2
 //For OPENGLESV2
@@ -768,120 +729,8 @@ static int gles2_draw_frame()
 
 #endif
 
-
-#ifdef USE_OPENGL_V1
-
-static void gles1_init()
-{
-    memset(&gl_ctx,0,sizeof(gl_ctx_t));
-}
-
-static int gles1_surface_changed(int w, int h)
-{
-    gl_ctx.width = w;
-	gl_ctx.height = h;
-	gl_ctx.frame_size = w*h*2;
-    if(gl_ctx.frame)
-        free(gl_ctx.frame);
-
-    gl_ctx.status = GLRENDER_STATUS_RUNNING;
-
-	glDeleteTextures(1, &gl_ctx.s_texture);
-	GLuint *start = s_disable_caps;
-	while (*start)
-		glDisable(*start++);
-	glEnable(GL_TEXTURE_2D);
-	glGenTextures(1, &gl_ctx.s_texture);
-	glBindTexture(GL_TEXTURE_2D, gl_ctx.s_texture);
-	glTexParameterf(GL_TEXTURE_2D,
-			GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D,
-			GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glShadeModel(GL_FLAT);
-	check_gl_error("glShadeModel");
-	glColor4x(0x10000, 0x10000, 0x10000, 0x10000);
-	check_gl_error("glColor4x");
-	//int rect[4] = {0, TEXTURE_HEIGHT, TEXTURE_WIDTH, -TEXTURE_HEIGHT};
-	int rect[4] = {0, h, w, -h};
-	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_CROP_RECT_OES, rect);
-	check_gl_error("glTexParameteriv");
-
-    gl_ctx.status = GLRENDER_STATUS_RUNNING;
-
-    //dtPlayer->setVideoSize(w,h);//do not resize here
-
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    return 0;
-}
-
-static int gles1_update_frame(uint8_t *buf,int size)
-{
-    int cp_size = size;
-    if(size != gl_ctx.frame_size)
-    {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame,in size:%d larger than out size:%d  \n",gl_ctx.frame_size,gl_ctx.frame_size);
-        return -1;
-    }
-    
-    if(gl_ctx.frame) // too slow
-        free(gl_ctx.frame);
-    
-    cp_size = (size < gl_ctx.frame_size)?size:gl_ctx.frame_size;
-    //__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, cpsize:%d size:%d bufsize:%d \n",cp_size,size,gl_ctx.frame_size);
-    
-    gl_ctx.frame = (uint16_t *)buf;
-
-    gl_ctx.invalid_frame = 1;
-    return 0;
-}
-
-static int gles1_draw_frame()
-{
-    if(gl_ctx.status == GLRENDER_STATUS_IDLE)
-        return 0;
-    
-    if(gl_ctx.invalid_frame == 0)
-    {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, No frame to draw \n");
-        return 0;
-    }
-
-    if(!gl_ctx.frame)
-        return 0;
-    //update_pixel_test();
-    glClear(GL_COLOR_BUFFER_BIT);
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "clear buffer first2\n");
-    
-    glTexImage2D(GL_TEXTURE_2D,		/* target */
-			0,			/* level */
-			GL_RGB,			/* internal format */
-			gl_ctx.width,		/* width */
-			gl_ctx.height,		/* height */
-			0,			/* border */
-			GL_RGB,			/* format */
-			GL_UNSIGNED_SHORT_5_6_5,/* type */
-			gl_ctx.frame);		/* pixels */
-    gl_ctx.next_canvas = 0;
-
-	glDrawTexiOES(0, 0, 0, gl_ctx.width, gl_ctx.height);
-    gl_ctx.invalid_frame = 0;
-    if(gl_ctx.frame)
-        free(gl_ctx.frame);
-    gl_ctx.frame = NULL;
-    return 0;
-}
-
-#endif
-
-
-
 int dtp_onSurfaceCreated(JNIEnv *env, jobject obj)
 {
-#ifdef USE_OPENGL_V1
-    gles1_init();
-#endif
 #ifdef USE_OPENGL_V2
     gles2_init();
 #endif
@@ -893,10 +742,6 @@ int dtp_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
 {
     dt_lock(&gl_ctx.mutex);
 	__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged, w:%d h:%d \n",w,h);
-
-#ifdef USE_OPENGL_V1
-    gles1_surface_changed(w, h);
-#endif
 
 #ifdef USE_OPENGL_V2
     gles2_surface_changed(w, h);
@@ -914,10 +759,6 @@ extern "C" int update_frame(uint8_t *buf,int size)
     int ret = 0;
     dt_lock (&gl_ctx.mutex);
 
-#ifdef USE_OPENGL_V1
-    ret = gles1_update_frame(buf, size);
-#endif
-
 #ifdef USE_OPENGL_V2
     ret = gles2_update_frame(buf, size);
 #endif
@@ -933,10 +774,6 @@ extern "C" int update_frame(uint8_t *buf,int size)
 int dtp_onDrawFrame(JNIEnv *env, jobject obj)
 {
     dt_lock(&gl_ctx.mutex);
-
-#ifdef USE_OPENGL_V1
-    gles1_draw_frame();
-#endif
 
 #ifdef USE_OPENGL_V2
     gles2_draw_frame();

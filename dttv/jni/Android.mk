@@ -6,6 +6,11 @@ LOCAL_MODULE := dtp_prebuilt
 LOCAL_SRC_FILES := $(LOCAL_PATH)/libs/libdtp.so
 include $(PREBUILT_SHARED_LIBRARY)
 
+include $(CLEAR_VARS)
+LOCAL_MODULE := dtap_prebuilt
+LOCAL_SRC_FILES := $(LOCAL_PATH)/libs/libdtap.so
+include $(PREBUILT_SHARED_LIBRARY)
+
 ##############################################
 include $(CLEAR_VARS)
 LOCAL_MODULE    := dtp_jni
@@ -22,6 +27,7 @@ ENABLE_AUDIOTRACK = yes
 ENABLE_ANDROID_OMX = yes
 ENABLE_OPENGL_V2 = yes
 ENABLE_ANDROID_AE = no
+ENABLE_DTAP = no
 
 ifeq ($(ENABLE_OPENSL),yes)
 	LOCAL_CFLAGS += -D ENABLE_OPENSL
@@ -47,6 +53,10 @@ ifeq ($(ENABLE_OPENGL_V2),yes)
 	LOCAL_LDLIBS += -lGLESv2
 endif
 
+ifeq ($(ENABLE_DTAP),yes)
+	LOCAL_CFLAGS += -D ENABLE_DTAP
+endif
+
 #android env
 LOCAL_C_INCLUDES += $(AOSP_TREE)/libnativehelper/include/     #runtime
 LOCAL_C_INCLUDES += $(AOSP_TREE)/frameworks/base/include/     #runtime
@@ -58,6 +68,6 @@ LOCAL_C_INCLUDES += $(AOSP_TREE)/frameworks/native/include    #utils
 LOCAL_C_INCLUDES += $(AOSP_TREE)/frameworks/native/include/media/openmax    #openmax
 
 LOCAL_LDLIBS     += -L$(AOSP_OUT)/system/lib -landroid_runtime -lmedia  -lutils -lGLESv1_CM -lOpenSLES -lstagefright -lbinder -lstdc++
-LOCAL_LDLIBS     += -L$(LOCAL_PATH)/libs -ldtp
+LOCAL_LDLIBS     += -L$(LOCAL_PATH)/libs -ldtp -ldtap
 
 include $(BUILD_SHARED_LIBRARY)

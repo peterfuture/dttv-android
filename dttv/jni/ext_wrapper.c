@@ -52,6 +52,18 @@ extern ao_wrapper_t ao_android_ops;
 extern ao_wrapper_t ao_opensl_ops;
 #endif
 
+#ifdef ENABLE_DTAP
+#include "dtap_api.h"
+dtap_context_t ap_ctx;
+int dtap_change_effect(int id)
+{
+    ap_ctx.para.item = id;
+    dtap_update(&ap_ctx);
+    dtap_init(&ap_ctx);
+    return 0;
+}
+#endif
+
 static int ao_ex_init (dtaudio_output_t *aout, dtaudio_para_t *para)
 {
     int ret = 0;
@@ -62,6 +74,17 @@ static int ao_ex_init (dtaudio_output_t *aout, dtaudio_para_t *para)
 #ifdef ENABLE_OPENSL
     ret = ao_opensl_ops.ao_init(aout, para);
 #endif
+
+#ifdef ENABLE_DTAP
+    memset(&ap_ctx, 0 , sizeof(dtap_context_t));
+    ap_ctx.para.samplerate = para->samplerate;
+    ap_ctx.para.channels = para->channels;
+    ap_ctx.para.data_width = para->data_width;
+    ap_ctx.para.type = DTAP_EFFECT_EQ;
+    ap_ctx.para.item = EQ_EFFECT_FLAT;
+    dtap_init(&ap_ctx);
+#endif
+    
     __android_log_print(ANDROID_LOG_INFO, TAG, "AO Render Init OK");
     return ret;
 }
@@ -70,8 +93,12 @@ static int ao_ex_play (dtaudio_output_t *aout, uint8_t * buf, int size)
 {
     int ret = 0;
 
-#ifdef ENABLE_AUDIO_EFFECT
-    
+#ifdef ENABLE_DTAP
+    dtap_frame_t frame;
+    frame.in = buf;
+    frame.in_size = size;
+    if(ap_ctx.para.item != EQ_EFFECT_FLAT)
+        dtap_process(&ap_ctx, &frame);
 #endif
 
 #ifdef ENABLE_AUDIOTRACK
@@ -134,6 +161,12 @@ static int64_t ao_ex_get_latency (dtaudio_output_t *aout)
 static int ao_ex_stop (dtaudio_output_t *aout)
 {
     int ret = 0;
+
+#ifdef ENABLE_DTAP
+    memset(&ap_ctx, 0 , sizeof(dtap_context_t));
+    dtap_release(&ap_ctx);    
+#endif
+
 #ifdef ENABLE_AUDIOTRACK
     ret = ao_android_ops.ao_stop(aout);
 #endif

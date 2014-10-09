@@ -101,6 +101,7 @@ public class DtPlayer {
 	static{
 		System.loadLibrary("gnustl_shared");
 		System.loadLibrary("dtp");
+		System.loadLibrary("dtap");
 		System.loadLibrary("dtp_jni");		
 	}
 	

@@ -20,13 +20,13 @@ public class GlVideoView extends GLSurfaceView{
 	private float mCurrentPosY;
 	
 	private OnTouchMoveListener moveListener;
-	Paint paint;
+	//Paint paint;
 	
 	public GlVideoView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		setEGLContextClientVersion(2);
 		// TODO Auto-generated constructor stub
-		paint = new Paint();
+		//paint = new Paint();
 	}
 	
 	@Override
@@ -75,7 +75,7 @@ public class GlVideoView extends GLSurfaceView{
 	protected void onDraw(Canvas canvas) {
 		// TODO Auto-generated method stub
 		super.onDraw(canvas);
-		if(paint==null)
+		/*if(paint==null)
 			paint = new Paint();
 		paint.setColor(Color.GRAY);
 		
@@ -84,6 +84,6 @@ public class GlVideoView extends GLSurfaceView{
 		paint.setColor(Color.BLUE);
 		RectF rectF2 = new RectF(getWidth()/2, 0, getWidth(), getHeight());
 		canvas.drawRect(rectF2, paint);
-		canvas.drawLine(getWidth()/2, 0, getWidth()+2, getHeight(), paint);
+		canvas.drawLine(getWidth()/2, 0, getWidth()+2, getHeight(), paint);*/
 	}
 }

@@ -34,7 +34,7 @@ public class MainActivity extends SherlockFragmentActivity implements SearchView
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
-		super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState);	
 		setContentView(R.layout.activity_main);
 		//currentMode = startActionMode(new LocalVideoActionBar());
 		fillFragment();

@@ -28,7 +28,7 @@ import dttv.app.widget.SlideTabsFragment.ChangeActionModeListener;
 public class MainActivity extends SherlockFragmentActivity implements SearchView.OnQueryTextListener,SearchView.OnSuggestionListener,ChangeActionModeListener,I_KeyIntercept{
 	
 	final String TAG = "ActionBarViewpager";
-	private int CURRENTACTION = Constant.LOCAL_VIDEO;
+	private int CURRENTACTION = Constant.LOCAL_FILE;
 	ActionMode currentMode;
 	SlideTabsFragment slideFragment;
 	@Override

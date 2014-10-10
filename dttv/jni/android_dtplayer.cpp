@@ -96,6 +96,11 @@ dt_lock_t sLock;
 
 static const char * const kClassName = "dttv/app/DtPlayer";
 static DTPlayer *dtPlayer = NULL; // player handle
+
+#ifdef ENABLE_DTAP
+extern "C" int dtap_change_effect(int effect_id);
+#endif
+
 //================================================
 
 static JavaVM *gvm = NULL;
@@ -775,7 +780,6 @@ int dtp_onDrawFrame(JNIEnv *env, jobject obj)
 // Audio Effect Interface
 static int dtp_setAudioEffect(int effect_id)
 {
-
 #ifdef ENABLE_DTAP
     dtap_change_effect(effect_id);
 #endif

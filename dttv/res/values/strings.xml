@@ -20,4 +20,5 @@
 	<string name="audio_play_btn_str">audio btn</string>
 	
 	<string name="nav_desc">nav_desc</string>
+	<string name="audio_effect_btn_str">Normal</string>
 </resources>

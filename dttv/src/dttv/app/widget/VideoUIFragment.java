@@ -17,6 +17,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -77,7 +78,7 @@ public class VideoUIFragment extends Fragment implements I_OnMyKey{
 			// TODO Auto-generated method stub
 			String uri = playList.get(position);
 			String name = ((TextView)v.findViewById(R.id.media_row_name)).getText().toString();
-			PlayerUtil.getInstance().beginToPlayer(getActivity(), uri, name);
+			PlayerUtil.getInstance().beginToPlayer(getActivity(), uri, name,Constant.LOCAL_VIDEO);
 		}
 	}
 	
@@ -104,6 +105,7 @@ public class VideoUIFragment extends Fragment implements I_OnMyKey{
 		
 		video_listview.setAdapter(adapter);
 		while(mCursor.moveToNext()){
+			//Log.i(TAG, "mine-type is:"+mCursor.getString(mCursor.getColumnIndex(MediaStore.Video.Media.MIME_TYPE)));
 			playList.add(mCursor.getString(mCursor.getColumnIndex(MediaStore.Video.Media.DATA)));
 		}
 	}

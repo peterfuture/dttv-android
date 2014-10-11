@@ -19,6 +19,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -27,6 +28,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ProgressBar;
@@ -62,6 +64,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	private ImageButton rotateBtn;
 	private TextView currentTimeTxt,totalTimeTxt,media_name_txt;
 	private ImageButton preBtn,nextBtn,pauseBtn,ratioBtn;
+	private Button effectBtn;
 	private SeekBar playerProgressBar;
 	private GlVideoView glSurfaceView;
 	private int seek_flag = 0;
@@ -175,6 +178,10 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		mPath = intent.getStringExtra(Constant.FILE_MSG);
 		String mediaName = intent.getStringExtra(Constant.MEIDA_NAME_STR);
 		media_name_txt.setText(mediaName);
+		
+		//----------------------add type--------------------------------------
+		int mType = intent.getIntExtra(Constant.FILE_TYPE,-1);
+		resolveTypeView(mType);
 		Toast.makeText(this, "mPath is:"+mPath, 1).show();
 		try {
 			mState = PLAYER_INITING;
@@ -230,7 +237,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		preBtn = (ImageButton)mBarView.findViewById(R.id.dt_play_prev_btn);
 		pauseBtn = (ImageButton)mBarView.findViewById(R.id.dt_play_pause_btn);
 		nextBtn = (ImageButton)mBarView.findViewById(R.id.dt_play_next_btn);
-		ratioBtn = (ImageButton)findViewById(R.id.dt_play_ratio_btn);
+		effectBtn = (Button)mBarView.findViewById(R.id.dt_play_effect_btn);
+		ratioBtn = (ImageButton)mBarView.findViewById(R.id.dt_play_ratio_btn);
 		playerProgressBar = (SeekBar)mBarView.findViewById(R.id.dt_play_progress_seekbar);
 		DisplayMetrics dm = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(dm);
@@ -248,6 +256,19 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		volumeProgressBar.setProgress(volumeUtil.getCurrentVolume());
 	}
 	
+	private void resolveTypeView(int type){
+		switch(type){
+		case Constant.LOCAL_VIDEO:
+			effectBtn.setVisibility(View.GONE);
+			ratioBtn.setVisibility(View.VISIBLE);
+			break;
+		case Constant.LOCAL_AUDIO:
+			effectBtn.setVisibility(View.VISIBLE);
+			ratioBtn.setVisibility(View.GONE);
+			break;
+		}
+	}
+	
 	private void initListener(){
 		dtPlayer.setOnPreparedListener(new PrePareListener());
 		dtPlayer.setOnFreshVideo(new FreshVideo());
@@ -256,6 +277,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		preBtn.setOnClickListener(this);
 		nextBtn.setOnClickListener(this);
 		pauseBtn.setOnClickListener(this);
+		ratioBtn.setOnClickListener(this);
 		ratioBtn.setOnClickListener(this);
 		rotateBtn.setOnClickListener(this);
 		playerBarLay.setOnTouchListener(this);
@@ -334,10 +356,10 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-		/*if(dtPlayer!=null){
+		if(dtPlayer!=null){
 			dtPlayer.seekTo(currentPosition);
 			dtPlayer.start();
-		}*/
+		}
 	};
 	
 	Handler doActionHandler = new Handler(Looper.getMainLooper()){
@@ -408,13 +430,19 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
     protected void onResume() {
         super.onResume();
         //glSurfaceView.onResume();
+        Log.i(TAG, "enter onResume dtPlayer is:"+dtPlayer);
+        if(dtPlayer != null){
+        	dtPlayer.seekTo(currentPosition);
+        	dtPlayer.start();
+        }
     }
 	
 	@Override
 	protected void onStop() {
 		// TODO Auto-generated method stub
+		Log.i(TAG, "enterStop");
 		mState = PLAYER_STOP;
-		dtPlayer.release();
+		//dtPlayer.release();
 		dtPlayer.stop();
 		super.onStop();
 	}
@@ -440,9 +468,15 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		case R.id.dt_player_rotate_btn:
 			changeConfigration();
 			break;
+		case R.id.dt_play_effect_btn://for audio effect
+			
+			break;
 		}
 	}
 	
+	/**
+	 * 横竖屏幕切换
+	 */
 	private void changeConfigration(){
 		if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -482,6 +516,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
+		Log.i(TAG, "enter onDestroy");
+		dtPlayer.stop();
 		dtPlayer.release();
 		dtPlayer = null;
 		super.onDestroy();

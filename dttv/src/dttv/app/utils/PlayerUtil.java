@@ -15,9 +15,10 @@ public class PlayerUtil {
 	}
 	
 	
-	public void beginToPlayer(Activity cr,String uri,String name){
+	public void beginToPlayer(Activity cr,String uri,String name,int type){
 		Intent intent = new Intent();
 		intent.putExtra(Constant.FILE_MSG, uri);
+		intent.putExtra(Constant.FILE_TYPE, type);
 		intent.putExtra(Constant.MEIDA_NAME_STR, name);
 		intent.setClass(cr, VideoPlayerActivity.class);
 		cr.startActivity(intent);

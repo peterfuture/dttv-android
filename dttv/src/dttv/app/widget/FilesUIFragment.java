@@ -18,6 +18,7 @@ import dttv.app.model.Item;
 import dttv.app.multithread.DataAsyncTask;
 import dttv.app.utils.Constant;
 import dttv.app.utils.MultiMediaTypeUtil;
+import dttv.app.utils.PlayerUtil;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
@@ -161,10 +162,12 @@ public class FilesUIFragment extends Fragment implements I_Async ,OnBackStackCha
 	}
 	
 	private void startAudioPlayer(String uri){
-		Intent retIntent = new Intent();
+		/*Intent retIntent = new Intent();
 		retIntent.setClass(getActivity(), VideoPlayerActivity.class);
 		retIntent.putExtra(Constant.FILE_MSG, uri);
-		startActivity(retIntent);
+		startActivity(retIntent);*/
+		
+		PlayerUtil.getInstance().beginToPlayer(getActivity(), uri, path.getName(), Constant.LOCAL_FILE);
 	}
 	
 	private void parseDirectoryPath() {

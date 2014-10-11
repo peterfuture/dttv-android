@@ -672,6 +672,15 @@ public class DtPlayer {
 		native_onDrawFrame();
 		return 0;
 	}
+	
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
+	public int setAuxEffectSendLevel(int type){
+		return native_setAudioEffect(type);
+	}
 	//----------------------------------
 	
 	public native int native_setup();

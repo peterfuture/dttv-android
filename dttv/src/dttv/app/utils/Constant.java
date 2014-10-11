@@ -3,7 +3,8 @@ package dttv.app.utils;
 public class Constant {
 	
 	public final static String EXTRA_MESSAGE = "com.example.simpleplayer.MESSAGE";
-	public final static String FILE_MSG = "dttp.app.MainActivity.URL";
+	public final static String FILE_MSG = "dttp.app.media.URL";
+	public final static String FILE_TYPE = "dttp.app.media.type";
 	public static final String LOGTAG = "DTTV-FileBrowser";
 	
 	
@@ -20,4 +21,16 @@ public class Constant {
 	public static final int LOCAL_FILE = 2;
 	
 	public static final String MEIDA_NAME_STR = "dttv.app.media_name";
+	
+	public static final String[] gEqulizerPresets = {
+		"Normal",
+		"Classical",
+		"Dance",
+		"Flat",
+		"Folk",
+		"Heavy Metal",
+		"Hip Hop",
+		"Jazz",
+		"Rock"
+	};
 }

@@ -103,7 +103,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 			String uri = playList.get(position);
 			String name = ((TextView)v.findViewById(R.id.media_row_name)).getText().toString();
 			Toast.makeText(getActivity(), name, 1).show();
-			PlayerUtil.getInstance().beginToPlayer(getActivity(), uri, name);
+			PlayerUtil.getInstance().beginToPlayer(getActivity(), uri, name,Constant.LOCAL_AUDIO);
 		}
 	}
 	

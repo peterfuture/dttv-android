@@ -430,7 +430,8 @@ int DTPlayer::updatePlayerState(player_state_t *state)
 	if (state->cur_status == PLAYER_STATUS_EXIT)
 	{
 		__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "PLAYER EXIT OK\n");
-		Notify(MEDIA_PLAYBACK_COMPLETE);
+		//Notify(MEDIA_PLAYBACK_COMPLETE);
+        mListenner->notify(MEDIA_PLAYBACK_COMPLETE);
         status = PLAYER_EXIT;
 
 #if 0        
@@ -457,7 +458,7 @@ int DTPlayer::updatePlayerState(player_state_t *state)
             mSeekPosition = -1;
 	        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seek complete !\n");
         }
-        Notify(MEDIA_SEEK_COMPLETE);
+        mListenner->notify(MEDIA_PLAYBACK_COMPLETE);
         goto END;
 	}
     
@@ -467,7 +468,7 @@ int DTPlayer::updatePlayerState(player_state_t *state)
             goto END;
 	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "set status to running from seek complete \n");
         status = PLAYER_RUNNING;
-        Notify(MEDIA_INFO);
+        mListenner->notify(MEDIA_INFO);
     }
 
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "UPDATECB CURSTATUS:%x status:%d \n", state->cur_status,status);

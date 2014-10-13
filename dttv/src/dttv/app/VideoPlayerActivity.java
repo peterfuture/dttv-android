@@ -5,6 +5,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.microedition.khronos.opengles.GL10;
+import javax.security.auth.callback.Callback;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -31,6 +32,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.AdapterView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -40,6 +42,8 @@ import android.widget.Toast;
 import dttv.app.DtPlayer.OnCompletionListener;
 import dttv.app.DtPlayer.OnFreshVideo;
 import dttv.app.DtPlayer.OnPreparedListener;
+import dttv.app.compnent.PopWindowCompnent;
+import dttv.app.impl.ICallBack;
 import dttv.app.utils.Constant;
 import dttv.app.utils.ControlLightness;
 import dttv.app.utils.Log;
@@ -57,6 +61,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	private String TAG = "VideoPlayerActivity";
 	private DtPlayer dtPlayer;
 	private String mPath;
+	
+	private Activity mActivity;
 	
 	private View mBarView;
 	private RelativeLayout playerBarLay,playerRootviewLay;
@@ -111,6 +117,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		mActivity = this;
 		setContentView(R.layout.video_play);
 		Log.i(TAG, "enter onCreate");
 		mState = PLAYER_IDLE;		
@@ -278,6 +285,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		nextBtn.setOnClickListener(this);
 		pauseBtn.setOnClickListener(this);
 		ratioBtn.setOnClickListener(this);
+		effectBtn.setOnClickListener(this);
 		ratioBtn.setOnClickListener(this);
 		rotateBtn.setOnClickListener(this);
 		playerBarLay.setOnTouchListener(this);
@@ -452,6 +460,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	@Override
 	public void onClick(View v) {
 		// TODO Auto-generated method stub
+		//showAudioEffect(false);
 		switch(v.getId()){
 		case R.id.dt_play_next_btn:
 			
@@ -469,9 +478,32 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 			changeConfigration();
 			break;
 		case R.id.dt_play_effect_btn://for audio effect
-			
+			showAudioEffect(true);
 			break;
 		}
+	}
+	
+	private PopWindowCompnent audioCompnent;
+	private void showAudioEffect(boolean isShowing){
+		
+		if(audioCompnent==null)//
+			audioCompnent = new PopWindowCompnent(this,this);
+		audioCompnent.show(effectBtn, isShowing);
+		audioCompnent.setCallback(new ICallBack() {
+			@Override
+			public void doItemClickListener(AdapterView<?> parent, View v,
+					int position, long id) {
+				// TODO Auto-generated method stub
+				super.doItemClickListener(parent, v, position, id);
+				TextView effectTxt = (TextView)v.findViewById(android.R.id.text1);
+				String effectStr = effectTxt.getText().toString();
+				String effectStr2 = Constant.gEqulizerPresets[position];
+				Toast.makeText(mActivity, "effectStr is:"+effectStr+"-0-0 effectStr2 is:"+effectStr2, Toast.LENGTH_LONG).show();
+				if(dtPlayer!=null){
+					dtPlayer.setAuxEffectSendLevel(position);
+				}
+			}
+		});
 	}
 	
 	/**
@@ -677,6 +709,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	public boolean onTouch(View v, MotionEvent event) {
 		// TODO Auto-generated method stub
 		Log.i(TAG, "enter onTouch");
+		if(v!= effectBtn){
+			showAudioEffect(false);
+		}
 		showToolsBar(true);
 		doActionHandler.removeMessages(Constant.HIDE_OPREATE_BAR_MSG);
 		doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_OPREATE_BAR_MSG, 5*Constant.REFRESH_TIME);

@@ -127,8 +127,8 @@ int DTPlayer::prePare()
         return -1;
     }
     status = PLAYER_PREPARED;
-    //mListenner->notify(MEDIA_PREPARED);
-    Notify(MEDIA_PREPARED);
+    mListenner->notify(MEDIA_PREPARED, 0 , 0);
+    //Notify(MEDIA_PREPARED);
     return 0;
 }
 

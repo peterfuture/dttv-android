@@ -1,12 +1,10 @@
 package dttv.app;
 
-
-
-
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Map;
 
 import android.annotation.SuppressLint;
@@ -74,10 +72,23 @@ public class DtPlayer {
 	private static final int MEDIA_TIMED_TEXT = 1000;
 	private static final int MEDIA_CACHING_UPDATE = 2000;
 	
+	static{
+		System.loadLibrary("gnustl_shared");
+		System.loadLibrary("dtp");
+		System.loadLibrary("dtap");
+		System.loadLibrary("dtp_jni");
+		
+		native_init();
+	}
+	private int mNativeContext; // accessed by native methods
+
 	public DtPlayer(Context ctx) {
 		// TODO Auto-generated constructor stub
 		this(ctx,false);
-		native_setup();
+        /* Native setup requires a weak reference to our object.
+          * It's easier to create it here than in C++.
+          */
+        native_setup(new WeakReference<DtPlayer>(this));
 	}
 	
 	public DtPlayer(Context ctx,boolean isHardWare) {
@@ -96,13 +107,6 @@ public class DtPlayer {
 		else
 			mEventHandler = null;
 		//native_init();
-	}
-	
-	static{
-		System.loadLibrary("gnustl_shared");
-		System.loadLibrary("dtp");
-		System.loadLibrary("dtap");
-		System.loadLibrary("dtp_jni");		
 	}
 	
 	public void setDisplay(SurfaceHolder surfaceHolder){
@@ -246,6 +250,25 @@ public class DtPlayer {
 			break;
 		}
 	}
+	
+	private static void postEventFromNative(Object dtp,
+                     	int what, int arg1, int arg2, Object obj)
+	{
+		DtPlayer mp = (DtPlayer)((WeakReference)dtp).get();
+		if (mp == null) {
+             return;
+         }
+         //if (what == MEDIA_PREPARED && arg1 == MEDIA_INFO_STARTED_AS_NEXT) {
+         if (what == MEDIA_PREPARED) {
+             // this acquires the wakelock if needed, and sets the client side state
+        	 Log.d(Constant.LOGTAG, "msg - Prepare received");
+         }
+//         if (mp.mEventHandler != null) {
+//             Message m = mp.mEventHandler.obtainMessage(what, arg1, arg2, obj);
+//             mp.mEventHandler.sendMessage(m);
+//         }
+     }
+
 	
 	public void start() throws IllegalStateException{
 		stayAwake(true);
@@ -682,8 +705,8 @@ public class DtPlayer {
 		return native_setAudioEffect(type);
 	}
 	//----------------------------------
-	
-	public native int native_setup();
+	public static native void native_init();
+	public native int native_setup(Object dtp_this);
 	public native int native_release();
 	public native void native_release_surface();
 	public native void native_set_video_surface(Surface surface);

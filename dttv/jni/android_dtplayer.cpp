@@ -96,6 +96,7 @@ static JavaVM *gvm = NULL;
 static const char * const kClassName = "dttv/app/DtPlayer";
 
 //================================================
+dtpListenner *mListener; // tmp used to updte video
 
 dtpListenner::dtpListenner(JNIEnv *env, jobject thiz, jobject weak_thiz)
 {
@@ -216,6 +217,7 @@ static int android_dtplayer_native_setup(JNIEnv *env, jobject obj, jobject weak_
     }
     dtpListenner *listenner = new dtpListenner(env, obj, weak_thiz);
     mp->setListenner(listenner);
+    mListener = listenner;
     setMediaPlayer(env, obj, mp);
     return 0;
 }
@@ -742,6 +744,7 @@ extern "C" int update_frame(dt_av_frame_t *frame)
     memcpy(&gl_ctx.frame, frame, sizeof(dt_av_frame_t));
     gl_ctx.invalid_frame = 1;
     dt_unlock (&gl_ctx.mutex);
+    mListener->notify(MEDIA_FRESH_VIDEO); // update video
 //    Notify(MEDIA_FRESH_VIDEO); // update view
 }
 

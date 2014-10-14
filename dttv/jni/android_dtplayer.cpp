@@ -93,7 +93,6 @@ dt_lock_t sLock;
 // ----------------------------------------------------------------------------
 
 static const char * const kClassName = "dttv/app/DtPlayer";
-static DTPlayer *dtPlayer = NULL; // player handle
 
 #ifdef ENABLE_DTAP
 extern "C" int dtap_change_effect(int effect_id);
@@ -124,7 +123,7 @@ dtpListenner::~dtpListenner()
 
 int dtpListenner::notify(int msg, int ext1, int ext2)
 {
-#if 0
+#if 1
     JNIEnv *env = NULL;
     int isAttached = 0; 
     if(gvm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK)
@@ -144,15 +143,14 @@ int dtpListenner::notify(int msg, int ext1, int ext2)
         goto END;
     }
     
-    env->CallStaticVoidMethod(mClass, fields.post_event, msg, ext1, ext2);
-    //env->CallVoidMethod(mObj,notify_cb,status);
+    env->CallStaticVoidMethod(mClass, fields.post_event, mObject, msg, ext1, ext2, NULL);
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "NOtify with listener \n ");
 END:
     if(isAttached)
         gvm->DetachCurrentThread();  
 #endif
 
-#if 1
+#if 0
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter notify \n ");
     JNIEnv *env = AndroidRuntime::getJNIEnv();
     env->CallStaticVoidMethod(mClass, fields.post_event, mObject, msg, ext1, ext2, NULL);
@@ -254,8 +252,7 @@ int android_dtplayer_native_setDataSource(JNIEnv *env, jobject thiz, jstring url
     ret = mp->setDataSource(file_name);
     if(ret < 0)
     {
-        delete dtPlayer;
-        dtPlayer = NULL;
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, failed, ret:%d ", ret);
     }
     return ret;
 }

@@ -257,16 +257,23 @@ public class DtPlayer {
 		DtPlayer mp = (DtPlayer)((WeakReference)dtp).get();
 		if (mp == null) {
              return;
-         }
-         //if (what == MEDIA_PREPARED && arg1 == MEDIA_INFO_STARTED_AS_NEXT) {
-         if (what == MEDIA_PREPARED) {
-             // this acquires the wakelock if needed, and sets the client side state
-        	 Log.d(Constant.LOGTAG, "msg - Prepare received");
-         }
-//         if (mp.mEventHandler != null) {
-//             Message m = mp.mEventHandler.obtainMessage(what, arg1, arg2, obj);
-//             mp.mEventHandler.sendMessage(m);
-//         }
+        }
+         
+        switch(what){
+ 		case MEDIA_PREPARED:
+ 			mEventHandler.sendEmptyMessage(MEDIA_PREPARED);
+ 			break;
+ 		case MEDIA_PLAYBACK_COMPLETE:
+ 			mEventHandler.sendEmptyMessage(MEDIA_PLAYBACK_COMPLETE);
+ 			break;
+ 		case MEDIA_ERROR:
+ 			mEventHandler.sendEmptyMessage(MEDIA_ERROR);
+ 			break;
+ 		case MEDIA_FRESH_VIDEO:
+ 			mEventHandler.sendEmptyMessage(MEDIA_FRESH_VIDEO);
+ 			break;
+ 		}
+         
      }
 
 	

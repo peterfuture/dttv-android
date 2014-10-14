@@ -53,8 +53,9 @@ typedef struct dtplayer_para
 
     int width;
     int height;
-
-    int (*update_cb) (player_state_t * sta);
+    
+    void *cookie;
+    int (*update_cb) (void *cookie, player_state_t * sta);
 } dtplayer_para_t;
 
 #endif

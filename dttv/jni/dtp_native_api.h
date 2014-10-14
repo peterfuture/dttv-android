@@ -43,6 +43,7 @@ public:
     int isQuitOK();
     int getCurrentPosition();
     int getDuration();
+    static int notify(void *cookie, player_state_t *state);
     static int updatePlayerState(player_state_t *state);
 private:
 
@@ -60,16 +61,17 @@ private:
     
     dt_media_info_t media_info;
 
-    static int status;
-    static void *mDtpHandle;
+    int status;
+    void *mDtpHandle;
     int mDisplayWidth;
     int mDisplayHeight;
     char mUrl[2048];
-    static int mCurrentPosition;
-    static int mSeekPosition;
+    int mCurrentPosition;
+    int mSeekPosition;
     int mDuration;
     dtpListenner *mListenner;
-
+    dt_lock_t dtp_mutex;
+    player_state_t dtp_state;
     int audio_pp_id;   // audio effect id
 };
 

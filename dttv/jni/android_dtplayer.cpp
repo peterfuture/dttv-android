@@ -33,8 +33,6 @@
 
 #include "dt_lock.h"
 
-//#define USE_LISTENNER 0
-
 //-----------------------------------------------------------
 
 #define RGB565(r, g, b)  (((r) << (5+6)) | ((g) << 6) | (b))
@@ -95,7 +93,6 @@ dt_lock_t sLock;
 // ----------------------------------------------------------------------------
 
 static const char * const kClassName = "dttv/app/DtPlayer";
-static DTPlayer *dtPlayer = NULL; // player handle
 
 #ifdef ENABLE_DTAP
 extern "C" int dtap_change_effect(int effect_id);
@@ -104,65 +101,29 @@ extern "C" int dtap_change_effect(int effect_id);
 //================================================
 
 static JavaVM *gvm = NULL;
-static jclass mClass = NULL;
-static jmethodID notify_cb = NULL;
 
-// Notify to Java
-int Notify(int status)
-{
-#ifndef USE_LISTENNER 
-    JNIEnv *env = NULL;
-    int isAttached = 0; 
-
-    if(gvm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK)
-    {
-        //__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm getenv failed use AttachCurrentThread \n ");
-        if(gvm->AttachCurrentThread(&env, NULL) != JNI_OK)
-        {
-            //__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm AttachCurrentThread failed \n ");
-            return -1;
-        }
-        isAttached = 1;
-    }
-    
-    if(!notify_cb || !mClass)
-    {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "updateState can not found ");
-        goto END;
-    }
- 
-    if(status == MEDIA_PLAYBACK_COMPLETE)
-    {
-        delete dtPlayer;
-        dtPlayer = NULL;
-    }
-    
-    env->CallStaticVoidMethod(mClass,notify_cb,status);
-
-END:
-    if(isAttached)
-        gvm->DetachCurrentThread();  
-#endif
-    return 0;
-}
-
-dtpListenner::dtpListenner(JNIEnv *env, jobject thiz)
+dtpListenner::dtpListenner(JNIEnv *env, jobject thiz, jobject weak_thiz)
 {
     jclass clazz = env->GetObjectClass(thiz);
+    if(clazz == NULL)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "can not find DtPlayer \n ");
+        return;
+    }
     mClass = (jclass)env->NewGlobalRef(clazz);
-    mObj = env->NewGlobalRef(thiz);
-    notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
+    mObject = env->NewGlobalRef(weak_thiz);
 }
 
 dtpListenner::~dtpListenner()
 {
     JNIEnv *env = AndroidRuntime::getJNIEnv();
-    env->DeleteGlobalRef(mObj);
+    env->DeleteGlobalRef(mObject);
     env->DeleteGlobalRef(mClass);
 }
 
-int dtpListenner::notify(int status)
+int dtpListenner::notify(int msg, int ext1, int ext2)
 {
+#if 1
     JNIEnv *env = NULL;
     int isAttached = 0; 
     if(gvm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK)
@@ -176,19 +137,30 @@ int dtpListenner::notify(int status)
         isAttached = 1;
     }
     
-    if(!notify_cb || !mClass)
+    if(!fields.post_event || !mClass)
     {
         __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "updateState can not found ");
         goto END;
     }
     
-    env->CallStaticVoidMethod(mClass,notify_cb,status);
-    //env->CallVoidMethod(mObj,notify_cb,status);
+    env->CallStaticVoidMethod(mClass, fields.post_event, mObject, msg, ext1, ext2, NULL);
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "NOtify with listener \n ");
 END:
     if(isAttached)
         gvm->DetachCurrentThread();  
+#endif
 
+#if 0
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter notify \n ");
+    JNIEnv *env = AndroidRuntime::getJNIEnv();
+    env->CallStaticVoidMethod(mClass, fields.post_event, mObject, msg, ext1, ext2, NULL);
+
+    if(env->ExceptionCheck())
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "An Exception occured while notifying an event \n ");
+        env->ExceptionClear();
+    }
+#endif
     return 0;
 }
 
@@ -211,195 +183,211 @@ static DTPlayer *getMediaPlayer(JNIEnv *env, jobject thiz)
 
 //================================================
 
-static int dtp_setup(JNIEnv *env, jobject obj)
+static void android_dtplayer_native_init(JNIEnv *env)
 {
-#ifdef USE_LISTENNER
-    DTPlayer *mp = new DTPlayer();
-    if(!mp)
-    {
-        return -1;
+    jclass clazz;
+
+    clazz = env->FindClass(kClassName);
+    if (clazz == NULL) {
+        return;
     }
-    dtpListenner *listenner = new dtpListenner(env, obj);
-    mp->setListenner(listenner);
-    setMediaPlayer(env, obj, mp);
-    return 0;
+
+    fields.context = env->GetFieldID(clazz, "mNativeContext", "I");
+    if (fields.context == NULL) {
+        return;
+    }
+
+    fields.post_event = env->GetStaticMethodID(clazz, "postEventFromNative",
+                                               "(Ljava/lang/Object;IIILjava/lang/Object;)V");
+    if (fields.post_event == NULL) {
+        return;
+    }
+
+#if 0
+    fields.surface_texture = env->GetFieldID(clazz, "mNativeSurfaceTexture", "I");
+    if (fields.surface_texture == NULL) {
+        return;
+    }
 #endif
 }
 
-static int dtp_release(JNIEnv *env, jobject obj)
+static int android_dtplayer_native_setup(JNIEnv *env, jobject obj, jobject weak_thiz)
 {
-#ifdef USE_LISTENNER
-    DTPlayer *mp = setMediaPlayer(env, obj, 0);
+    DTPlayer *mp = new DTPlayer();
+    if(mp == NULL)
+    {
+        //jniThrowExcption(env, "java/lang/RuntimeException", "Out of memory");
+        return -1;
+    }
+    dtpListenner *listenner = new dtpListenner(env, obj, weak_thiz);
+    mp->setListenner(listenner);
+    setMediaPlayer(env, obj, mp);
+    return 0;
+}
+
+static int android_dtplayer_native_release(JNIEnv *env, jobject thiz)
+{
+    DTPlayer *mp = setMediaPlayer(env, thiz, 0);
     if(mp)
     {
         delete mp;
     }
     return 0;
-#endif
 }
 
-int dtp_setDataSource(JNIEnv *env, jobject obj, jstring url)
+int android_dtplayer_native_setDataSource(JNIEnv *env, jobject thiz, jstring url)
 {
     int ret = 0;
     jboolean isCopy;
     const char * file_name = env->GetStringUTFChars(url, &isCopy);
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter setDataSource, path: [%s] size:%d ",file_name,strlen(file_name));
 
-    if(!dtPlayer)
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
     {
-        dtPlayer = new DTPlayer;
-        dtpListenner *listenner = new dtpListenner(env, obj);
-        dtPlayer->setListenner(listenner);
-    }
-    else
-    {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, failed, another player is running ");
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, failed, mp == null ");
         return -1;
     }
-
-#ifndef USE_LISTENNER
-    jclass clazz = env->GetObjectClass(obj);
-    mClass = (jclass)env->NewGlobalRef(clazz);
-    notify_cb = env->GetStaticMethodID(mClass, "updateState", "(I)V");
-#endif
-    ret = dtPlayer->setDataSource(file_name);
+    
+    ret = mp->setDataSource(file_name);
     if(ret < 0)
     {
-        delete dtPlayer;
-        dtPlayer = NULL;
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, failed, ret:%d ", ret);
     }
     return ret;
 }
 
-int dtp_prePare(JNIEnv *env, jobject obj)
+int android_dtplayer_native_prePare(JNIEnv *env, jobject thiz)
 {
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter prePare");
-    if(!dtPlayer)
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
         return -1;
-    dtPlayer->prePare();
+
+    mp->prePare();
     return 0;
 }
 
-int dtp_prepareAsync(JNIEnv *env, jobject obj)
+int android_dtplayer_native_prepareAsync(JNIEnv *env, jobject thiz)
 {
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter prePareAsync");
-    if(!dtPlayer)
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
         return -1;
-    dtPlayer->prePareAsync();
+    mp->prePareAsync();
     return 0;
 }
 
-int dtp_start(JNIEnv *env, jobject obj)
+int android_dtplayer_native_start(JNIEnv *env, jobject thiz)
 {
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter start");
-    if(!dtPlayer)
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
         return -1;
-    return dtPlayer->start();
+    return mp->start();
 }
 
-int dtp_pause(JNIEnv *env, jobject obj)
+int android_dtplayer_native_pause(JNIEnv *env, jobject thiz)
 {
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter pause");
-    if(!dtPlayer)
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
         return -1;
-    return dtPlayer->pause();
+    return mp->pause();
 }
 
-int dtp_seekTo(JNIEnv *env, jobject obj, jint pos)
+int android_dtplayer_native_seekTo(JNIEnv *env, jobject thiz, jint pos)
 {
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter seekTo pos:%d s",pos);
-    if(!dtPlayer)
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
         return -1;
-    return dtPlayer->seekTo(pos);
+    return mp->seekTo(pos);
 }
 
-int dtp_stop(JNIEnv *env, jobject obj)
+int android_dtplayer_native_stop(JNIEnv *env, jobject thiz)
 {
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter stop ");
     int ret = 0;
-    if(!dtPlayer)
-    {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "player already destroyed, quit ");
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
         return -1;
-    }
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "native stop enter \n ");
-    ret = dtPlayer->stop();
+    ret = mp->stop();
     {
         if(ret == -1)
             return -1;
     }
-    while(dtPlayer->isQuitOK() == 0)
+    while(mp->isQuitOK() == 0)
     {
         usleep(10000);
     }
 
-    delete dtPlayer;
-    dtPlayer = NULL;
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "native stop exit \n ");
     return 0;
 }
 
-int dtp_reset(JNIEnv *env, jobject obj)
+int android_dtplayer_native_reset(JNIEnv *env, jobject thiz)
 {
-    if(!dtPlayer)
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
         return -1;
-    return dtPlayer->reset();
+    return mp->reset();
 }
 
-void dtp_releaseSurface(JNIEnv *env, jobject obj)
+void android_dtplayer_native_releaseSurface(JNIEnv *env, jobject thiz)
 {
 
 }
 
-int dtp_setVideoSize(JNIEnv *env, jobject obj, int w, int h)
+int android_dtplayer_native_setVideoSize(JNIEnv *env, jobject obj, int w, int h)
 {
-    if(!dtPlayer)
+    return 0;
+}
+
+int android_dtplayer_native_setVideoMode(JNIEnv *env, jobject obj, int mode)
+{
+    return 0;
+}
+
+int android_dtplayer_native_getVideoWidth(JNIEnv *env, jobject thiz)
+{
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
         return -1;
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setVideoSize, w:%d h:%d \n ",w,h);
-    dtPlayer->setVideoSize(w, h);
+    return mp->getVideoWidth();
 }
 
-int dtp_setVideoMode(JNIEnv *env, jobject obj, int mode)
+int android_dtplayer_native_getVideoHeight(JNIEnv *env, jobject thiz)
 {
-    if(!dtPlayer)
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
         return -1;
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setMode, mode:%d \n ", mode);
-    return dtPlayer->setVideoMode(mode);
+    return mp->getVideoHeight();
 }
 
-int dtp_getVideoWidth(JNIEnv *env, jobject obj)
+int android_dtplayer_native_isPlaying(JNIEnv *env, jobject thiz)
 {
-    if(!dtPlayer)
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
         return -1;
-    return dtPlayer->getVideoWidth();
+    return mp->isPlaying();
 }
 
-int dtp_getVideoHeight(JNIEnv *env, jobject obj)
+int android_dtplayer_native_getCurrentPosition(JNIEnv *env, jobject thiz)
 {
-    if(!dtPlayer)
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
         return -1;
-    return dtPlayer->getVideoHeight();
+    return mp->getCurrentPosition();
 }
 
-int dtp_isPlaying(JNIEnv *env, jobject obj)
+int android_dtplayer_native_getDuration(JNIEnv *env, jobject thiz)
 {
-    if(!dtPlayer)
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
         return -1;
-    return dtPlayer->isPlaying();
-}
-
-int dtp_getCurrentPosition(JNIEnv *env, jobject obj)
-{
-    if(!dtPlayer)
-        return 0;
-    return dtPlayer->getCurrentPosition();
-}
-
-int dtp_getDuration(JNIEnv *env, jobject obj)
-{
-    if(!dtPlayer)
-        return 0;
-    return dtPlayer->getDuration();
+    return mp->getDuration();
 }
 
 
@@ -721,7 +709,7 @@ static int gles2_draw_frame()
 
 #endif
 
-int dtp_onSurfaceCreated(JNIEnv *env, jobject obj)
+int android_dtplayer_native_onSurfaceCreated(JNIEnv *env, jobject thiz)
 {
 #ifdef USE_OPENGL_V2
     gles2_init();
@@ -730,7 +718,7 @@ int dtp_onSurfaceCreated(JNIEnv *env, jobject obj)
     return 0;
 }
 
-int dtp_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
+int android_dtplayer_native_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
 {
     dt_lock(&gl_ctx.mutex);
 	__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged, w:%d h:%d \n",w,h);
@@ -742,7 +730,7 @@ int dtp_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged ok\n");
     
     dt_unlock(&gl_ctx.mutex);
-    dtp_setVideoSize(env, obj, w, h);
+    android_dtplayer_native_setVideoSize(env, obj, w, h);
     return 0;
 }
 
@@ -759,10 +747,10 @@ extern "C" int update_frame(dt_av_frame_t *frame)
     memcpy(&gl_ctx.frame, frame, sizeof(dt_av_frame_t));
     gl_ctx.invalid_frame = 1;
     dt_unlock (&gl_ctx.mutex);
-    Notify(MEDIA_FRESH_VIDEO); // update view
+//    Notify(MEDIA_FRESH_VIDEO); // update view
 }
 
-int dtp_onDrawFrame(JNIEnv *env, jobject obj)
+int android_dtplayer_native_onDrawFrame(JNIEnv *env, jobject thiz)
 {
     dt_lock(&gl_ctx.mutex);
 
@@ -778,7 +766,7 @@ int dtp_onDrawFrame(JNIEnv *env, jobject obj)
 
 //-----------------------------------------------------
 // Audio Effect Interface
-static int dtp_setAudioEffect(int effect_id)
+static int android_dtplayer_native_setAudioEffect(int effect_id)
 {
 #ifdef ENABLE_DTAP
     dtap_change_effect(effect_id);
@@ -790,33 +778,35 @@ static int dtp_setAudioEffect(int effect_id)
 
 static JNINativeMethod g_Methods[] = {
     //New API
-    {"native_setup",              "()I",                      (void*) dtp_setup},
-    {"native_release",            "()I",                      (void*) dtp_release},
-    {"native_setDataSource",      "(Ljava/lang/String;)I",    (void*) dtp_setDataSource},
-    {"native_prePare",            "()I",                      (void*) dtp_prePare},
-    {"native_prePareAsync",       "()I",                      (void*) dtp_prepareAsync},
-    {"native_start",              "()I",                      (void*) dtp_start},
-    {"native_pause",              "()I",                      (void*) dtp_pause},
-    {"native_seekTo",             "(I)I",                     (void*) dtp_seekTo},
-    {"native_stop",               "()I",                      (void*) dtp_stop},
-    {"native_reset",              "()I",                      (void*) dtp_reset},
-    {"native_setVideoMode",       "(I)I",                     (void*) dtp_setVideoMode},
-    {"native_setVideoSize",       "(II)I",                    (void*) dtp_setVideoSize},
-    {"native_getVideoWidth",      "()I",                      (void*) dtp_getVideoWidth},
-    {"native_getVideoHeight",     "()I",                      (void*) dtp_getVideoHeight},
-    {"native_isPlaying",          "()I",                      (void*) dtp_isPlaying},
-    {"native_getCurrentPosition", "()I",                      (void*) dtp_getCurrentPosition},
-    {"native_getDuration",        "()I",                      (void*) dtp_getDuration},
+    {"native_init",               "()V",                      (void*) android_dtplayer_native_init},
+    {"native_setup",              "(Ljava/lang/Object;)I",    (void*) android_dtplayer_native_setup},
+    {"native_release",            "()I",                      (void*) android_dtplayer_native_release},
+    {"native_setDataSource",      "(Ljava/lang/String;)I",    (void*) android_dtplayer_native_setDataSource},
+    {"native_prePare",            "()I",                      (void*) android_dtplayer_native_prePare},
+    {"native_prePareAsync",       "()I",                      (void*) android_dtplayer_native_prepareAsync},
+    {"native_start",              "()I",                      (void*) android_dtplayer_native_start},
+    {"native_pause",              "()I",                      (void*) android_dtplayer_native_pause},
+    {"native_seekTo",             "(I)I",                     (void*) android_dtplayer_native_seekTo},
+    {"native_stop",               "()I",                      (void*) android_dtplayer_native_stop},
+    {"native_reset",              "()I",                      (void*) android_dtplayer_native_reset},
+    {"native_setVideoMode",       "(I)I",                     (void*) android_dtplayer_native_setVideoMode},
+    {"native_setVideoSize",       "(II)I",                    (void*) android_dtplayer_native_setVideoSize},
+    {"native_getVideoWidth",      "()I",                      (void*) android_dtplayer_native_getVideoWidth},
+    {"native_getVideoHeight",     "()I",                      (void*) android_dtplayer_native_getVideoHeight},
+    {"native_isPlaying",          "()I",                      (void*) android_dtplayer_native_isPlaying},
+    {"native_getCurrentPosition", "()I",                      (void*) android_dtplayer_native_getCurrentPosition},
+    {"native_getDuration",        "()I",                      (void*) android_dtplayer_native_getDuration},
     
-    {"native_onSurfaceCreated",   "()I",                      (void*) dtp_onSurfaceCreated},
-    {"native_onSurfaceChanged",   "(II)I",                    (void*) dtp_onSurfaceChanged},
-    {"native_onDrawFrame",        "()I",                      (void*) dtp_onDrawFrame},
+    {"native_onSurfaceCreated",   "()I",                      (void*) android_dtplayer_native_onSurfaceCreated},
+    {"native_onSurfaceChanged",   "(II)I",                    (void*) android_dtplayer_native_onSurfaceChanged},
+    {"native_onDrawFrame",        "()I",                      (void*) android_dtplayer_native_onDrawFrame},
     
-    {"native_setAudioEffect",     "(I)I",                     (void*) dtp_setAudioEffect},
+    {"native_setAudioEffect",     "(I)I",                     (void*) android_dtplayer_native_setAudioEffect},
 };
 
 static int register_android_dtplayer(JNIEnv *env)
 {
+#if 0
     jclass clazz;
     clazz = env->FindClass(kClassName);
 	if (clazz == NULL) {
@@ -829,6 +819,10 @@ static int register_android_dtplayer(JNIEnv *env)
 	}
 
     return JNI_TRUE;
+#else
+    return AndroidRuntime::registerNativeMethods(env, kClassName, g_Methods, NELEM(g_Methods));
+#endif
+
 }
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved)

@@ -766,7 +766,7 @@ int android_dtplayer_native_onDrawFrame(JNIEnv *env, jobject thiz)
 
 //-----------------------------------------------------
 // Audio Effect Interface
-static int android_dtplayer_native_setAudioEffect(int effect_id)
+static int android_dtplayer_native_setAudioEffect(JNIEnv *env, jobject thiz , jint effect_id)
 {
 #ifdef ENABLE_DTAP
     dtap_change_effect(effect_id);

@@ -679,6 +679,7 @@ public class DtPlayer {
 	 * @return
 	 */
 	public int setAuxEffectSendLevel(int type){
+		Log.d(Constant.LOGTAG, "setaudio effect:" + type);
 		return native_setAudioEffect(type);
 	}
 	//----------------------------------

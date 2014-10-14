@@ -55,11 +55,15 @@ extern ao_wrapper_t ao_opensl_ops;
 #ifdef ENABLE_DTAP
 #include "dtap_api.h"
 dtap_context_t ap_ctx;
+dt_lock_t ap_lock;
 int dtap_change_effect(int id)
 {
+    __android_log_print(ANDROID_LOG_INFO, TAG, "change audio effect from: %d to %d \n", ap_ctx.para.item, id);
+    dt_lock(&ap_lock);
     ap_ctx.para.item = id;
     dtap_update(&ap_ctx);
     dtap_init(&ap_ctx);
+    dt_unlock(&ap_lock);
     return 0;
 }
 #endif
@@ -81,8 +85,9 @@ static int ao_ex_init (dtaudio_output_t *aout, dtaudio_para_t *para)
     ap_ctx.para.channels = para->channels;
     ap_ctx.para.data_width = para->data_width;
     ap_ctx.para.type = DTAP_EFFECT_EQ;
-    ap_ctx.para.item = EQ_EFFECT_FLAT;
+    ap_ctx.para.item = EQ_EFFECT_NORMAL;
     dtap_init(&ap_ctx);
+    dt_lock_init(&ap_lock, NULL);
 #endif
     
     __android_log_print(ANDROID_LOG_INFO, TAG, "AO Render Init OK");
@@ -94,11 +99,13 @@ static int ao_ex_play (dtaudio_output_t *aout, uint8_t * buf, int size)
     int ret = 0;
 
 #ifdef ENABLE_DTAP
+    dt_lock(&ap_lock);
     dtap_frame_t frame;
     frame.in = buf;
     frame.in_size = size;
-    if(ap_ctx.para.item != EQ_EFFECT_FLAT)
+    if(ap_ctx.para.item != EQ_EFFECT_NORMAL)
         dtap_process(&ap_ctx, &frame);
+    dt_unlock(&ap_lock);
 #endif
 
 #ifdef ENABLE_AUDIOTRACK
@@ -163,8 +170,10 @@ static int ao_ex_stop (dtaudio_output_t *aout)
     int ret = 0;
 
 #ifdef ENABLE_DTAP
+    dt_lock(&ap_lock);
     memset(&ap_ctx, 0 , sizeof(dtap_context_t));
     dtap_release(&ap_ctx);    
+    dt_unlock(&ap_lock);
 #endif
 
 #ifdef ENABLE_AUDIOTRACK

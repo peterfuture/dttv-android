@@ -44,7 +44,6 @@ public:
     int getCurrentPosition();
     int getDuration();
     static int notify(void *cookie, player_state_t *state);
-    static int updatePlayerState(player_state_t *state);
 private:
 
     enum {

@@ -412,9 +412,9 @@ int DTPlayer::getDuration()
 int DTPlayer::notify(void *cookie, player_state_t *state)
 {
     DTPlayer *dtp = (DTPlayer *)cookie;
-    void *handle = dtp->mDtpHandle;
-    int ret = 0;
     dt_lock(&dtp->dtp_mutex);
+    int ret = 0;
+    void *handle = dtp->mDtpHandle;
     if(dtp->status == PLAYER_STOPPED)
     {
         ret = -1;
@@ -444,7 +444,6 @@ int DTPlayer::notify(void *cookie, player_state_t *state)
             dtp->mSeekPosition = -1;
 	        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seek complete !\n");
         }
-        dtp->mListenner->notify(MEDIA_PLAYBACK_COMPLETE);
         goto END;
 	}
     
@@ -461,70 +460,6 @@ int DTPlayer::notify(void *cookie, player_state_t *state)
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "CUR TIME %lld S  FULL TIME:%lld  \n",state->cur_time,state->full_time);
 END:
     dt_unlock(&dtp->dtp_mutex);
-	return ret;
-}
-
-int DTPlayer::updatePlayerState(player_state_t *state)
-{
-    int ret = 0;
-#if 0
-    void *handle = mDtpHandle;
-    dt_lock(&dtp_mutex);
-    if(status == PLAYER_STOPPED)
-    {
-        ret = -1;
-        goto END;
-    }
-    memcpy(&dtp_state,state,sizeof(player_state_t));
-	if (state->cur_status == PLAYER_STATUS_EXIT)
-	{
-		__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "PLAYER EXIT OK\n");
-		//Notify(MEDIA_PLAYBACK_COMPLETE);
-        mListenner->notify(MEDIA_PLAYBACK_COMPLETE);
-        status = PLAYER_EXIT;
-
-#if 0        
-        DTPlayer::status = 0;
-        DTPlayer::mCurrentPosition = -1;
-        DTPlayer::mSeekPosition = -1;
-        memset(&dtp_state,0,sizeof(player_state_t));
-#endif   
-        goto END;
-	}
-	else if(state->cur_status == PLAYER_STATUS_SEEK_EXIT)
-	{
-	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "SEEK COMPLETE \n");
-	    if(mCurrentPosition != mSeekPosition)
-        {
-            //still have seek request
-            mSeekPosition = mCurrentPosition;
-            dtplayer_seekto(handle,mCurrentPosition);
-	        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "queued seek to %d \n",mCurrentPosition);
-        }
-        else
-        {
-            //last seek complete, return to running
-            mSeekPosition = -1;
-	        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seek complete !\n");
-        }
-        mListenner->notify(MEDIA_PLAYBACK_COMPLETE);
-        goto END;
-	}
-    
-    if(status == PLAYER_SEEKING && state->cur_status == PLAYER_STATUS_RUNNING && state->last_status == PLAYER_STATUS_SEEK_EXIT)
-    {
-        if(mSeekPosition > 0) // receive seek again
-            goto END;
-	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "set status to running from seek complete \n");
-        status = PLAYER_RUNNING;
-        mListenner->notify(MEDIA_INFO);
-    }
-
-	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "UPDATECB CURSTATUS:%x status:%d \n", state->cur_status,status);
-	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "CUR TIME %lld S  FULL TIME:%lld  \n",state->cur_time,state->full_time);
-END:
-    dt_unlock(&dtp_mutex);
-#endif
 	return ret;
 }
 

@@ -92,15 +92,10 @@ static fields_t fields;
 dt_lock_t sLock;
 // ----------------------------------------------------------------------------
 
+static JavaVM *gvm = NULL;
 static const char * const kClassName = "dttv/app/DtPlayer";
 
-#ifdef ENABLE_DTAP
-extern "C" int dtap_change_effect(int effect_id);
-#endif
-
 //================================================
-
-static JavaVM *gvm = NULL;
 
 dtpListenner::dtpListenner(JNIEnv *env, jobject thiz, jobject weak_thiz)
 {
@@ -766,11 +761,15 @@ int android_dtplayer_native_onDrawFrame(JNIEnv *env, jobject thiz)
 
 //-----------------------------------------------------
 // Audio Effect Interface
-static int android_dtplayer_native_setAudioEffect(JNIEnv *env, jobject thiz , jint effect_id)
+static int android_dtplayer_native_setAudioEffect(JNIEnv *env, jobject thiz , jint id)
 {
-#ifdef ENABLE_DTAP
-    dtap_change_effect(effect_id);
-#endif
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, failed, mp == null ");
+        return -1;
+    }
+    mp->setAudioEffect(id); 
     return 0;
 }
 

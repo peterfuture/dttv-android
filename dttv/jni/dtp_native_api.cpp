@@ -18,6 +18,8 @@ extern "C"{
 }
 #define DEBUG_TAG "DTP-API"
 
+extern "C" int dtap_change_effect(int id);
+
 namespace android {
 
 DTPlayer::DTPlayer()
@@ -407,6 +409,20 @@ int DTPlayer::getDuration()
     dt_unlock(&dtp_mutex);
     return mDuration;
 
+}
+
+int DTPlayer::setAudioEffect(int id)
+{
+    void *handle = mDtpHandle;
+    dt_lock(&dtp_mutex);
+    if(!handle)
+    {
+        dt_unlock(&dtp_mutex);
+        return 0;
+    }
+    dtap_change_effect(id);
+    dt_unlock(&dtp_mutex);
+    return 0;
 }
 
 int DTPlayer::notify(void *cookie, player_state_t *state)

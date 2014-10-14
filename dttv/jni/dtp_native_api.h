@@ -43,6 +43,7 @@ public:
     int isQuitOK();
     int getCurrentPosition();
     int getDuration();
+    int setAudioEffect(int id);
     static int notify(void *cookie, player_state_t *state);
 private:
 

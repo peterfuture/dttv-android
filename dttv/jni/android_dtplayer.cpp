@@ -778,7 +778,7 @@ int dtp_onDrawFrame(JNIEnv *env, jobject obj)
 
 //-----------------------------------------------------
 // Audio Effect Interface
-static int dtp_setAudioEffect(JNIEnv *env, jobject thiz, jint effect_id)
+static int dtp_setAudioEffect(int effect_id)
 {
 #ifdef ENABLE_DTAP
     dtap_change_effect(effect_id);

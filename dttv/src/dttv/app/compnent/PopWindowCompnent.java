@@ -52,6 +52,7 @@ public class PopWindowCompnent extends Compnent implements I_PopWindow {
 				long id) {
 			// TODO Auto-generated method stub
 			callback.doItemClickListener(parent, view, position, id);
+			effectWindow.dismiss();
 		}
 	}
 	 
@@ -64,7 +65,7 @@ public class PopWindowCompnent extends Compnent implements I_PopWindow {
 	@Override
 	public void onItemClick(View v) {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override

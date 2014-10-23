@@ -501,6 +501,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 				Toast.makeText(mActivity, "effectStr is:"+effectStr+"-0-0 effectStr2 is:"+effectStr2, Toast.LENGTH_LONG).show();
 				if(dtPlayer!=null){
 					dtPlayer.setAuxEffectSendLevel(position);
+					effectBtn.setText(effectStr);
 				}
 			}
 		});

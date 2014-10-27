@@ -26,7 +26,9 @@ prebuild apk path: dttv-android/bin/dttv.apk
 REF REPO
 ========
 
-dttv/jni/libs/libdtp.so --> build from https://github.com/peterfuture/dtplayer_c
+dttv/jni/libs/libdtp.so  <-- build from https://github.com/peterfuture/dtplayer_c
+
+dttv/jni/libs/libdtap.so <-- build from https://github.com/peterfuture/dtap
 
 [comments] no need user to update
 

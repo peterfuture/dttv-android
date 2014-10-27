@@ -101,6 +101,20 @@ typedef struct aout_sys_t
 }aout_sys_t;
 
 
+//====================================
+// dtap
+//====================================
+
+#ifdef ENABLE_DTAP
+
+#include "dtap_api.h"
+typedef struct{
+    dtap_context_t ap;
+    dt_lock_t lock;
+}audio_effect_t;
+
+#endif
+
 #define TAG "AO-OPENSL"
 
 /*****************************************************************************
@@ -525,18 +539,60 @@ error:
     return -1;
 }
 
+#ifdef ENABLE_DTAP
+int dtap_change_effect(ao_wrapper_t *wrapper, int id)
+{
+    audio_effect_t *ae = (audio_effect_t *)wrapper->ao_priv;
+    __android_log_print(ANDROID_LOG_INFO, TAG, "change audio effect from: %d to %d \n", ae->ap.para.item, id);
+    dt_lock(&ae->lock);
+    ae->ap.para.item = id;
+    dtap_update(&ae->ap);
+    dtap_init(&ae->ap);
+    dt_unlock(&ae->lock);
+    return 0;
+}
+#endif
+
 static int ao_opensl_init (dtaudio_output_t *aout, dtaudio_para_t *para)
 {
     if(Open(aout) == -1)
         return -1;
     Start(aout);
+
+#ifdef ENABLE_DTAP
+    ao_wrapper_t *wrapper = aout->wrapper;
+    audio_effect_t *ae = (audio_effect_t *)malloc(sizeof(audio_effect_t));
+    wrapper->ao_priv = ae;
+    ae->ap.para.samplerate = para->samplerate;
+    ae->ap.para.channels = para->channels;
+    ae->ap.para.data_width = para->data_width;
+    ae->ap.para.type = DTAP_EFFECT_EQ;
+    ae->ap.para.item = EQ_EFFECT_NORMAL;
+    dtap_init(&ae->ap);
+    dt_lock_init(&ae->lock, NULL);
+#endif 
     return 0;
 }
 
 static int ao_opensl_write (dtaudio_output_t *aout, uint8_t * buf, int size)
 {
     aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
+    ao_wrapper_t *wrapper = aout->wrapper;
     int ret = 0;
+
+#ifdef ENABLE_DTAP
+    audio_effect_t *ae = (audio_effect_t *)wrapper->ao_priv;
+    dt_lock(&ae->lock);
+    dtap_frame_t frame;
+    frame.in = buf;
+    frame.in_size = size;
+    if(ae->ap.para.item != EQ_EFFECT_NORMAL)
+    {
+        dtap_process(&ae->ap, &frame);
+    }
+    dt_unlock(&ae->lock);
+#endif
+    
     dt_lock(&sys->lock);
     ret = Play(aout,buf,size);
     dt_unlock(&sys->lock);
@@ -609,6 +665,15 @@ static int64_t ao_opensl_get_latency (dtaudio_output_t *aout)
 static int ao_opensl_stop (dtaudio_output_t *aout)
 {
     aout_sys_t *sys = (aout_sys_t*)aout->ao_priv;
+    ao_wrapper_t *wrapper = aout->wrapper;
+#ifdef ENABLE_DTAP
+    audio_effect_t *ae = (audio_effect_t *)wrapper->ao_priv;
+    dt_lock(&ae->lock);
+    memset(&ae->ap, 0 , sizeof(dtap_context_t));
+    dtap_release(&ae->ap);    
+    dt_unlock(&ae->lock);
+#endif
+
     dt_lock(&sys->lock);
     Stop(aout);
     dt_unlock(&sys->lock);

@@ -8,14 +8,12 @@ extern "C"{
 
 #include <android/log.h>
 #include <stdlib.h>
-
-#include "ext_wrapper.h"
 #include "dt_lock.h"
 
 }
 #define DEBUG_TAG "DTP-API"
 
-extern "C" int dtap_change_effect(int id);
+extern "C" int dtap_change_effect(ao_wrapper_t *wrapper, int id);
 #ifdef ENABLE_OPENSL
 extern "C" void ao_opensl_setup(ao_wrapper_t *ao);
 #endif
@@ -76,7 +74,7 @@ int DTPlayer::setDataSource(const char *file_name)
 	para.update_cb = notify;
 	//para.disable_audio=1;
 	//para.disable_video=1;
-    para.disable_hw_vcodec = 1;
+    para.disable_hw_vcodec = 0;
 	para.width = -1;
 	para.height = -1;
 
@@ -445,8 +443,8 @@ int DTPlayer::setAudioEffect(int id)
         dt_unlock(&dtp_mutex);
         return 0;
     }
-#ifdef ENABLE_AP
-    dtap_change_effect(id);
+#ifdef ENABLE_DTAP
+    dtap_change_effect(&ao, id);
 #endif
     dt_unlock(&dtp_mutex);
     return 0;

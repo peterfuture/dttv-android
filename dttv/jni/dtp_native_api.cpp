@@ -9,9 +9,6 @@ extern "C"{
 #include <android/log.h>
 #include <stdlib.h>
 
-#include <GLES/gl.h>
-#include <GLES/glext.h>
-
 #include "ext_wrapper.h"
 #include "dt_lock.h"
 
@@ -55,15 +52,15 @@ int DTPlayer::setListenner(dtpListenner *listenner)
 int DTPlayer::setDataSource(const char *file_name)
 {
     int ret = 0;
-	dt_media_info_t info;
+    dt_media_info_t info;
     ext_element_init();
     dtplayer_para_t para;
-    para.no_audio = para.no_video = para.no_sub = -1;
-	para.height = para.width = -1;
-	para.loop_mode = 0;
-	para.audio_index = para.video_index = para.sub_index = -1;
-	para.update_cb = NULL;
-	para.sync_enable = -1;
+    para.disable_audio = para.disable_video = para.disable_sub = -1;
+    para.height = para.width = -1;
+    para.loop_mode = 0;
+    para.audio_index = para.video_index = para.sub_index = -1;
+    para.update_cb = NULL;
+    para.disable_avsync = 0;
     
     memcpy(mUrl,file_name,strlen(file_name));
     mUrl[strlen(file_name)] = '\0';

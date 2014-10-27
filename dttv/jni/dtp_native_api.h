@@ -72,6 +72,9 @@ private:
     dtpListenner *mListenner;
     dt_lock_t dtp_mutex;
     player_state_t dtp_state;
+    int volume;
+    ao_wrapper_t ao;
+    vo_wrapper_t vo;
     int audio_pp_id;   // audio effect id
 };
 

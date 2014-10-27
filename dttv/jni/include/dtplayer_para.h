@@ -46,10 +46,13 @@ typedef struct dtplayer_para
     int sub_index;
 
     int loop_mode;
-    int no_audio;
-    int no_video;
-    int no_sub;
-    int sync_enable;
+    int disable_audio;
+    int disable_video;
+    int disable_sub;
+    int disable_avsync;
+    int disable_hw_acodec;
+    int disable_hw_vcodec;
+    int disable_hw_scodec;
 
     int width;
     int height;

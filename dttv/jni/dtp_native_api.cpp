@@ -28,6 +28,7 @@ namespace android {
 DTPlayer::DTPlayer()
     :mListenner(NULL),
      status(0),
+     mHWEnable(1),
      mDtpHandle(NULL),
      mCurrentPosition(-1),
      mSeekPosition(-1),
@@ -74,7 +75,8 @@ int DTPlayer::setDataSource(const char *file_name)
 	para.update_cb = notify;
 	//para.disable_audio=1;
 	//para.disable_video=1;
-    para.disable_hw_vcodec = 0;
+    if(!mHWEnable)
+        para.disable_hw_vcodec = 1;
 	para.width = -1;
 	para.height = -1;
 
@@ -447,6 +449,12 @@ int DTPlayer::setAudioEffect(int id)
     dtap_change_effect(&ao, id);
 #endif
     dt_unlock(&dtp_mutex);
+    return 0;
+}
+
+int DTPlayer::setHWEnable(int enable)
+{
+    mHWEnable = (enable == 0)?0:1;    
     return 0;
 }
 

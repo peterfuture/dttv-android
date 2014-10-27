@@ -44,6 +44,7 @@ public:
     int getCurrentPosition();
     int getDuration();
     int setAudioEffect(int id);
+    int setHWEnable(int enable);
     static int notify(void *cookie, player_state_t *state);
 private:
 
@@ -72,6 +73,7 @@ private:
     dtpListenner *mListenner;
     dt_lock_t dtp_mutex;
     player_state_t dtp_state;
+    int mHWEnable;
     int volume;
     ao_wrapper_t ao;
     vo_wrapper_t vo;

@@ -21,4 +21,7 @@
 	
 	<string name="nav_desc">nav_desc</string>
 	<string name="audio_effect_btn_str">Normal</string>
+	
+	<string name="dt_decode_type_soft">软解码</string>
+	<string name="dt_decode_type_hard">硬解码</string>
 </resources>

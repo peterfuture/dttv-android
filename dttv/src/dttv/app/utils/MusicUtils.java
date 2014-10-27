@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 
 public class MusicUtils {
+	
 	public static Cursor query(Context context, Uri uri, String[] projection,
             String selection, String[] selectionArgs, String sortOrder, int limit) {
         try {

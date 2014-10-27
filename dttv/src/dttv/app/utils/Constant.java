@@ -33,4 +33,7 @@ public class Constant {
 		"Jazz",
 		"Rock"
 	};
+	
+	public static final int FILTER_SIZE = 1 * 1024 * 1024;// 1MB
+	public static final int FILTER_DURATION = 1 * 60 * 1000;// 1分钟
 }

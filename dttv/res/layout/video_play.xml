@@ -43,14 +43,25 @@
             android:orientation="horizontal"
             android:layout_alignParentRight="true"
             android:gravity="center" >
-            <TextView
-                android:id="@+id/dt_decoder_txt"
+            <Button
+                android:id="@+id/dt_decoder_btn"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textColor="@color/txt_color"
+                android:text="@string/dt_decode_type_soft" />
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:paddingTop="15dp"
+                android:paddingBottom="15dp"
+                android:layout_marginLeft="10dp"
+                android:background="@drawable/vertical_diliver_color" />
             <ImageView
                 android:id="@+id/dt_track_img"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
                 android:background="@drawable/dt_player_audio_icon" />
         </LinearLayout>
     </RelativeLayout>

@@ -62,13 +62,12 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	private DtPlayer dtPlayer;
 	private String mPath;
 	
-	private Activity mActivity;
 	
 	private View mBarView;
 	private RelativeLayout playerBarLay,playerRootviewLay;
 	private RelativeLayout topBarLay;
 	private ImageButton rotateBtn;
-	private TextView currentTimeTxt,totalTimeTxt,media_name_txt;
+	private TextView currentTimeTxt,totalTimeTxt,media_name_txt,dt_decoder_btn;
 	private ImageButton preBtn,nextBtn,pauseBtn,ratioBtn;
 	private Button effectBtn;
 	private SeekBar playerProgressBar;
@@ -117,7 +116,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		mActivity = this;
 		setContentView(R.layout.video_play);
 		Log.i(TAG, "enter onCreate");
 		mState = PLAYER_IDLE;		
@@ -238,6 +236,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		playerRootviewLay = (RelativeLayout)findViewById(R.id.dt_player_rootview);
 		topBarLay = (RelativeLayout)findViewById(R.id.dt_top_play_bar_lay);
 		media_name_txt = (TextView)findViewById(R.id.dt_media_name_txt);
+		dt_decoder_btn = (TextView)findViewById(R.id.dt_decoder_btn);
 		rotateBtn = (ImageButton)findViewById(R.id.dt_player_rotate_btn);
 		currentTimeTxt = (TextView)mBarView.findViewById(R.id.dt_play_current_time);
 		totalTimeTxt = (TextView)mBarView.findViewById(R.id.dt_play_total_time);
@@ -251,7 +250,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		getWindowManager().getDefaultDisplay().getMetrics(dm);
 		screenHeight = dm.heightPixels;
 		screenWidth = dm.widthPixels;
-		Log.i(TAG, "screen size, w:" + screenWidth + "h:" + screenHeight);
 		
 		ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_16_9);
 		
@@ -291,6 +289,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		playerBarLay.setOnTouchListener(this);
 		topBarLay.setOnTouchListener(this);
 		rotateBtn.setOnTouchListener(this);
+		dt_decoder_btn.setOnClickListener(this);
 		playerRootviewLay.setOnTouchListener(this);
 	}
 	
@@ -480,6 +479,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		case R.id.dt_play_effect_btn://for audio effect
 			showAudioEffect(true);
 			break;
+		case R.id.dt_decoder_btn:
+			
+			break;
 		}
 	}
 	
@@ -498,7 +500,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 				TextView effectTxt = (TextView)v.findViewById(android.R.id.text1);
 				String effectStr = effectTxt.getText().toString();
 				String effectStr2 = Constant.gEqulizerPresets[position];
-				Toast.makeText(mActivity, "effectStr is:"+effectStr+"-0-0 effectStr2 is:"+effectStr2, Toast.LENGTH_LONG).show();
+				//Toast.makeText(mActivity, "effectStr is:"+effectStr+"-0-0 effectStr2 is:"+effectStr2, Toast.LENGTH_LONG).show();
 				if(dtPlayer!=null){
 					dtPlayer.setAuxEffectSendLevel(position);
 					effectBtn.setText(effectStr);

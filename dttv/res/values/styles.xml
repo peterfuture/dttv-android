@@ -22,4 +22,11 @@
         <item name="android:windowExitAnimation">@anim/pop_bottom_out</item>
     </style>
     
+    <!-- <style name="dialog_device_style" parent="@android:style/Theme.DeviceDefault.Light.Dialog">
+        <item name="android:windowMinWidthMajor">65%</item>
+        <item name="android:windowMinWidthMinor">85%</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/menu_item_normal</item>
+        <item name="android:windowNoTitle">true</item>  
+    </style> -->
 </resources>

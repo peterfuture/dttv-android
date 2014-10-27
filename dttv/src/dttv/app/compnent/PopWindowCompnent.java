@@ -79,7 +79,9 @@ public class PopWindowCompnent extends Compnent implements I_PopWindow {
 			int location[] = new int[2];
 			v.getLocationOnScreen(location);
 			int _x = location[0];
-			int _y = location[1] - effectWindow.getHeight();
+			int height = mListView.getMeasuredHeight();
+			int _y = location[1] - height;// effectWindow.getHeight();
+			Log.i(TAG, "_x is:"+_x+"--height is:"+height+"---_y is:"+_y);
 			effectWindow.showAtLocation(v, Gravity.NO_GRAVITY, _x, _y);
 		}
 		else

@@ -13,7 +13,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.provider.MediaStore.Audio.Media;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -127,8 +129,20 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 				MediaStore.Audio.Media.MIME_TYPE,
 				MediaStore.Audio.Media.SIZE,
 				MediaStore.Audio.Media.DATA};
+		StringBuffer select = new StringBuffer("");
+		// 查询语句：检索出.mp3为后缀名，时长大于1分钟，文件大小大于1MB的媒体文件
+		/*if(sp.getFilterSize()) {
+			select.append(" and " + Media.SIZE + " > " + FILTER_SIZE);
+		}*/
+		//if(sp.getFilterTime()) {
+			select.append(" and " + Media.DURATION + " > " + Constant.FILTER_DURATION);
+		//}
+
+		/*if (!TextUtils.isEmpty(selections)) {
+			select.append(selections);
+		}*/
 		Cursor c = MusicUtils.query(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-				str, MediaStore.Audio.Media.IS_MUSIC + "=1",
+				str, MediaStore.Audio.Media.IS_MUSIC + "=1"+select,
                 null, MediaStore.Audio.Media.TITLE_KEY);
 		return c;
 	}

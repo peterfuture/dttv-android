@@ -14,7 +14,7 @@ struct dtaudio_output;
 typedef struct ao_wrapper
 {
     int id;
-    char *name;
+    const char *name;
     dtaudio_para_t para;
     
     int (*ao_init) (struct dtaudio_output *aout, dtaudio_para_t *para);
@@ -25,6 +25,9 @@ typedef struct ao_wrapper
     int64_t (*ao_latency) (struct dtaudio_output *aout);
     int (*ao_level) (struct dtaudio_output *aout);
     int (*ao_write) (struct dtaudio_output *aout, uint8_t * buf, int size);
+    //API maybe called outside, use ao_wrapper_t instead
+    int (*ao_get_volume) (struct ao_wrapper *ao);
+    int (*ao_set_volume) (struct ao_wrapper *ao, int value);
     struct ao_wrapper *next;
     void *ao_priv;
 } ao_wrapper_t;
@@ -58,7 +61,7 @@ typedef struct dtaudio_output
 {
     /*para */
     dtaudio_para_t para;
-    ao_wrapper_t *aout_ops;
+    ao_wrapper_t *wrapper;
     ao_status_t status;
     pthread_t output_thread_pid;
     ao_state_t state;

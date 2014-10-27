@@ -55,12 +55,12 @@ typedef struct
     int duration;
 } dt_av_frame_t;
 
-// Video Part
-
-typedef enum dtvideo_flag{
-    DTV_FLAG_NONE = 0x0,
-    DTV_FLAG_DISABLE_OMX = 0x1,
+typedef enum{
+    DTAV_FLAG_NONE = 0x0,
+    DTAV_FLAG_DISABLE_HW_CODEC = 0x1,
 }dtvideo_flag_t;
+
+// Video Part
 
 //From ffmpeg
 typedef enum DT_AVPixelFormat

@@ -89,6 +89,7 @@ public class DtPlayer {
           * It's easier to create it here than in C++.
           */
         native_setup(new WeakReference<DtPlayer>(this));
+        native_hw_enable(1);
 	}
 	
 	public DtPlayer(Context ctx,boolean isHardWare) {
@@ -715,6 +716,7 @@ public class DtPlayer {
 	//----------------------------------
 	public static native void native_init();
 	public native int native_setup(Object dtp_this);
+	public native int native_hw_enable(int enable);
 	public native int native_release();
 	public native void native_release_surface();
 	public native void native_set_video_surface(Surface surface);

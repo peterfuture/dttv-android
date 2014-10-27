@@ -222,6 +222,20 @@ static int android_dtplayer_native_setup(JNIEnv *env, jobject obj, jobject weak_
     return 0;
 }
 
+static int android_dtplayer_native_hw_enable(JNIEnv *env, jobject thiz, jint enable)
+{
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter hw codec enable set, enable:%d ", enable);
+
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp == NULL)
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "set hw enable failed, mp == null ");
+        return -1;
+    }
+    
+    return mp->setHWEnable(enable);
+}
+
 static int android_dtplayer_native_release(JNIEnv *env, jobject thiz)
 {
     DTPlayer *mp = setMediaPlayer(env, thiz, 0);
@@ -782,6 +796,7 @@ static JNINativeMethod g_Methods[] = {
     //New API
     {"native_init",               "()V",                      (void*) android_dtplayer_native_init},
     {"native_setup",              "(Ljava/lang/Object;)I",    (void*) android_dtplayer_native_setup},
+    {"native_hw_enable",          "(I)I",                     (void*) android_dtplayer_native_hw_enable},
     {"native_release",            "()I",                      (void*) android_dtplayer_native_release},
     {"native_setDataSource",      "(Ljava/lang/String;)I",    (void*) android_dtplayer_native_setDataSource},
     {"native_prePare",            "()I",                      (void*) android_dtplayer_native_prePare},

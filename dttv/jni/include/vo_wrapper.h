@@ -14,7 +14,7 @@ struct dtvideo_output;
 typedef struct vo_wrapper
 {
     int id;
-    char *name;
+    const char *name;
 
     int (*vo_init) (struct dtvideo_output *vout);
     int (*vo_stop) (struct dtvideo_output *vout);

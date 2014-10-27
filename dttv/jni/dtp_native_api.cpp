@@ -8,23 +8,27 @@ extern "C"{
 
 #include <android/log.h>
 #include <stdlib.h>
-
-#include <GLES/gl.h>
-#include <GLES/glext.h>
-
-#include "ext_wrapper.h"
 #include "dt_lock.h"
 
 }
 #define DEBUG_TAG "DTP-API"
 
-extern "C" int dtap_change_effect(int id);
+extern "C" int dtap_change_effect(ao_wrapper_t *wrapper, int id);
+#ifdef ENABLE_OPENSL
+extern "C" void ao_opensl_setup(ao_wrapper_t *ao);
+#endif
+#ifdef ENABLE_AUDIOTRACK
+extern "C" void ao_audiotrack_setup(ao_wrapper_t *ao);
+#endif 
+extern "C" void vo_android_setup(vo_wrapper_t *vo);
+extern "C" void vd_stagefright_setup(vd_wrapper_t *vd);
 
 namespace android {
 
 DTPlayer::DTPlayer()
     :mListenner(NULL),
      status(0),
+     mHWEnable(1),
      mDtpHandle(NULL),
      mCurrentPosition(-1),
      mSeekPosition(-1),
@@ -55,23 +59,24 @@ int DTPlayer::setListenner(dtpListenner *listenner)
 int DTPlayer::setDataSource(const char *file_name)
 {
     int ret = 0;
-	dt_media_info_t info;
-    ext_element_init();
+    dt_media_info_t info;
     dtplayer_para_t para;
-    para.no_audio = para.no_video = para.no_sub = -1;
-	para.height = para.width = -1;
-	para.loop_mode = 0;
-	para.audio_index = para.video_index = para.sub_index = -1;
-	para.update_cb = NULL;
-	para.sync_enable = -1;
+    para.disable_audio = para.disable_video = para.disable_sub = -1;
+    para.height = para.width = -1;
+    para.loop_mode = 0;
+    para.audio_index = para.video_index = para.sub_index = -1;
+    para.update_cb = NULL;
+    para.disable_avsync = 0;
     
     memcpy(mUrl,file_name,strlen(file_name));
     mUrl[strlen(file_name)] = '\0';
 	para.file_name = mUrl;
     para.cookie = this;
 	para.update_cb = notify;
-	//para.no_audio=1;
-	//para.no_video=1;
+	//para.disable_audio=1;
+	//para.disable_video=1;
+    if(!mHWEnable)
+        para.disable_hw_vcodec = 1;
 	para.width = -1;
 	para.height = -1;
 
@@ -108,6 +113,26 @@ int DTPlayer::setDataSource(const char *file_name)
 	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Get Media Info Ok,filesize:%lld fulltime:%lld S \n",info.file_size,info.duration);
     
     mDtpHandle = handle;
+
+
+    /*
+     *
+     *  register ext plugin
+     *  AO - VO - VD
+     *
+     * */
+#ifdef ENABLE_OPENSL
+    ao_opensl_setup(&ao);
+#endif
+#ifdef ENABLE_AUDIOTRACK
+    ao_audiotrack_setup(&ao);
+#endif 
+    dtplayer_register_ext_ao(&ao);
+    vd_stagefright_setup(&vd);
+    dtplayer_register_ext_vd(&vd);
+    vo_android_setup(&vo);
+    dtplayer_register_ext_vo(&vo);
+
     status = PLAYER_INITED;
     return 0;
 
@@ -420,8 +445,16 @@ int DTPlayer::setAudioEffect(int id)
         dt_unlock(&dtp_mutex);
         return 0;
     }
-    dtap_change_effect(id);
+#ifdef ENABLE_DTAP
+    dtap_change_effect(&ao, id);
+#endif
     dt_unlock(&dtp_mutex);
+    return 0;
+}
+
+int DTPlayer::setHWEnable(int enable)
+{
+    mHWEnable = (enable == 0)?0:1;    
     return 0;
 }
 

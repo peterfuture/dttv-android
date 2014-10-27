@@ -132,6 +132,13 @@ public class MainActivity extends SherlockFragmentActivity implements SearchView
 	}
 
 	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		slideFragment.getView().requestFocus();
+	}
+	
+	@Override
 	public boolean onQueryTextChange(String newText) {
 		// TODO Auto-generated method stub
 		return false;

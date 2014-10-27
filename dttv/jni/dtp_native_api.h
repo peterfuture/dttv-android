@@ -75,6 +75,7 @@ private:
     int volume;
     ao_wrapper_t ao;
     vo_wrapper_t vo;
+    vd_wrapper_t vd;
     int audio_pp_id;   // audio effect id
 };
 

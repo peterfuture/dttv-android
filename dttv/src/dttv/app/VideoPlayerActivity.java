@@ -200,7 +200,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 			int width = dtPlayer.getVideoWidth();
 			int height = dtPlayer.getVideoHeight();
 			Log.d(TAG,"--width:"+width+"  height:"+height);
-			if(width > 0 && height > 0 && width <= 1920 && height <= 1080)
+			if(width > 0 && height > 0 && width <= 1920 && height <= 1088)
 			{
 				ViewGroup.LayoutParams layoutParams=glSurfaceView.getLayoutParams();
 				layoutParams.width=width;

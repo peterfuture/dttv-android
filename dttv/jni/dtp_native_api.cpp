@@ -51,6 +51,12 @@ DTPlayer::~DTPlayer()
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "DTPLAYER Destructor called \n");
 }
 
+int DTPlayer::setGLContext(void *p)
+{
+    mGLContext = p;
+    return 0;
+}
+
 int DTPlayer::setListenner(dtpListenner *listenner)
 {
     mListenner = listenner;
@@ -455,6 +461,12 @@ int DTPlayer::setAudioEffect(int id)
 int DTPlayer::setHWEnable(int enable)
 {
     mHWEnable = (enable == 0)?0:1;    
+    return 0;
+}
+
+int DTPlayer::Notify(int msg)
+{
+    mListenner->notify(msg);
     return 0;
 }
 

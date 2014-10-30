@@ -17,60 +17,9 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "opengl_android.h"
 #include "android_dtplayer.h"
 #include "dtp_native_api.h"
-
-
-// ------------------------------------------------------------
-//OPENGL ESV2
-
-#ifdef USE_OPENGL_V2
-
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-
-#endif
-
-#include "dt_lock.h"
-
-//-----------------------------------------------------------
-
-#define RGB565(r, g, b)  (((r) << (5+6)) | ((g) << 6) | (b))
-#define GLRENDER_STATUS_IDLE 0
-#define GLRENDER_STATUS_RUNNING 1
-#define GLRENDER_STATUS_QUIT 2
-
-#ifdef USE_OPENGL_V2
-//For OPENGLESV2
-enum {  
-    ATTRIB_VERTEX,  
-    ATTRIB_TEXTURE,  
-}; 
-typedef struct{
-    int g_width;
-    int g_height;
-
-    GLuint g_texYId;
-    GLuint g_texUId;
-    GLuint g_texVId;
-    GLuint simpleProgram;
-
-    dt_av_frame_t frame;
-
-	int status;
-    int invalid_frame;
-    int vertex_index;
-    dt_lock_t mutex;
-}gles2_ctx_t;
-
-static gles2_ctx_t gl_ctx;
-
-#endif
-
-// ------------------------------------------------------------
-
-
-// ------------------------------------------------------------
 
 using namespace android;
 
@@ -96,7 +45,6 @@ static JavaVM *gvm = NULL;
 static const char * const kClassName = "dttv/app/DtPlayer";
 
 //================================================
-dtpListenner *mListener; // tmp used to updte video
 
 dtpListenner::dtpListenner(JNIEnv *env, jobject thiz, jobject weak_thiz)
 {
@@ -205,6 +153,9 @@ static void android_dtplayer_native_init(JNIEnv *env)
         return;
     }
 #endif
+
+    gles2_setup();
+
 }
 
 static int android_dtplayer_native_setup(JNIEnv *env, jobject obj, jobject weak_thiz)
@@ -217,7 +168,6 @@ static int android_dtplayer_native_setup(JNIEnv *env, jobject obj, jobject weak_
     }
     dtpListenner *listenner = new dtpListenner(env, obj, weak_thiz);
     mp->setListenner(listenner);
-    mListener = listenner;
     setMediaPlayer(env, obj, mp);
     return 0;
 }
@@ -401,376 +351,30 @@ int android_dtplayer_native_getDuration(JNIEnv *env, jobject thiz)
     return mp->getDuration();
 }
 
-
-//-----------------------------------------------------
-//OPENGL -- common
-
-static void check_gl_error(const char* op)
-{
-	GLint error;
-	for (error = glGetError(); error; error = glGetError())
-		__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG,"after %s() glError (0x%x)\n", op, error);
-}
-
-static void checkGlError(const char* op)
-{
-	GLint error;
-	for (error = glGetError(); error; error = glGetError())
-		__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG,"after %s() glError (0x%x)\n", op, error);
-}
-#ifdef USE_OPENGL_V2
-
-static const char* FRAG_SHADER = 
-    "varying lowp vec2 tc;\n"
-    "uniform sampler2D SamplerY;\n"
-    "uniform sampler2D SamplerU;\n"
-    "uniform sampler2D SamplerV;\n"
-    "void main(void)\n"
-    "{\n"
-        "mediump vec3 yuv;\n"
-        "lowp vec3 rgb;\n"
-        "yuv.x = texture2D(SamplerY, tc).r;\n"
-        "yuv.y = texture2D(SamplerU, tc).r - 0.5;\n"
-        "yuv.z = texture2D(SamplerV, tc).r - 0.5;\n"
-        "rgb = mat3( 1,   1,   1,\n"
-             "0,       -0.39465,  2.03211,\n"
-             "1.13983,   -0.58060,  0) * yuv;\n"
-        "gl_FragColor = vec4(rgb, 1);\n"
-    "}\n";
-
-static const char* VERTEX_SHADER =
-    "attribute vec4 vPosition;    \n"
-    "attribute vec2 a_texCoord;   \n"
-    "varying vec2 tc;     \n"
-    "void main()                  \n"
-    "{                            \n" 
-    "   gl_Position = vPosition;  \n"
-    "   tc = a_texCoord;  \n" 
-    "}                            \n";
-
-
-static GLuint gles2_bindTexture(GLuint texture, const uint8_t *buffer, GLuint w , GLuint h)
-{
-    checkGlError("glGenTextures"); 
-    glBindTexture ( GL_TEXTURE_2D, texture );  
-    checkGlError("glBindTexture");  
-    glTexImage2D ( GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);  
-    checkGlError("glTexImage2D");  
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );  
-    checkGlError("glTexParameteri");  
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );  
-    checkGlError("glTexParameteri");  
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );  
-    checkGlError("glTexParameteri");  
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );  
-    checkGlError("glTexParameteri");
-
-    return texture; 
-}
-
-static void gles2_renderFrame() 
-{
-    // Galaxy Nexus 4.2.2
-    static GLfloat squareVertices[] = {
-        -1.0f, -1.0f,
-        1.0f, -1.0f,
-        -1.0f,  1.0f,
-        1.0f,  1.0f,
-    };
-
-    static GLfloat coordVertices[] = {
-        0.0f, 1.0f,
-        1.0f, 1.0f,
-        0.0f,  0.0f,
-        1.0f,  0.0f,
-    };
-    
-    // HUAWEIG510-0010 4.1.1 
-    static GLfloat squareVertices1[] = {
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        0.0f,  1.0f,
-        1.0f,  1.0f,
-    };
-    static GLfloat coordVertices1[] = {
-        -1.0f, 1.0f,
-        1.0f, 1.0f,
-        -1.0f,  -1.0f,
-        1.0f,  -1.0f,
-    };
-
-    glClearColor(0.5f, 0.5f, 0.5f, 1);
-    checkGlError("glClearColor");
-    
-    glClear(GL_COLOR_BUFFER_BIT);
-    checkGlError("glClear");
-
-    GLint tex_y = glGetUniformLocation(gl_ctx.simpleProgram, "SamplerY");
-    checkGlError("glGetUniformLocation");
-    GLint tex_u = glGetUniformLocation(gl_ctx.simpleProgram, "SamplerU");
-    checkGlError("glGetUniformLocation");
-    GLint tex_v = glGetUniformLocation(gl_ctx.simpleProgram, "SamplerV");
-    checkGlError("glGetUniformLocation");
-
-    glBindAttribLocation(gl_ctx.simpleProgram, ATTRIB_VERTEX, "vPosition");
-    checkGlError("glBindAttribLocation");
-    glBindAttribLocation(gl_ctx.simpleProgram, ATTRIB_TEXTURE, "a_texCoord");
-    checkGlError("glBindAttribLocation");
-
-    if(gl_ctx.vertex_index == 0)
-        glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, squareVertices); 
-    else
-        glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, squareVertices1); 
-        
-    checkGlError("glVertexAttribPointer");
-    glEnableVertexAttribArray(ATTRIB_VERTEX);
-    checkGlError("glEnableVertexAttribArray");
-    
-    if(gl_ctx.vertex_index == 0)
-        glVertexAttribPointer(ATTRIB_TEXTURE, 2, GL_FLOAT, 0, 0, coordVertices);
-    else
-        glVertexAttribPointer(ATTRIB_TEXTURE, 2, GL_FLOAT, 0, 0, coordVertices1);
-    
-    checkGlError("glVertexAttribPointer");
-    glEnableVertexAttribArray(ATTRIB_TEXTURE);
-    checkGlError("glEnableVertexAttribArray");
-
-    glActiveTexture(GL_TEXTURE0);
-    checkGlError("glActiveTexture");
-    glBindTexture(GL_TEXTURE_2D, gl_ctx.g_texYId);
-    checkGlError("glBindTexture");
-    glUniform1i(tex_y, 0);
-    checkGlError("glUniform1i");
-
-    glActiveTexture(GL_TEXTURE1);
-    checkGlError("glActiveTexture");
-    glBindTexture(GL_TEXTURE_2D, gl_ctx.g_texUId);
-    checkGlError("glBindTexture");
-    glUniform1i(tex_u, 1);
-    checkGlError("glUniform1i");
-
-    glActiveTexture(GL_TEXTURE2);
-    checkGlError("glActiveTexture");
-    glBindTexture(GL_TEXTURE_2D, gl_ctx.g_texVId);
-    checkGlError("glBindTexture");
-    glUniform1i(tex_v, 2);
-    checkGlError("glUniform1i");
-
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    checkGlError("glDrawArrays");
-}
-
-
-static GLuint buildShader(const char* source, GLenum shaderType)   
-{  
-    GLuint shaderHandle = glCreateShader(shaderType);  
-  
-    if (shaderHandle)  
-    {  
-        glShaderSource(shaderHandle, 1, &source, 0);  
-        glCompileShader(shaderHandle);  
-  
-        GLint compiled = 0;  
-        glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compiled);  
-        if (!compiled)  
-        {  
-            GLint infoLen = 0;  
-            glGetShaderiv(shaderHandle, GL_INFO_LOG_LENGTH, &infoLen);  
-            if (infoLen)  
-            {  
-                char* buf = (char*) malloc(infoLen);  
-                if (buf)  
-                {  
-                    glGetShaderInfoLog(shaderHandle, infoLen, NULL, buf);  
-		            __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG," error: Could not compile shader %d \n %s\n", shaderType, buf);
-                    free(buf);  
-                }  
-                glDeleteShader(shaderHandle);  
-                shaderHandle = 0;  
-            }  
-        }  
-  
-    }  
-      
-    return shaderHandle;  
-}
-
-static GLuint buildProgram(const char* vertexShaderSource,  
-        const char* fragmentShaderSource)   
-{  
-    GLuint vertexShader = buildShader(vertexShaderSource, GL_VERTEX_SHADER);  
-    GLuint fragmentShader = buildShader(fragmentShaderSource, GL_FRAGMENT_SHADER);  
-    GLuint programHandle = glCreateProgram();  
-  
-    if (programHandle)  
-    {  
-        glAttachShader(programHandle, vertexShader);  
-        checkGlError("glAttachShader");  
-        glAttachShader(programHandle, fragmentShader);  
-        checkGlError("glAttachShader");  
-        glLinkProgram(programHandle);  
-  
-        GLint linkStatus = GL_FALSE;  
-        glGetProgramiv(programHandle, GL_LINK_STATUS, &linkStatus);  
-        if (linkStatus != GL_TRUE) {  
-            GLint bufLength = 0;  
-            glGetProgramiv(programHandle, GL_INFO_LOG_LENGTH, &bufLength);  
-            if (bufLength) {  
-                char* buf = (char*) malloc(bufLength);  
-                if (buf) {  
-                    glGetProgramInfoLog(programHandle, bufLength, NULL, buf);  
-		            __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG," error: Could not link programe: %s\n", buf);
-                    free(buf);  
-                }  
-            }  
-            glDeleteProgram(programHandle);  
-            programHandle = 0;  
-        }  
-  
-    }  
-  
-    return programHandle;  
-}
-
-static void gles2_init()   
-{
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    checkGlError("glClearColor");
-
-    memset(&gl_ctx,0,sizeof(gles2_ctx_t));
-    gl_ctx.simpleProgram = buildProgram(VERTEX_SHADER, FRAG_SHADER);  
-    glUseProgram(gl_ctx.simpleProgram); 
-    glGenTextures(1, &gl_ctx.g_texYId);  
-    glGenTextures(1, &gl_ctx.g_texUId);  
-    glGenTextures(1, &gl_ctx.g_texVId); 
-    checkGlError("glGenTextures");
-
-
-    char *glExtension = (char *)glGetString(GL_EXTENSIONS);
-    if(strstr(glExtension, "GL_AMD_compressed_ATC_texture") != NULL)
-        gl_ctx.vertex_index = 1; 
-    else
-        gl_ctx.vertex_index = 0;
-
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "opengl esv2 init ok, ext:%s \n ", glExtension);
-}
-
-static void gles2_uninit()  
-{  
-    gl_ctx.g_width = 0;  
-    gl_ctx.g_height = 0;  
-    if (gl_ctx.frame.data[0])  
-    {  
-        free(gl_ctx.frame.data[0]);  
-        gl_ctx.frame.data[0] = NULL;  
-    }
-}
-
-static int gles2_surface_changed(int w, int h)
-{
-    gl_ctx.g_width = w;
-	gl_ctx.g_height = h;
-    gl_ctx.status = GLRENDER_STATUS_RUNNING;
-    
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    checkGlError("glClearColor");
-    
-    int width = gl_ctx.g_width;
-    int height = gl_ctx.g_height;
-
-    glViewport(0, 0, width, height);
-
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "on surface changed\n ");
-}
-
-static int gles2_draw_frame()
-{
-    if(gl_ctx.status == GLRENDER_STATUS_IDLE)
-        return 0;
-    
-    if(gl_ctx.invalid_frame == 0)
-    {
-        //__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "update_frame, No frame to draw \n");
-        return 0;
-    }
-
-    if(!gl_ctx.frame.data[0])
-        return 0;
-
-
-    //Fixme: scale to dst width
-    
-    int width = gl_ctx.g_width;
-    int height = gl_ctx.g_height;
-    dt_av_frame_t *frame = &gl_ctx.frame;
-    uint8_t *data = frame->data[0];
-    //glViewport(0, 0, width, height);  
-    gles2_bindTexture(gl_ctx.g_texYId, data, width, height);  
-    gles2_bindTexture(gl_ctx.g_texUId, data + width * height, width/2, height/2);  
-    gles2_bindTexture(gl_ctx.g_texVId, data + width * height * 5 / 4, width/2, height/2);  
-
-    gles2_renderFrame();
-    if(frame->data[0])
-        free(frame->data[0]);
-    frame->data[0] = NULL;
-    gl_ctx.invalid_frame = 0;
-    return 0;
-}
-
-#endif
-
 int android_dtplayer_native_onSurfaceCreated(JNIEnv *env, jobject thiz)
 {
-#ifdef USE_OPENGL_V2
     gles2_init();
-#endif
-    dt_lock_init (&gl_ctx.mutex, NULL);
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if(mp)
+        gles2_reg_player(mp);
+    else
+        __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "onSurfaceCreated register player failed mp null\n");
+
     return 0;
 }
 
 int android_dtplayer_native_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
 {
-    dt_lock(&gl_ctx.mutex);
-	__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged, w:%d h:%d \n",w,h);
 
-#ifdef USE_OPENGL_V2
     gles2_surface_changed(w, h);
-#endif
-
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged ok\n");
-    
-    dt_unlock(&gl_ctx.mutex);
+	__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged, w:%d h:%d \n",w,h);
     android_dtplayer_native_setVideoSize(env, obj, w, h);
     return 0;
 }
 
-extern "C" int update_frame(dt_av_frame_t *frame)
-{
-    int ret = 0;
-    dt_lock (&gl_ctx.mutex);
-    dt_av_frame_t *orig_frame = &gl_ctx.frame;
-    // check frame not displayed
-    if(orig_frame->data[0])
-    {
-        free(orig_frame->data[0]);
-    }
-    memcpy(&gl_ctx.frame, frame, sizeof(dt_av_frame_t));
-    gl_ctx.invalid_frame = 1;
-    dt_unlock (&gl_ctx.mutex);
-    mListener->notify(MEDIA_FRESH_VIDEO); // update video
-//    Notify(MEDIA_FRESH_VIDEO); // update view
-}
-
 int android_dtplayer_native_onDrawFrame(JNIEnv *env, jobject thiz)
 {
-    dt_lock(&gl_ctx.mutex);
-
-#ifdef USE_OPENGL_V2
     gles2_draw_frame();
-#endif
-
-    dt_unlock(&gl_ctx.mutex);
     return 0;
 }
 

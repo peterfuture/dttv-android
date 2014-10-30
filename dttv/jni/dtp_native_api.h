@@ -25,6 +25,7 @@ class DTPlayer{
 public:
     DTPlayer();
     ~DTPlayer();
+    int setGLContext(void *pgl);
     int setListenner(dtpListenner *listenner);
     int setDataSource(const char * uri);
     int prePare();
@@ -45,6 +46,7 @@ public:
     int getDuration();
     int setAudioEffect(int id);
     int setHWEnable(int enable);
+    int Notify(int msg);
     static int notify(void *cookie, player_state_t *state);
 private:
 
@@ -70,6 +72,7 @@ private:
     int mCurrentPosition;
     int mSeekPosition;
     int mDuration;
+    void *mGLContext;
     dtpListenner *mListenner;
     dt_lock_t dtp_mutex;
     player_state_t dtp_state;

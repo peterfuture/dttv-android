@@ -15,6 +15,7 @@ include $(PREBUILT_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_MODULE    := dtp_jni
 LOCAL_SRC_FILES := dtp_native_api.cpp
+LOCAL_SRC_FILES += opengl_android.cpp
 LOCAL_SRC_FILES += plugin/vo_android.c
 LOCAL_SRC_FILES += android_dtplayer.cpp
 

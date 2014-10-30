@@ -6,7 +6,7 @@
 
 #include "dt_av.h"
 #include "dt_lock.h"
-#include "dtp_native_api.h"
+#include "android_dtplayer.h"
 
 #define RGB565(r, g, b)  (((r) << (5+6)) | ((g) << 6) | (b))
 #define GLRENDER_STATUS_IDLE 0

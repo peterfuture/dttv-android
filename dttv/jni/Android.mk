@@ -14,10 +14,10 @@ include $(PREBUILT_SHARED_LIBRARY)
 ##############################################
 include $(CLEAR_VARS)
 LOCAL_MODULE    := dtp_jni
-LOCAL_SRC_FILES := dtp_native_api.cpp
-LOCAL_SRC_FILES += opengl_android.cpp
-LOCAL_SRC_FILES += plugin/vo_android.c
+LOCAL_SRC_FILES := android_jni.cpp
 LOCAL_SRC_FILES += android_dtplayer.cpp
+LOCAL_SRC_FILES += android_opengl.cpp
+LOCAL_SRC_FILES += plugin/vo_android.c
 
 LOCAL_CFLAGS += -D GL_GLEXT_PROTOTYPES -g
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include

@@ -9,8 +9,8 @@
 
 #include "dt_av.h"
 #include "dt_lock.h"
-#include "opengl_android.h"
-#include "dtp_native_api.h"
+#include "android_opengl.h"
+#include "android_dtplayer.h"
 
 #define LOG_TAG "OPENGL-ANDROID"
 

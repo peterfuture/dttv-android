@@ -273,10 +273,8 @@ int android_dtplayer_native_stop(JNIEnv *env, jobject thiz)
         return -1;
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "native stop enter \n ");
     ret = mp->stop();
-    {
-        if(ret == -1)
-            return -1;
-    }
+    if(ret == -1)
+        return -1;
     while(mp->isQuitOK() == 0)
     {
         usleep(10000);

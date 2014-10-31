@@ -508,7 +508,7 @@ OUT:
 
     ret_frame = frame->vframe;
     status  = frame->status;
-    av_freep(&frame);
+    free(frame);
 
     *data = (dt_av_frame_t *)malloc(sizeof(dt_av_frame_t));
     //*got_frame = 1;

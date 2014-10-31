@@ -319,7 +319,7 @@ void gles2_init()
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "opengl esv2 init ok, ext:%s\n ", glExtension);
 }
 
-void gles2_uninit()  
+void gles2_release() 
 {  
     dt_lock(&mutex);
 
@@ -333,6 +333,7 @@ void gles2_uninit()
     gl_ctx.mp = NULL;
     gl_ctx.initialized = 0;
     dt_unlock(&mutex);
+    memset(&gl_ctx,0,sizeof(gles2_ctx_t));
 }
 
 int gles2_surface_changed(int w, int h)

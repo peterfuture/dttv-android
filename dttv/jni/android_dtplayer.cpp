@@ -2,6 +2,7 @@
 // TOP-LEVEL API provided for DtPlayer.java
 
 #include "android_dtplayer.h"
+#include "android_opengl.h"
 #include "android_jni.h"
 
 extern "C"{
@@ -48,6 +49,7 @@ DTPlayer::~DTPlayer()
     mDtpHandle = NULL;
     if(mListenner)
         delete mListenner;
+    gles2_release();
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "DTPLAYER Destructor called \n");
 }
 
@@ -292,6 +294,10 @@ int DTPlayer::stop()
         ret = -1;
         goto END;
     }
+
+    if(status >= PLAYER_STOPPED)
+        goto END;
+
     ret = dtplayer_stop(handle);
     mDtpHandle = NULL;
     status = PLAYER_STOPPED;

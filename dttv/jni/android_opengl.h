@@ -42,7 +42,7 @@ typedef struct{
 void gles2_setup();
 void gles2_reg_player(DTPlayer *mp); 
 void gles2_init(); 
-void gles2_uninit();
+void gles2_release();
 int gles2_surface_changed(int w, int h);
 int gles2_draw_frame();
 

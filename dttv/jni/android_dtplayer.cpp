@@ -81,6 +81,7 @@ int DTPlayer::setDataSource(const char *file_name)
 	para.update_cb = notify;
 	//para.disable_audio=1;
 	//para.disable_video=1;
+	para.disable_sub=1;
     if(!mHWEnable)
         para.disable_hw_vcodec = 1;
 	para.width = -1;

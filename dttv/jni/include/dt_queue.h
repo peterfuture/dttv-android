@@ -25,6 +25,7 @@
 
 #define VIDEO_OUT_MAX_COUNT 4
 #define AUDIO_OUT_MAX_COUNT 4
+#define SUB_OUT_MAX_COUNT   4
 
 typedef struct _node_
 {

@@ -46,6 +46,13 @@ typedef enum
 
 typedef enum
 {
+    DT_SUB_FORMAT_INVALID = -1,
+    DT_SUB_FORMAT_UNKOWN,
+} dtsub_format_t;
+
+
+typedef enum
+{
     DT_SUBTITLE_FORMAT_INVALID = -1,
     DT_SUBTITLE_FORMAT_UNKOWN,
 } dtsubtitle_format_t;

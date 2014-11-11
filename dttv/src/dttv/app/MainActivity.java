@@ -11,8 +11,13 @@ import com.actionbarsherlock.view.Menu;
 
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
@@ -21,6 +26,7 @@ import android.widget.Toast;
 
 import dttv.app.impl.I_KeyIntercept;
 import dttv.app.utils.Constant;
+import dttv.app.utils.SettingUtil;
 import dttv.app.widget.SlideTabsFragment;
 import dttv.app.widget.SlideTabsFragment.ChangeActionModeListener;
 
@@ -110,7 +116,16 @@ public class MainActivity extends SherlockFragmentActivity implements SearchView
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// TODO Auto-generated method stub
+		String res = item.getTitleCondensed().toString();
+		//Toast.makeText(this, res, 1).show();
+		if(!TextUtils.isEmpty(res) && res.equals("Setting")){
+			openSettingUI();
+		}
 		return super.onOptionsItemSelected(item);
+	}
+	
+	public void openSettingUI(){
+		startActivity(new Intent(this,SettingActivity.class));
 	}
 
 	@Override

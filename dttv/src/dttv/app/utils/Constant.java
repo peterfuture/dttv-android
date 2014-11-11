@@ -36,4 +36,8 @@ public class Constant {
 	
 	public static final int FILTER_SIZE = 1 * 1024 * 1024;// 1MB
 	public static final int FILTER_DURATION = 1 * 60 * 1000;// 1分钟
+	
+	public static final String FILTER_AUDIO_KEY = "filter_audio";
+	public static final String FILTER_VIDEO_KEY = "filter_video";
+	public static final String DECODE_STYLE_KEY = "dt_setting_decode_list";
 }

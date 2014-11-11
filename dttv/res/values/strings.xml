@@ -24,4 +24,10 @@
 	
 	<string name="dt_decode_type_soft">软解码</string>
 	<string name="dt_decode_type_hard">硬解码</string>
+	<string name="dt_setting_title">播放器设置</string>
+	
+	<string name="dt_decode_audio_filter_str">过滤时长小于60秒音频</string>
+	<string name="dt_decode_video_filter_str">过滤时长小于60秒视频</string>
+	<string name="dt_setting_yes">是</string>
+	<string name="dt_setting_no">否</string>
 </resources>

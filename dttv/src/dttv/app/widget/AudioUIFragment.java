@@ -39,6 +39,7 @@ import dttv.app.impl.I_OnMyKey;
 import dttv.app.utils.Constant;
 import dttv.app.utils.MusicUtils;
 import dttv.app.utils.PlayerUtil;
+import dttv.app.utils.SettingUtil;
 import dttv.app.utils.TimesUtil;
 
 
@@ -53,6 +54,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 	private int currentPosition;
 	private List<String> playList;
 	private int trick_seek = 0;
+	SettingUtil settingUtil;
 	
 	public AudioUIFragment() {
 		// TODO Auto-generated constructor stub
@@ -63,7 +65,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 			Bundle savedInstanceState) {
 		
 		rootView = inflater.inflate(R.layout.dt_audio_ui_fragment, container, false);
-		
+		settingUtil = new SettingUtil(getActivity());
 		return rootView;
 	}
 	@Override
@@ -134,9 +136,9 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey,OnClickListen
 		/*if(sp.getFilterSize()) {
 			select.append(" and " + Media.SIZE + " > " + FILTER_SIZE);
 		}*/
-		//if(sp.getFilterTime()) {
+		if(settingUtil.isFilterAudio()) {
 			select.append(" and " + Media.DURATION + " > " + Constant.FILTER_DURATION);
-		//}
+		}
 
 		/*if (!TextUtils.isEmpty(selections)) {
 			select.append(selections);

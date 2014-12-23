@@ -55,7 +55,7 @@ struct TimeStamp {
 
 class CustomSource;
 
-typedef struct StagefrightContext {
+struct StagefrightContext {
     uint8_t* orig_extradata;
     int orig_extradata_size;
     sp<MediaSource> *source;
@@ -79,7 +79,7 @@ typedef struct StagefrightContext {
     sp<MediaSource> *decoder;
     const char *decoder_component;
     int info_changed;
-}StagefrightContext;
+};
 
 class CustomSource : public MediaSource {
 public:
@@ -296,10 +296,11 @@ push_frame:
 static int Stagefright_init(dtvideo_decoder_t *decoder)
 {
     vd_wrapper_t *wrapper = decoder->wrapper;
-    StagefrightContext *s = (StagefrightContext *)malloc(sizeof(StagefrightContext));
-    memset(s,0,sizeof(StagefrightContext));
-    decoder->vd_priv = s;
+    //StagefrightContext *s = (StagefrightContext *)malloc(sizeof(StagefrightContext));
+    //memset(s,0,sizeof(StagefrightContext));
 
+    StagefrightContext *s = new StagefrightContext();
+    decoder->vd_priv = s;
     dtvideo_para_t *vd_para = decoder->para;
 
     sp<MetaData> meta, outFormat;
@@ -307,11 +308,12 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
     int pix_fmt;
     int ret;
 
-    if (!vd_para->extradata || !vd_para->extradata_size || vd_para->extradata[0] != 1)
+    //if (!vd_para->extradata || !vd_para->extradata_size || vd_para->extradata[0] != 1)
+    if (!vd_para->extradata || !vd_para->extradata_size)
     {
-        __android_log_print(ANDROID_LOG_DEBUG,TAG, "NO Valid Extradata Find \n");
+        __android_log_print(ANDROID_LOG_INFO,TAG, "NO Valid Extradata Find \n");
         s->orig_extradata_size = 0;
-        //return -1;
+        return -1;
     }
     else
     {
@@ -337,10 +339,20 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
         meta->setData(kKeyAVCC, kTypeAVCC, vd_para->extradata, vd_para->extradata_size);
 
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "meta set ok \n");
+    __android_log_print(ANDROID_LOG_INFO,TAG, "==================================\n");
+    __android_log_print(ANDROID_LOG_INFO,TAG, "Start To Init OMX Codec\n");
+    __android_log_print(ANDROID_LOG_INFO,TAG, "width - %d height - %d\n", vd_para->s_width, vd_para->s_height);
+    __android_log_print(ANDROID_LOG_INFO,TAG, "extrasize:%d\n", vd_para->extradata_size);
+    __android_log_print(ANDROID_LOG_INFO,TAG, "extradata:%02x - %02x %02x %02x \n", vd_para->extradata[0], vd_para->extradata[1], vd_para->extradata[2], vd_para->extradata[3]);
+    __android_log_print(ANDROID_LOG_INFO,TAG, "extradata:%02x - %02x %02x %02x \n", vd_para->extradata[4], vd_para->extradata[5], vd_para->extradata[6], vd_para->extradata[7]);
+    __android_log_print(ANDROID_LOG_INFO,TAG, "extradata:%02x - %02x %02x %02x \n", vd_para->extradata[8], vd_para->extradata[9], vd_para->extradata[10], vd_para->extradata[11]);
+    __android_log_print(ANDROID_LOG_INFO,TAG, "==================================\n");
+
     android::ProcessState::self()->startThreadPool();
 
-    s->source    = new sp<MediaSource>();
-    *s->source   = new CustomSource(decoder, meta);
+    //s->source    = new sp<MediaSource>();
+    //*s->source   = new CustomSource(decoder, meta);
+    s->source = new sp<MediaSource>(new CustomSource(decoder, meta));
     s->in_queue  = new List<Frame*>;
     s->out_queue = new List<Frame*>;
     s->ts_map    = new std::map<int64_t, TimeStamp>;
@@ -363,7 +375,7 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
     s->decoder  = new sp<MediaSource>();
     *s->decoder = OMXCodec::Create(s->client->interface(), meta,
                                   false, *s->source, NULL,
-                                  OMXCodec::kClientNeedsFramebuffer);
+                                  OMXCodec::kClientNeedsFramebuffer, NULL);
     if(*s->decoder == NULL)
     {
         __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 2 create omxcodec failed \n");
@@ -433,7 +445,7 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_
     int orig_size = vd_frame->size;
 
     dt_av_frame_t *ret_frame;
-
+    __android_log_print(ANDROID_LOG_INFO, TAG, "enter decode frame, size:%d \n", vd_frame->size);
     if (!s->thread_started) {
         pthread_create(&s->decode_thread_id, NULL, &decode_thread, decoder);
         s->thread_started = true;
@@ -467,7 +479,7 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_
             //frame->time = ++s->frame_index;
             frame->time = vd_frame->pts;
             //(*s->ts_map)[s->frame_index].pts = vd_frame->pts; // do not store pts
-            //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame,size:%d  %02x %02x %02x %02x %02x %02x\n",frame->size,frame->buffer[0],frame->buffer[1],frame->buffer[2],frame->buffer[3],frame->buffer[4],frame->buffer[5]);
+            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame,size:%d  %02x %02x %02x %02x %02x %02x\n",frame->size,frame->buffer[0],frame->buffer[1],frame->buffer[2],frame->buffer[3],frame->buffer[4],frame->buffer[5]);
             //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame, %02x %02x %02x %02x %02x %02x\n",ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5]);
             //(*s->ts_map)[s->frame_index].reordered_opaque = vd_frame->reordered_opaque;
             __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, push frame, index:%llx pts:%llx \n",s->frame_index, vd_frame->pts);
@@ -497,7 +509,7 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_
 OUT:
     if (s->out_queue->empty())
     {
-        //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step have no frame out\n");
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step have no frame out\n");
         return 0;
     }
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step begin to read one frame out\n");

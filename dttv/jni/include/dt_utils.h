@@ -9,6 +9,7 @@
 #include "dt_log.h"
 #include "dt_queue.h"
 #include "dt_time.h"
+#include "dt_setting.h"
 #include "dt_ini.h"
 #include "dt_rw.h"
 

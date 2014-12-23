@@ -37,6 +37,19 @@ typedef struct
 
 typedef struct
 {
+    char title[512];
+    char author[512];
+    char album[512];
+    char comment[512];
+    char year[4];
+    int track;
+    char genre[32];
+    char copyright[512];
+    int cover_type; // 0-none 1-jpg 2-png
+}album_info_t;
+
+typedef struct
+{
     int index;
     int id;
     int bit_rate;
@@ -48,6 +61,7 @@ typedef struct
     int extradata_size;
     uint8_t *extradata;
     dtaudio_format_t format;
+    album_info_t album_info; 
     void *codec_priv;
 } astream_info_t;
 

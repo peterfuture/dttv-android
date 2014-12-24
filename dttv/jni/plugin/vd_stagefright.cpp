@@ -523,10 +523,12 @@ OUT:
     free(frame);
 
     *data = (dt_av_frame_t *)malloc(sizeof(dt_av_frame_t));
+    memset(*data, 0, sizeof(dt_av_frame_t));
     //*got_frame = 1;
     
     memcpy(*data,ret_frame,sizeof(dt_av_frame_t));
-    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode one frame ok, pts:%lld \n",ret_frame->pts);
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode one frame ok, pts:%llx dts:%llx \n", (*data)->pts, (*data)->dts);
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode one frame ok, pts:%llx dts:%llx \n", ret_frame->pts, ret_frame->dts);
     return 1;
     //return orig_size;
 }

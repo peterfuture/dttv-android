@@ -313,7 +313,7 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
     {
         __android_log_print(ANDROID_LOG_INFO,TAG, "NO Valid Extradata Find \n");
         s->orig_extradata_size = 0;
-        return -1;
+        //return -1;
     }
     else
     {
@@ -343,9 +343,11 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
     __android_log_print(ANDROID_LOG_INFO,TAG, "Start To Init OMX Codec\n");
     __android_log_print(ANDROID_LOG_INFO,TAG, "width - %d height - %d\n", vd_para->s_width, vd_para->s_height);
     __android_log_print(ANDROID_LOG_INFO,TAG, "extrasize:%d\n", vd_para->extradata_size);
-    __android_log_print(ANDROID_LOG_INFO,TAG, "extradata:%02x - %02x %02x %02x \n", vd_para->extradata[0], vd_para->extradata[1], vd_para->extradata[2], vd_para->extradata[3]);
-    __android_log_print(ANDROID_LOG_INFO,TAG, "extradata:%02x - %02x %02x %02x \n", vd_para->extradata[4], vd_para->extradata[5], vd_para->extradata[6], vd_para->extradata[7]);
-    __android_log_print(ANDROID_LOG_INFO,TAG, "extradata:%02x - %02x %02x %02x \n", vd_para->extradata[8], vd_para->extradata[9], vd_para->extradata[10], vd_para->extradata[11]);
+    if(s->orig_extradata_size > 0){
+    	__android_log_print(ANDROID_LOG_INFO,TAG, "extradata:%02x - %02x %02x %02x \n", vd_para->extradata[0], vd_para->extradata[1], vd_para->extradata[2], vd_para->extradata[3]);
+    	__android_log_print(ANDROID_LOG_INFO,TAG, "extradata:%02x - %02x %02x %02x \n", vd_para->extradata[4], vd_para->extradata[5], vd_para->extradata[6], vd_para->extradata[7]);
+    	__android_log_print(ANDROID_LOG_INFO,TAG, "extradata:%02x - %02x %02x %02x \n", vd_para->extradata[8], vd_para->extradata[9], vd_para->extradata[10], vd_para->extradata[11]);
+    }
     __android_log_print(ANDROID_LOG_INFO,TAG, "==================================\n");
 
     android::ProcessState::self()->startThreadPool();

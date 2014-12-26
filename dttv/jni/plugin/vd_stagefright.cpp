@@ -228,6 +228,7 @@ void* decode_thread(void *arg)
                 buffer->release();
                 goto push_frame;
             }
+            memset(frame->vframe, 0, sizeof(dt_av_frame_t));
             
             pic_size = buffer->range_length();
             //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step malloc buffer, size:%di rangesize:%d\n",pic_size,buffer->range_length());
@@ -268,12 +269,12 @@ void* decode_thread(void *arg)
                     buffer->release();
                 av_freep(frame);
                 continue;
-            } else {
-                __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode failed, maybe no data left \n");
-                usleep(1000);
-                continue;
-                decode_done = 1;
-            }
+        } else {
+            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode failed, maybe no data left \n");
+            usleep(1000);
+            continue;
+            decode_done = 1;
+        }
 push_frame:
         while (true) {
             pthread_mutex_lock(&s->out_mutex);
@@ -307,6 +308,9 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
     int32_t colorFormat = 0;
     int pix_fmt;
     int ret;
+
+    if(vd_para->extradata_size > 0 && vd_para->extradata[0] != 0x1)
+    	vd_para->extradata_size = 0;
 
     //if (!vd_para->extradata || !vd_para->extradata_size || vd_para->extradata[0] != 1)
     if (!vd_para->extradata || !vd_para->extradata_size)
@@ -439,52 +443,53 @@ fail:
     return ret;
 }
 
-static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_frame,dt_av_frame_t **data)
+static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_pkt,dt_av_frame_t **data)
 {
     StagefrightContext *s = (StagefrightContext*)decoder->vd_priv;
     Frame *frame;
     status_t status;
-    int orig_size = vd_frame->size;
+    int orig_size = vd_pkt->size;
 
     dt_av_frame_t *ret_frame;
-    __android_log_print(ANDROID_LOG_INFO, TAG, "enter decode frame, size:%d \n", vd_frame->size);
+    __android_log_print(ANDROID_LOG_INFO, TAG, "enter decode frame, size:%d \n", vd_pkt->size);
     if (!s->thread_started) {
         pthread_create(&s->decode_thread_id, NULL, &decode_thread, decoder);
         s->thread_started = true;
         __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 1 start decode thread ok\n");
     }
     
-    if(vd_frame->size <= 0)
+    if(vd_pkt->size <= 0)
         goto OUT;
     
     if (!s->source_done) {
         if(!s->dummy_buf) {
-            s->dummy_buf = (uint8_t*)av_malloc(vd_frame->size);
+            s->dummy_buf = (uint8_t*)av_malloc(vd_pkt->size);
             if (!s->dummy_buf)
                 return -1;
-            s->dummy_bufsize = vd_frame->size;
-            memcpy(s->dummy_buf, vd_frame->data, vd_frame->size);
+            s->dummy_bufsize = vd_pkt->size;
+            memcpy(s->dummy_buf, vd_pkt->data, vd_pkt->size);
         }
 
         frame = (Frame*)av_mallocz(sizeof(Frame));
-        if (vd_frame->data) {
+        memset(frame, 0, sizeof(Frame));
+        if (vd_pkt->data) {
             frame->status  = OK;
-            frame->size    = vd_frame->size;
-            frame->key     = vd_frame->key_frame;
+            frame->size    = vd_pkt->size;
+            frame->key     = vd_pkt->key_frame;
             frame->buffer  = (uint8_t*)av_malloc(frame->size);
             if (!frame->buffer) {
                 av_freep(&frame);
                 return -1;
             }
-            uint8_t *ptr = vd_frame->data;
+            uint8_t *ptr = vd_pkt->data;
             memcpy(frame->buffer, ptr, orig_size);
             //frame->time = ++s->frame_index;
-            frame->time = vd_frame->pts;
+            frame->time = vd_pkt->pts;
             //(*s->ts_map)[s->frame_index].pts = vd_frame->pts; // do not store pts
             __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame,size:%d  %02x %02x %02x %02x %02x %02x\n",frame->size,frame->buffer[0],frame->buffer[1],frame->buffer[2],frame->buffer[3],frame->buffer[4],frame->buffer[5]);
             //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame, %02x %02x %02x %02x %02x %02x\n",ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5]);
             //(*s->ts_map)[s->frame_index].reordered_opaque = vd_frame->reordered_opaque;
-            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, push frame, index:%llx pts:%llx \n",s->frame_index, vd_frame->pts);
+            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, push frame, index:%llx pts:%llx \n",s->frame_index, vd_pkt->pts);
         } 
         
         while (true) 
@@ -524,11 +529,11 @@ OUT:
     status  = frame->status;
     free(frame);
 
-    *data = (dt_av_frame_t *)malloc(sizeof(dt_av_frame_t));
-    memset(*data, 0, sizeof(dt_av_frame_t));
+    dt_av_frame_t *frame_ret = (dt_av_frame_t *)malloc(sizeof(dt_av_frame_t));
     //*got_frame = 1;
     
-    memcpy(*data,ret_frame,sizeof(dt_av_frame_t));
+    memcpy(frame_ret,ret_frame,sizeof(dt_av_frame_t));
+    *data = frame_ret;
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode one frame ok, pts:%llx dts:%llx \n", (*data)->pts, (*data)->dts);
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode one frame ok, pts:%llx dts:%llx \n", ret_frame->pts, ret_frame->dts);
     return 1;
@@ -560,7 +565,9 @@ static int Stagefright_close(dtvideo_decoder_t *decoder)
                 frame = *s->out_queue->begin();
                 s->out_queue->erase(s->out_queue->begin());
                 if (frame->vframe)
+                {
                     dtav_free_frame(frame->vframe);
+                }
                 av_freep(&frame);
             }
             pthread_mutex_unlock(&s->out_mutex);
@@ -595,7 +602,6 @@ static int Stagefright_close(dtvideo_decoder_t *decoder)
 
         s->thread_started = false;
     }
-
     while (!s->in_queue->empty()) {
         frame = *s->in_queue->begin();
         s->in_queue->erase(s->in_queue->begin());
@@ -611,7 +617,6 @@ static int Stagefright_close(dtvideo_decoder_t *decoder)
             dtav_free_frame(frame->vframe);
         av_freep(&frame);
     }
-
     (*s->decoder)->stop();
     s->client->disconnect();
 

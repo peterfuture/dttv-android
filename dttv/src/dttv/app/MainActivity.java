@@ -1,48 +1,47 @@
 package dttv.app;
 
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.ActionMode;
-import com.actionbarsherlock.view.MenuItem;
-import com.actionbarsherlock.widget.SearchView;
-import com.actionbarsherlock.view.Menu;
-
-
-
 
 
 import android.annotation.SuppressLint;
+import android.app.ActionBar;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
+//import android.view.Window;
+//import android.view.WindowManager;
 import android.widget.Toast;
 
 
 
 import dttv.app.impl.I_KeyIntercept;
 import dttv.app.utils.Constant;
-import dttv.app.utils.SettingUtil;
 import dttv.app.widget.SlideTabsFragment;
 import dttv.app.widget.SlideTabsFragment.ChangeActionModeListener;
 
 @SuppressLint("NewApi")
-public class MainActivity extends SherlockFragmentActivity implements SearchView.OnQueryTextListener,SearchView.OnSuggestionListener,ChangeActionModeListener,I_KeyIntercept{
+public class MainActivity extends FragmentActivity implements ChangeActionModeListener,I_KeyIntercept{
 	
 	final String TAG = "ActionBarViewpager";
 	private int CURRENTACTION = Constant.LOCAL_FILE;
-	ActionMode currentMode;
 	SlideTabsFragment slideFragment;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);	
+		/*getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);*/
 		setContentView(R.layout.activity_main);
-		//currentMode = startActionMode(new LocalVideoActionBar());
 		fillFragment();
 	}
 	
@@ -52,7 +51,7 @@ public class MainActivity extends SherlockFragmentActivity implements SearchView
 		fragmentManager.beginTransaction().replace(R.id.dt_main_content_frame, slideFragment).commit();
 	}
 
-	protected void createActionMode(int mode, Menu menu){
+	protected void createActionMode(int mode, ContextMenu menu){
 		menu.clear();
 		switch(mode){
 		case Constant.LOCAL_VIDEO:
@@ -106,11 +105,11 @@ public class MainActivity extends SherlockFragmentActivity implements SearchView
 	}*/
 	
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
 		// TODO Auto-generated method stub
-		Log.i(TAG, "enter onCreateOptionsMenu");
 		createActionMode(CURRENTACTION,menu);
-		return true;
+		super.onCreateContextMenu(menu, v, menuInfo);
 	}
 	
 	@Override
@@ -128,7 +127,7 @@ public class MainActivity extends SherlockFragmentActivity implements SearchView
 		startActivity(new Intent(this,SettingActivity.class));
 	}
 
-	@Override
+	/*@Override
 	public boolean onSuggestionSelect(int position) {
 		// TODO Auto-generated method stub
 		return false;
@@ -144,20 +143,21 @@ public class MainActivity extends SherlockFragmentActivity implements SearchView
 	public boolean onQueryTextSubmit(String query) {
 		Toast.makeText(this, "You searched for: " + query, Toast.LENGTH_LONG).show();
 		return true;
-	}
+	}*/
 
 	@Override
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
-		slideFragment.getView().requestFocus();
+		/*if(slideFragment.getView() != null)
+			slideFragment.getView().requestFocus();*/
 	}
 	
-	@Override
+	/*@Override
 	public boolean onQueryTextChange(String newText) {
 		// TODO Auto-generated method stub
 		return false;
-	}
+	}*/
 
 	@Override
 	public void changeActionMode(int mode) {

@@ -35,7 +35,7 @@ typedef struct vd_wrapper
 
 typedef struct dtvideo_decoder
 {
-    dtvideo_para_t *para;
+    dtvideo_para_t para;
     vd_wrapper_t *wrapper;
     pthread_t video_decoder_pid;
     vdec_status_t status;

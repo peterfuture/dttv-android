@@ -76,6 +76,34 @@
     } while(0)
 #endif
 
+#ifndef DT_RB24
+#   define DT_RB24(x)                           \
+    ((((const uint8_t*)(x))[0] << 16) |         \
+     (((const uint8_t*)(x))[1] <<  8) |         \
+      ((const uint8_t*)(x))[2])
+#endif
+#ifndef DT_WB24
+#   define DT_WB24(p, d) do {                   \
+        ((uint8_t*)(p))[2] = (d);               \
+        ((uint8_t*)(p))[1] = (d)>>8;            \
+        ((uint8_t*)(p))[0] = (d)>>16;           \
+    } while(0)
+#endif
+
+#ifndef DT_RL24
+#   define DT_RL24(x)                           \
+    ((((const uint8_t*)(x))[2] << 16) |         \
+     (((const uint8_t*)(x))[1] <<  8) |         \
+      ((const uint8_t*)(x))[0])
+#endif
+#ifndef DT_WL24
+#   define DT_WL24(p, d) do {                   \
+        ((uint8_t*)(p))[0] = (d);               \
+        ((uint8_t*)(p))[1] = (d)>>8;            \
+        ((uint8_t*)(p))[2] = (d)>>16;           \
+    } while(0)
+#endif
+
 #ifndef DT_RB64
 #   define DT_RB64(x)                                   \
     (((uint64_t)((const uint8_t*)(x))[0] << 56) |       \
@@ -161,6 +189,16 @@
                (((const uint8_t*)(x))[1] <<  8) |    \
                 ((const uint8_t*)(x))[0])
 #endif
+
+#ifndef DT_RB32
+#   define DT_RB32(x)                                \
+    (((uint32_t)((const uint8_t*)(x))[3] << 24) |    \
+               (((const uint8_t*)(x))[2] << 16) |    \
+               (((const uint8_t*)(x))[1] <<  8) |    \
+                ((const uint8_t*)(x))[0])
+#endif
+
+
 #ifndef DT_WB32
 #   define DT_WB32(p, darg) do {                \
         unsigned d = (darg);                    \

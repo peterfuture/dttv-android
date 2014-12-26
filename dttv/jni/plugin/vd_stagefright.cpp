@@ -84,7 +84,7 @@ struct StagefrightContext {
 class CustomSource : public MediaSource {
 public:
     CustomSource(dtvideo_decoder_t *decoder, sp<MetaData> meta) {
-        dtvideo_para_t *vd_para = decoder->para;
+        dtvideo_para_t *vd_para = &decoder->para;
         s = (StagefrightContext*)decoder->vd_priv;
         source_meta = meta;
         frame_size  = (vd_para->s_width * vd_para->s_height * 3) / 2;
@@ -111,7 +111,6 @@ public:
         if (s->thread_exited)
             return ERROR_END_OF_STREAM;
         pthread_mutex_lock(&s->in_mutex);
-
         
         while (s->in_queue->empty())
         {
@@ -131,6 +130,7 @@ public:
                 (*buffer)->meta_data()->setInt32(kKeyIsSyncFrame,frame->key);
                 (*buffer)->meta_data()->setInt64(kKeyTime, frame->time);
             } else {
+                __android_log_print(ANDROID_LOG_DEBUG,TAG, "Failed to acquire MediaBuffer \n");
                 //av_log(s->avctx, AV_LOG_ERROR, "Failed to acquire MediaBuffer\n");
             }
             av_freep(frame->buffer);
@@ -198,12 +198,15 @@ void* decode_thread(void *arg)
         buffer = NULL;
         frame = (Frame*)av_mallocz(sizeof(Frame));
         if (!frame) {
+            continue;
+#if 0
             frame         = s->end_frame;
             frame->status = -1;
             //frame->status = AVERROR(ENOMEM);
             decode_done   = 1;
             s->end_frame  = NULL;
             goto push_frame;
+#endif
         }
         memset(frame,0,sizeof(Frame));
         frame->status = (*s->decoder)->read(&buffer);
@@ -214,6 +217,7 @@ void* decode_thread(void *arg)
             {
                 buffer->release();
                 buffer = NULL;
+                free(frame);
                 continue;
             }
 
@@ -261,7 +265,7 @@ void* decode_thread(void *arg)
             }
 #endif
             buffer->release();
-            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decoded one frame : pts:%llx outindex:%llx\n",frame->vframe->pts, out_frame_index);
+            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decoded one frame : pts:%llx outindex:%llx size:%d \n",frame->vframe->pts, out_frame_index, pic_size);
             
         } else if (frame->status == INFO_FORMAT_CHANGED) {
                 __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step info chaned :%d \n",frame->status);
@@ -302,7 +306,7 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
 
     StagefrightContext *s = new StagefrightContext();
     decoder->vd_priv = s;
-    dtvideo_para_t *vd_para = decoder->para;
+    dtvideo_para_t *vd_para = &decoder->para;
 
     sp<MetaData> meta, outFormat;
     int32_t colorFormat = 0;
@@ -356,9 +360,9 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
 
     android::ProcessState::self()->startThreadPool();
 
-    //s->source    = new sp<MediaSource>();
-    //*s->source   = new CustomSource(decoder, meta);
-    s->source = new sp<MediaSource>(new CustomSource(decoder, meta));
+    s->source    = new sp<MediaSource>();
+    *s->source   = new CustomSource(decoder, meta);
+    //s->source = new sp<MediaSource>(new CustomSource(decoder, meta));
     s->in_queue  = new List<Frame*>;
     s->out_queue = new List<Frame*>;
     s->ts_map    = new std::map<int64_t, TimeStamp>;
@@ -370,13 +374,12 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
         goto fail;
     }
 
-    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 1 client->connect \n");
     if (s->client->connect() !=  OK) {
     	__android_log_print(ANDROID_LOG_DEBUG,TAG,"Cannot connect OMX client\n");
         ret = -1;
         goto fail;
     }
-    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 1 client->connect ok\n");
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "client->connect ok\n");
 
     s->decoder  = new sp<MediaSource>();
     *s->decoder = OMXCodec::Create(s->client->interface(), meta,
@@ -384,17 +387,17 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
                                   OMXCodec::kClientNeedsFramebuffer, NULL);
     if(*s->decoder == NULL)
     {
-        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 2 create omxcodec failed \n");
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "create omxcodec failed \n");
         goto fail;
     }
-    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 2 create omxcodec ok \n");
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "omxcodec create ok \n");
     if ((*s->decoder)->start() !=  OK) {
     	__android_log_print(ANDROID_LOG_DEBUG,TAG,"Cannot start decoder\n");
         ret = -1;
         s->client->disconnect();
         goto fail;
     }
-    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 3 start omxcodec ok \n");
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "omxcodec start ok \n");
 
     outFormat = (*s->decoder)->getFormat();
     outFormat->findInt32(kKeyColorFormat, &colorFormat);
@@ -409,26 +412,26 @@ static int Stagefright_init(dtvideo_decoder_t *decoder)
     else
         pix_fmt = DTAV_PIX_FMT_YUV420P;
     
-    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step 4 get colorFormat info, format:%d pix_fmt:%d  \n", colorFormat, pix_fmt);
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "get colorFormat info, color format:%d pix_fmt:%d  \n", colorFormat, pix_fmt);
     
     outFormat->findCString(kKeyDecoderComponent, &s->decoder_component);
     if (s->decoder_component)
     {
         s->decoder_component = strdup(s->decoder_component);
-        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------component:%s  \n",s->decoder_component);
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "decoder component:%s  \n",s->decoder_component);
     }
     pthread_mutex_init(&s->in_mutex, NULL);
     pthread_mutex_init(&s->out_mutex, NULL);
     pthread_cond_init(&s->condition, NULL);
-    wrapper->para = decoder->para;
+    wrapper->para = &decoder->para;
 
     if(pix_fmt != wrapper->para->s_pixfmt)
     {
         wrapper->para->s_pixfmt = pix_fmt;
         s->info_changed = 1;
+        __android_log_print(ANDROID_LOG_DEBUG,TAG, "Info chanaged, dst picfmt:%d \n", pix_fmt);
     }
-
-    __android_log_print(ANDROID_LOG_DEBUG,TAG, "vd stagefright init ok \n");
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "plugin stagefright omx decoder init ok \n");
     return 0;
 
 fail:
@@ -443,7 +446,7 @@ fail:
     return ret;
 }
 
-static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_pkt,dt_av_frame_t **data)
+static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_pkt, dt_av_frame_t **data)
 {
     StagefrightContext *s = (StagefrightContext*)decoder->vd_priv;
     Frame *frame;
@@ -519,23 +522,26 @@ OUT:
         __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step have no frame out\n");
         return 0;
     }
-    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step begin to read one frame out\n");
 
     frame = *s->out_queue->begin();
     s->out_queue->erase(s->out_queue->begin());
     pthread_mutex_unlock(&s->out_mutex);
 
+    
     ret_frame = frame->vframe;
     status  = frame->status;
-    free(frame);
+    av_freep(&frame);
 
     dt_av_frame_t *frame_ret = (dt_av_frame_t *)malloc(sizeof(dt_av_frame_t));
     //*got_frame = 1;
-    
     memcpy(frame_ret,ret_frame,sizeof(dt_av_frame_t));
     *data = frame_ret;
+#if 0
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode one frame ok, %p %p %d %p \n", *data, frame_ret, sizeof(dt_av_frame_t), decoder);
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode one frame ok, pts:%llx dts:%llx \n", (*data)->pts, (*data)->dts);
     __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode one frame ok, pts:%llx dts:%llx \n", ret_frame->pts, ret_frame->dts);
+    __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode one frame ok, width:%d height:%d duration:%d  \n", frame_ret->width, frame_ret->height, frame_ret->duration);
+#endif
     return 1;
     //return orig_size;
 }
@@ -602,6 +608,8 @@ static int Stagefright_close(dtvideo_decoder_t *decoder)
 
         s->thread_started = false;
     }
+
+#if 0
     while (!s->in_queue->empty()) {
         frame = *s->in_queue->begin();
         s->in_queue->erase(s->in_queue->begin());
@@ -617,13 +625,16 @@ static int Stagefright_close(dtvideo_decoder_t *decoder)
             dtav_free_frame(frame->vframe);
         av_freep(&frame);
     }
+#endif
     (*s->decoder)->stop();
     s->client->disconnect();
 
     if (s->decoder_component)
         av_freep(&s->decoder_component);
+    if(s->dummy_buf)
     av_freep(&s->dummy_buf);
-    av_freep(&s->end_frame);
+    if(s->end_frame)
+        av_freep(&s->end_frame);
 
     // Reset the extradata back to the original mp4 format, so that
     // the next invocation (both when decoding and when called from

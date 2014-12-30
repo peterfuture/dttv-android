@@ -3,21 +3,20 @@ package dttv.app;
 
 
 import android.annotation.SuppressLint;
-import android.app.ActionBar;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
-import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.widget.SearchView;
+import android.widget.SearchView.OnQueryTextListener;
+import android.widget.SearchView.OnSuggestionListener;
 //import android.view.Window;
 //import android.view.WindowManager;
 import android.widget.Toast;
@@ -30,7 +29,7 @@ import dttv.app.widget.SlideTabsFragment;
 import dttv.app.widget.SlideTabsFragment.ChangeActionModeListener;
 
 @SuppressLint("NewApi")
-public class MainActivity extends FragmentActivity implements ChangeActionModeListener,I_KeyIntercept{
+public class MainActivity extends FragmentActivity implements OnSuggestionListener,OnQueryTextListener, ChangeActionModeListener,I_KeyIntercept{
 	
 	final String TAG = "ActionBarViewpager";
 	private int CURRENTACTION = Constant.LOCAL_FILE;
@@ -51,21 +50,22 @@ public class MainActivity extends FragmentActivity implements ChangeActionModeLi
 		fragmentManager.beginTransaction().replace(R.id.dt_main_content_frame, slideFragment).commit();
 	}
 
-	protected void createActionMode(int mode, ContextMenu menu){
+	protected void createActionMode(int mode, Menu menu){
 		menu.clear();
 		switch(mode){
 		case Constant.LOCAL_VIDEO:
-			/*SearchView searchView = new SearchView(getSupportActionBar().getThemedContext());
+			SearchView searchView = new SearchView(this);
 			searchView.setMaxWidth(600);
 			searchView.setQueryHint("input words");
 			searchView.setOnQueryTextListener(this);
-			searchView.setOnSuggestionListener(this);*/
+			searchView.setOnSuggestionListener(this);
 			
-			menu.add("Search").setIcon(R.drawable.dt_action_search_icon)
-			//.setActionView(searchView)
-			.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+			/*menu.add("Search").setIcon(R.drawable.dt_action_search_icon)
+			.setActionView(searchView)
+			.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);*/
 			menu.add("Refresh").setIcon(R.drawable.dt_action_refresh_icon)
 			.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM );
+			
 			menu.add("Setting").setShowAsAction(MenuItem.SHOW_AS_ACTION_WITH_TEXT);
 			break;
 		case Constant.LOCAL_AUDIO:
@@ -108,8 +108,15 @@ public class MainActivity extends FragmentActivity implements ChangeActionModeLi
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 		// TODO Auto-generated method stub
-		createActionMode(CURRENTACTION,menu);
+		//createActionMode(CURRENTACTION,menu);
 		super.onCreateContextMenu(menu, v, menuInfo);
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		createActionMode(CURRENTACTION,menu);
+		return super.onCreateOptionsMenu(menu);
 	}
 	
 	@Override
@@ -127,7 +134,7 @@ public class MainActivity extends FragmentActivity implements ChangeActionModeLi
 		startActivity(new Intent(this,SettingActivity.class));
 	}
 
-	/*@Override
+	@Override
 	public boolean onSuggestionSelect(int position) {
 		// TODO Auto-generated method stub
 		return false;
@@ -143,7 +150,7 @@ public class MainActivity extends FragmentActivity implements ChangeActionModeLi
 	public boolean onQueryTextSubmit(String query) {
 		Toast.makeText(this, "You searched for: " + query, Toast.LENGTH_LONG).show();
 		return true;
-	}*/
+	}
 
 	@Override
 	protected void onResume() {
@@ -153,11 +160,11 @@ public class MainActivity extends FragmentActivity implements ChangeActionModeLi
 			slideFragment.getView().requestFocus();*/
 	}
 	
-	/*@Override
+	@Override
 	public boolean onQueryTextChange(String newText) {
 		// TODO Auto-generated method stub
 		return false;
-	}*/
+	}
 
 	@Override
 	public void changeActionMode(int mode) {

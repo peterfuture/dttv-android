@@ -265,7 +265,7 @@ void* decode_thread(void *arg)
             }
 #endif
             buffer->release();
-            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decoded one frame : pts:%llx outindex:%llx size:%d \n",frame->vframe->pts, out_frame_index, pic_size);
+            //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decoded one frame : pts:%llx outindex:%llx size:%d \n",frame->vframe->pts, out_frame_index, pic_size);
             
         } else if (frame->status == INFO_FORMAT_CHANGED) {
                 __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step info chaned :%d \n",frame->status);
@@ -274,7 +274,7 @@ void* decode_thread(void *arg)
                 av_freep(frame);
                 continue;
         } else {
-            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode failed, maybe no data left \n");
+            //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step decode failed, maybe no data left \n");
             usleep(1000);
             continue;
             decode_done = 1;
@@ -454,7 +454,7 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_
     int orig_size = vd_pkt->size;
 
     dt_av_frame_t *ret_frame;
-    __android_log_print(ANDROID_LOG_INFO, TAG, "enter decode frame, size:%d \n", vd_pkt->size);
+//    __android_log_print(ANDROID_LOG_INFO, TAG, "enter decode frame, size:%d \n", vd_pkt->size);
     if (!s->thread_started) {
         pthread_create(&s->decode_thread_id, NULL, &decode_thread, decoder);
         s->thread_started = true;
@@ -489,10 +489,10 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_
             //frame->time = ++s->frame_index;
             frame->time = vd_pkt->pts;
             //(*s->ts_map)[s->frame_index].pts = vd_frame->pts; // do not store pts
-            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame,size:%d  %02x %02x %02x %02x %02x %02x\n",frame->size,frame->buffer[0],frame->buffer[1],frame->buffer[2],frame->buffer[3],frame->buffer[4],frame->buffer[5]);
+           // __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame,size:%d  %02x %02x %02x %02x %02x %02x\n",frame->size,frame->buffer[0],frame->buffer[1],frame->buffer[2],frame->buffer[3],frame->buffer[4],frame->buffer[5]);
             //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, fill frame, %02x %02x %02x %02x %02x %02x\n",ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5]);
             //(*s->ts_map)[s->frame_index].reordered_opaque = vd_frame->reordered_opaque;
-            __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, push frame, index:%llx pts:%llx \n",s->frame_index, vd_pkt->pts);
+            //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step, push frame, index:%llx pts:%llx \n",s->frame_index, vd_pkt->pts);
         } 
         
         while (true) 
@@ -519,7 +519,7 @@ static int Stagefright_decode_frame(dtvideo_decoder_t *decoder, dt_av_pkt_t *vd_
 OUT:
     if (s->out_queue->empty())
     {
-        __android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step have no frame out\n");
+        //__android_log_print(ANDROID_LOG_DEBUG,TAG, "-------------step have no frame out\n");
         return 0;
     }
 

@@ -1,6 +1,7 @@
 #ifndef OPENGL_ANDROID_H
 #define OPENGL_ANDROID_H
 
+#include <EGL/egl.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 

@@ -1,9 +1,6 @@
 // ------------------------------------------------------------
 //OPENGL ESV2
 
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-
 #include <jni.h>
 #include <android/log.h>
 
@@ -339,7 +336,6 @@ void gles2_release()
 int gles2_surface_changed(int w, int h)
 {
     dt_lock(&mutex);
-
     gl_ctx.g_width = w;
 	gl_ctx.g_height = h;
     gl_ctx.status = GLRENDER_STATUS_RUNNING;
@@ -347,13 +343,10 @@ int gles2_surface_changed(int w, int h)
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     checkGlError("glClearColor");
-    
-    int width = gl_ctx.g_width;
-    int height = gl_ctx.g_height;
 
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, w, h);
 
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "on surface changed\n ");
+    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "on surface changed, w:%d h:%d\n ", w, h);
     dt_unlock(&mutex);
 }
 

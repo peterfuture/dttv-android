@@ -3,9 +3,10 @@ package dttv.app;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.microedition.khronos.opengles.GL10;
-import javax.security.auth.callback.Callback;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -20,7 +21,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -29,10 +29,10 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.AdapterView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -122,7 +122,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		dtPlayer = new DtPlayer(this);
 		if(OpenglES2Support() == 0)
 		{
-			Toast.makeText(this, "opengl es2.0 not supported", 1).show();
+			Toast.makeText(this, "opengl es2.0 not supported， Exit!", 1).show();
 			return;
 		}
 		else
@@ -471,7 +471,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 			break;
 		case R.id.dt_play_ratio_btn:
 			//Fix
-			//setVideoScale(temp_flag);
+			setVideoScale(temp_flag);
 			break;
 		case R.id.dt_player_rotate_btn:
 			changeConfigration();
@@ -599,6 +599,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	
 	class GLSurfaceViewRender implements GLSurfaceView.Renderer {  
   
+		private Lock lock = new ReentrantLock();
 		@Override
 		public void onSurfaceCreated(GL10 gl,
 				javax.microedition.khronos.egl.EGLConfig config) {
@@ -608,15 +609,17 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 			//gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 			dtPlayer.onSurfaceCreated();
 			
-		}  
+		}
 		
         @Override  
         public void onSurfaceChanged(GL10 gl, int width, int height) {
             //other case
+        	lock.lock();
         	Log.i(TAG, "gl surface change enter, width:"+width+" height:"+height);
         	dtPlayer.onSurfaceChanged(width,height);
         	surface_width = width;
         	surface_height = height;
+        	lock.unlock();
         }
   
         @Override  
@@ -626,13 +629,12 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
             // 同样如果将该代码放到 onSurfaceCreated 中屏幕会一直闪动  
             //gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
         	//Log.i(TAG, "draw enter");
+        	lock.lock();
         	dtPlayer.onDrawFrame();
-        }
-		
-  
+        	lock.unlock();
+        }	
     }  
 	
-	//-----------------------------OPENGL----------------------------//
 	private int temp_flag = 0;
 	private void setVideoScale(int flag){
 		temp_flag ++;

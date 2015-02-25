@@ -89,7 +89,7 @@ public class DtPlayer {
           * It's easier to create it here than in C++.
           */
         native_setup(new WeakReference<DtPlayer>(this));
-        native_hw_enable(1);
+        native_hw_enable(0);
 	}
 	
 	public DtPlayer(Context ctx,boolean isHardWare) {

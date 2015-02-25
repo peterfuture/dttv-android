@@ -1,7 +1,7 @@
 /***********************************************************************
 **
 **  Module : vf_opengl.c
-**  Summary: process video with opengl
+**  Summary: video post processor with opengl
 **  Section: dtvideo
 **  Author : peter
 **  Notes  : 
@@ -32,7 +32,7 @@ static int opengl_vf_capable(vf_cap_t cap)
 }
 
 vf_wrapper_t vf_opengl_ops = {
-    .name       = "ffmpeg video filter",
+    .name       = "opengl video filter",
     .type       = DT_TYPE_VIDEO,
     .capable    = opengl_vf_capable,
     .init       = ffmpeg_vf_init,

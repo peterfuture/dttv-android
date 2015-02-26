@@ -86,4 +86,17 @@ public class GlVideoView extends GLSurfaceView{
 		canvas.drawRect(rectF2, paint);
 		canvas.drawLine(getWidth()/2, 0, getWidth()+2, getHeight(), paint);*/
 	}
+	
+	@Override
+	public void onPause()
+	{
+		super.onPause();
+	}
+	
+	@Override
+	public void onResume()
+	{
+		super.onResume();
+	}
+	
 }

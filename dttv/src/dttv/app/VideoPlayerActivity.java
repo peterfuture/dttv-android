@@ -17,6 +17,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ConfigurationInfo;
 import android.content.res.Configuration;
 import android.opengl.GLSurfaceView;
+import android.opengl.Matrix;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -600,6 +601,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 	class GLSurfaceViewRender implements GLSurfaceView.Renderer {  
   
 		private Lock lock = new ReentrantLock();
+
 		@Override
 		public void onSurfaceCreated(GL10 gl,
 				javax.microedition.khronos.egl.EGLConfig config) {
@@ -619,6 +621,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
         	dtPlayer.onSurfaceChanged(width,height);
         	surface_width = width;
         	surface_height = height;
+        	
         	lock.unlock();
         }
   

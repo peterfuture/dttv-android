@@ -16,6 +16,10 @@ namespace android{
 static gles2_ctx_t gl_ctx;
 static dt_lock_t mutex;
 
+float mtrxProjection[16];
+float mtrxView[16];
+float mtrxProjectionAndView[16];
+
 static void check_gl_error(const char* op)
 {
 	GLint error;
@@ -48,16 +52,29 @@ static const char* FRAG_SHADER =
         "gl_FragColor = vec4(rgb, 1);\n"
     "}\n";
 
+#if 1
 static const char* VERTEX_SHADER =
+	"uniform mat4 uMVPMatrix;"
     "attribute vec4 vPosition;    \n"
     "attribute vec2 a_texCoord;   \n"
     "varying vec2 tc;     \n"
     "void main()                  \n"
     "{                            \n" 
-    "   gl_Position = vPosition;  \n"
+    "   gl_Position = uMVPMatrix * vPosition;  \n"
     "   tc = a_texCoord;  \n" 
     "}                            \n";
+#else
 
+static const char* VERTEX_SHADER =
+    "attribute vec4 vPosition;    \n"
+    "attribute vec2 a_texCoord;   \n"
+    "varying vec2 tc;     \n"
+    "void main()                  \n"
+    "{                            \n"
+    "   gl_Position = vPosition;  \n"
+    "   tc = a_texCoord;  \n"
+    "}                            \n";
+#endif
 
 static GLuint gles2_bindTexture(GLuint texture, const uint8_t *buffer, GLuint w , GLuint h)
 {
@@ -94,7 +111,7 @@ static void gles2_renderFrame()
         0.0f,  0.0f,
         1.0f,  0.0f,
     };
-    
+
     // HUAWEIG510-0010 4.1.1 
     static GLfloat squareVertices1[] = {
         0.0f, 0.0f,
@@ -333,6 +350,52 @@ void gles2_release()
     memset(&gl_ctx,0,sizeof(gles2_ctx_t));
 }
 
+#define I(_i, _j) ((_j)+ 4*(_i))
+static
+void multiplyMM(float* r, const float* lhs, const float* rhs)
+{
+    for (int i=0 ; i<4 ; i++) {
+        register const float rhs_i0 = rhs[ I(i,0) ];
+        register float ri0 = lhs[ I(0,0) ] * rhs_i0;
+        register float ri1 = lhs[ I(0,1) ] * rhs_i0;
+        register float ri2 = lhs[ I(0,2) ] * rhs_i0;
+        register float ri3 = lhs[ I(0,3) ] * rhs_i0;
+        for (int j=1 ; j<4 ; j++) {
+            register const float rhs_ij = rhs[ I(i,j) ];
+            ri0 += lhs[ I(j,0) ] * rhs_ij;
+            ri1 += lhs[ I(j,1) ] * rhs_ij;
+            ri2 += lhs[ I(j,2) ] * rhs_ij;
+            ri3 += lhs[ I(j,3) ] * rhs_ij;
+        }
+        r[ I(i,0) ] = ri0;
+        r[ I(i,1) ] = ri1;
+        r[ I(i,2) ] = ri2;
+        r[ I(i,3) ] = ri3;
+    }
+}
+
+static void applyOrtho(float left, float right,float bottom, float top,float near, float far){
+
+        float a = 2.0f / (right - left);
+        float b = 2.0f / (top - bottom);
+        float c = -2.0f / (far - near);
+
+        float tx = - (right + left)/(right - left);
+        float ty = - (top + bottom)/(top - bottom);
+        float tz = - (far + near)/(far - near);
+
+        float ortho[16] = {
+            a, 0, 0, tx,
+            0, b, 0, ty,
+            0, 0, c, tz,
+            0, 0, 0, 1
+        };
+
+        GLint projectionUniform = glGetUniformLocation(gl_ctx.simpleProgram, "uMVPMatrix");
+        glUniformMatrix4fv(projectionUniform, 1, GL_FALSE, &ortho[0]);
+
+}
+
 int gles2_surface_changed(int w, int h)
 {
     dt_lock(&mutex);
@@ -345,6 +408,24 @@ int gles2_surface_changed(int w, int h)
     checkGlError("glClearColor");
 
     glViewport(0, 0, w, h);
+
+    // Clear our matrices
+    for(int i=0;i<16;i++)
+    {
+    	mtrxProjection[i] = 0.0f;
+    	mtrxView[i] = 0.0f;
+    	mtrxProjectionAndView[i] = 0.0f;
+    }
+    applyOrtho(0, 0.0f, w, 0.0f, h, 0);
+    //setLookAtM(mtrxView, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    //multiplyMM(mtrxProjectionAndView, mtrxProjection, mtrxView);
+
+    //int mtrxhandle = glGetUniformLocation(gl_ctx.simpleProgram, "uMVPMatrix");
+    //glUniformMatrix4fv(mtrxhandle, 1, false, mtrxProjectionAndView);
+
+
+	glEnable(GL_TEXTURE_2D);
+	glClearColor( 0, 0, 0, 0 );
 
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "on surface changed, w:%d h:%d\n ", w, h);
     dt_unlock(&mutex);

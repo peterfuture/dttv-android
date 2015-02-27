@@ -52,9 +52,9 @@ static const char* FRAG_SHADER =
         "gl_FragColor = vec4(rgb, 1);\n"
     "}\n";
 
-#if 1
+#if 0
 static const char* VERTEX_SHADER =
-	"uniform mat4 uMVPMatrix;"
+	"uniform mat4 uMVPMatrix; \n"
     "attribute vec4 vPosition;    \n"
     "attribute vec2 a_texCoord;   \n"
     "varying vec2 tc;     \n"
@@ -374,33 +374,18 @@ void multiplyMM(float* r, const float* lhs, const float* rhs)
     }
 }
 
-static void applyOrtho(float left, float right,float bottom, float top,float near, float far){
-
-        float a = 2.0f / (right - left);
-        float b = 2.0f / (top - bottom);
-        float c = -2.0f / (far - near);
-
-        float tx = - (right + left)/(right - left);
-        float ty = - (top + bottom)/(top - bottom);
-        float tz = - (far + near)/(far - near);
-
-        float ortho[16] = {
-            a, 0, 0, tx,
-            0, b, 0, ty,
-            0, 0, c, tz,
-            0, 0, 0, 1
-        };
-
-        GLint projectionUniform = glGetUniformLocation(gl_ctx.simpleProgram, "uMVPMatrix");
-        glUniformMatrix4fv(projectionUniform, 1, GL_FALSE, &ortho[0]);
-
-}
-
 int gles2_surface_changed(int w, int h)
 {
     dt_lock(&mutex);
+    if(gl_ctx.orig_width == 0)
+    {
+    	gl_ctx.orig_width = w;
+    	gl_ctx.orig_height = h;
+    }
     gl_ctx.g_width = w;
 	gl_ctx.g_height = h;
+    gl_ctx.dst_width = w;
+	gl_ctx.dst_height = h;
     gl_ctx.status = GLRENDER_STATUS_RUNNING;
     
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -416,16 +401,57 @@ int gles2_surface_changed(int w, int h)
     	mtrxView[i] = 0.0f;
     	mtrxProjectionAndView[i] = 0.0f;
     }
-    applyOrtho(0, 0.0f, w, 0.0f, h, 0);
-    //setLookAtM(mtrxView, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-    //multiplyMM(mtrxProjectionAndView, mtrxProjection, mtrxView);
 
-    //int mtrxhandle = glGetUniformLocation(gl_ctx.simpleProgram, "uMVPMatrix");
-    //glUniformMatrix4fv(mtrxhandle, 1, false, mtrxProjectionAndView);
+    // setup ortho matrics
+    float left = 0.0f;
+    float right = (float)w;
+    float bottom = 0.0f;
+    float top = (float)h;
+    float near = 0.0f;
+    float far = 50.0f;
 
+#if 0
+    float a = 2.0f / (right - left);
+    float b = 2.0f / (top - bottom);
+    float c = -2.0f / (far - near);
+
+    float tx = - (right + left)/(right - left);
+    float ty = - (top + bottom)/(top - bottom);
+    float tz = - (far + near)/(far - near);
+
+    float ortho[16] = {
+        a, 0, 0, 0,
+        0, b, 0, 0,
+        0, 0, c, 0,
+        tx, ty, tz, 1
+    };
+
+    GLint projectionUniform = glGetUniformLocation(gl_ctx.simpleProgram, "uMVPMatrix");
+    glUniformMatrix4fv(projectionUniform, 1, 0, &ortho[0]);
+
+#endif
+
+
+#if 0
+    mtrxProjection[0] = 2.0f / (right - left);
+    mtrxProjection[5] = 2.0f / (top - bottom);
+    mtrxProjection[10] = - 2.0f / (far - near);
+    mtrxProjection[12] = - (right + left) / (right - left);
+    mtrxProjection[13] = - (top + bottom) / (top - bottom);
+    mtrxProjection[14] = - (far + near) / (far - near);
+
+    GLint projectionUniform = glGetUniformLocation(gl_ctx.simpleProgram, "uMVPMatrix");
+    glUniformMatrix4fv(projectionUniform, 1, 0, &mtrxProjection[0]);
+
+
+    setLookAtM(mtrxView, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    multiplyMM(mtrxProjectionAndView, mtrxProjection, mtrxView);
+    int mtrxhandle = glGetUniformLocation(gl_ctx.simpleProgram, "uMVPMatrix");
+    glUniformMatrix4fv(mtrxhandle, 1, false, mtrxProjectionAndView);
+#endif
 
 	glEnable(GL_TEXTURE_2D);
-	glClearColor( 0, 0, 0, 0 );
+	//glClearColor( 0, 0, 0, 0 );
 
     __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "on surface changed, w:%d h:%d\n ", w, h);
     dt_unlock(&mutex);
@@ -434,8 +460,8 @@ int gles2_surface_changed(int w, int h)
 int gles2_draw_frame()
 {
     dt_lock(&mutex);
-    int width = gl_ctx.g_width;
-    int height = gl_ctx.g_height;
+    int width = gl_ctx.orig_width;
+    int height = gl_ctx.orig_height;
     dt_av_frame_t *frame = &gl_ctx.frame;
     uint8_t *data = NULL;
 

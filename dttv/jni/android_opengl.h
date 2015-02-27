@@ -23,6 +23,10 @@ enum {
 typedef struct{
     int g_width;
     int g_height;
+    int orig_width;
+    int orig_height;
+    int dst_width;
+    int dst_height;
 
     GLuint g_texYId;
     GLuint g_texUId;

@@ -6,7 +6,7 @@
 /**
  * Get the current time in microseconds.
  */
-int64_t dt_gettime (void);
+int64_t dt_gettime(void);
 
 /**
  * Sleep for a period of time.  Although the duration is expressed in
@@ -16,6 +16,6 @@ int64_t dt_gettime (void);
  * @param  usec Number of microseconds to sleep.
  * @return zero on success or (negative) error code.
  */
-int dt_usleep (unsigned usec);
+int dt_usleep(unsigned usec);
 
 #endif /* DTUTIL_TIME_H */

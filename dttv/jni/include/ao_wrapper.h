@@ -11,39 +11,36 @@
 
 struct dtaudio_output;
 
-typedef struct ao_wrapper
-{
+typedef struct ao_wrapper {
     int id;
     const char *name;
     dtaudio_para_t para;
-    
-    int (*ao_init) (struct dtaudio_output *aout, dtaudio_para_t *para);
-    int (*ao_start) (struct dtaudio_output *aout);
-    int (*ao_pause) (struct dtaudio_output *aout);
-    int (*ao_resume) (struct dtaudio_output *aout);
-    int (*ao_stop) (struct dtaudio_output *aout);
-    int64_t (*ao_latency) (struct dtaudio_output *aout);
-    int (*ao_level) (struct dtaudio_output *aout);
-    int (*ao_write) (struct dtaudio_output *aout, uint8_t * buf, int size);
+
+    int (*ao_init)(struct dtaudio_output *aout, dtaudio_para_t *para);
+    int (*ao_start)(struct dtaudio_output *aout);
+    int (*ao_pause)(struct dtaudio_output *aout);
+    int (*ao_resume)(struct dtaudio_output *aout);
+    int (*ao_stop)(struct dtaudio_output *aout);
+    int64_t (*ao_latency)(struct dtaudio_output *aout);
+    int (*ao_level)(struct dtaudio_output *aout);
+    int (*ao_write)(struct dtaudio_output *aout, uint8_t * buf, int size);
     //API maybe called outside, use ao_wrapper_t instead
-    int (*ao_get_volume) (struct ao_wrapper *ao);
-    int (*ao_set_volume) (struct ao_wrapper *ao, int value);
+    int (*ao_get_volume)(struct ao_wrapper *ao);
+    int (*ao_set_volume)(struct ao_wrapper *ao, int value);
     struct ao_wrapper *next;
     void *ao_priv;
 } ao_wrapper_t;
 
 #define dtao_format_t ao_id_t
 
-typedef enum
-{
+typedef enum {
     AO_STATUS_IDLE,
     AO_STATUS_PAUSE,
     AO_STATUS_RUNNING,
     AO_STATUS_EXIT,
 } ao_status_t;
 
-typedef enum _AO_CTL_ID_
-{
+typedef enum _AO_CTL_ID_ {
     AO_GET_VOLUME,
     AO_ADD_VOLUME,
     AO_SUB_VOLUME,
@@ -51,14 +48,12 @@ typedef enum _AO_CTL_ID_
     AO_CMD_RESUME,
 } ao_cmd_t;
 
-typedef struct
-{
+typedef struct {
     int aout_buf_size;
     int aout_buf_level;
 } ao_state_t;
 
-typedef struct dtaudio_output
-{
+typedef struct dtaudio_output {
     /*para */
     dtaudio_para_t para;
     ao_wrapper_t *wrapper;
@@ -69,7 +64,7 @@ typedef struct dtaudio_output
     uint64_t last_valid_latency;
     void *parent;               //point to dtaudio_t, can used for param of pcm get interface
     void *ao_priv;
-}dtaudio_output_t;
+} dtaudio_output_t;
 
 
 #endif

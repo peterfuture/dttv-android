@@ -12,9 +12,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+//
+// AUDIO VIDEO MEDIA SUB DEFINITIONS
+//
+
+// =================================================
+// MEDIA
 // Equal to ffmpeg
-typedef enum DT_AVMediaType
-{
+typedef enum DT_AVMediaType {
     DT_TYPE_UNKNOWN = -1,
     DT_TYPE_VIDEO,
     DT_TYPE_AUDIO,
@@ -24,9 +29,37 @@ typedef enum DT_AVMediaType
     DT_TYPE_NB
 } dt_media_type_t;
 
+typedef enum {
+    DT_MEDIA_FORMAT_INVALID = -1,
+    DT_MEDIA_FORMAT_MPEGTS,
+    DT_MEDIA_FORMAT_MPEGPS,
+    DT_MEDIA_FORMAT_RM,
+    DT_MEDIA_FORMAT_AVI,
+    DT_MEDIA_FORMAT_MKV,
+    DT_MEDIA_FORMAT_MOV,
+    DT_MEDIA_FORMAT_MP4,
+    DT_MEDIA_FORMAT_FLV,
+    DT_MEDIA_FORMAT_AAC,
+    DT_MEDIA_FORMAT_AC3,
+    DT_MEDIA_FORMAT_MP3,
+    DT_MEDIA_FORMAT_WAV,
+    DT_MEDIA_FORMAT_DTS,
+    DT_MEDIA_FORMAT_FLAC,
+    DT_MEDIA_FORMAT_H264,
+    DT_MEDIA_FORMAT_AVS,
+    DT_MEDIA_FORMAT_M2V,
+    DT_MEDIA_FORMAT_P2P,
+    DT_MEDIA_FORMAT_ASF,
+    DT_MEDIA_FORMAT_RTSP,
+    DT_MEDIA_FORMAT_APE,
+    DT_MEDIA_FORMAT_AMR,
+    DT_MEDIA_FORMAT_UNKOWN,
+} dtmedia_format_t;
+
+// =================================================
+// STRUCTURE
 // original packet
-typedef struct dt_av_pkt
-{
+typedef struct dt_av_pkt {
     uint8_t *data;
     int size;
     int64_t pts;
@@ -36,8 +69,7 @@ typedef struct dt_av_pkt
     dt_media_type_t type;
 } dt_av_pkt_t;
 
-typedef struct
-{
+typedef struct {
     // Equal to ffmpeg
     uint8_t *data[8];
     int linesize[8];
@@ -53,71 +85,23 @@ typedef struct
     int duration;
 } dt_av_frame_t;
 
-typedef enum dtav_sub_type {
-    DT_SUBTITLE_NONE,
-
-    DT_SUBTITLE_BITMAP,                ///< A bitmap, pict will be set
-
-    /**
-     * Plain text, the text field must be set by the decoder and is
-     * authoritative. ass and pict fields may contain approximations.
-     */
-    DT_SUBTITLE_TEXT,
-
-    /**
-     * Formatted text, the ass field must be set by the decoder and is
-     * authoritative. pict and text fields may contain approximations.
-     */
-    DT_SUBTITLE_ASS,
-}dtav_sub_type_t;
 
 
-typedef struct dt_sub_Rect {
-    int x;         ///< top left corner  of pict, undefined when pict is not set
-    int y;         ///< top left corner  of pict, undefined when pict is not set
-    int w;         ///< width            of pict, undefined when pict is not set
-    int h;         ///< height           of pict, undefined when pict is not set
-    int nb_colors; ///< number of colors in pict, undefined when pict is not set
+// =================================================
+// VIDEO
+typedef enum {
+    DT_VIDEO_FORMAT_INVALID = -1,
+    DT_VIDEO_FORMAT_H264,
+    DT_VIDEO_FORMAT_UNKOWN,
+} dtvideo_format_t;
 
-    /**
-     * data+linesize for the bitmap of this subtitle.
-     * can be set for text/ass as well once they where rendered
-     */
-    //AVPicture pict;
-    dt_av_frame_t pict;
-    dtav_sub_type_t type;
-
-    char *text;                     ///< 0 terminated plain UTF-8 text
-
-    /**
-     * 0 terminated ASS/SSA compatible event line.
-     * The presentation of this is unaffected by the other values in this
-     * struct.
-     */
-    char *ass;
-
-    int flags;
-}dtav_sub_rect_t;
-
-typedef struct dtav_subtitle {
-    uint16_t format; /* 0 = graphics */
-    uint32_t start_display_time; /* relative to packet pts, in ms */
-    uint32_t end_display_time; /* relative to packet pts, in ms */
-    unsigned num_rects;
-    dtav_sub_rect_t **rects;
-    int64_t pts;    ///< Same as packet pts, in AV_TIME_BASE
-}dtav_sub_frame_t;
-
-typedef enum{
+typedef enum {
     DTAV_FLAG_NONE = 0x0,
     DTAV_FLAG_DISABLE_HW_CODEC = 0x1,
-}dtvideo_flag_t;
-
-// Video Part
+} dtvideo_flag_t;
 
 //From ffmpeg
-typedef enum DT_AVPixelFormat
-{
+typedef enum DT_AVPixelFormat {
     DTAV_PIX_FMT_NONE = -1,
     DTAV_PIX_FMT_YUV420P,       ///< planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
     DTAV_PIX_FMT_YUYV422,       ///< packed YUV 4:2:2, 16bpp, Y0 Cb Y1 Cr
@@ -227,11 +211,11 @@ typedef enum DT_AVPixelFormat
     DTAV_PIX_FMT_GBRP16BE,      ///< planar GBR 4:4:4 48bpp, big-endian
     DTAV_PIX_FMT_GBRP16LE,      ///< planar GBR 4:4:4 48bpp, little-endian
 
- /**
-     * duplicated pixel formats for compatibility with libav.
-     * FFmpeg supports these formats since May 8 2012 and Jan 28 2012 (commits f9ca1ac7 and 143a5c55)
-     * Libav added them Oct 12 2012 with incompatible values (commit 6d5600e85)
-     */
+    /**
+        * duplicated pixel formats for compatibility with libav.
+        * FFmpeg supports these formats since May 8 2012 and Jan 28 2012 (commits f9ca1ac7 and 143a5c55)
+        * Libav added them Oct 12 2012 with incompatible values (commit 6d5600e85)
+        */
     DTAV_PIX_FMT_YUVA422P_LIBAV, ///< planar YUV 4:2:2 24bpp, (1 Cr & Cb sample per 2x1 Y & A samples)
     DTAV_PIX_FMT_YUVA444P_LIBAV, ///< planar YUV 4:4:4 32bpp, (1 Cr & Cb sample per 1x1 Y & A samples)
 
@@ -289,17 +273,25 @@ typedef enum DT_AVPixelFormat
 
 } dt_pixfmt_t;
 
-enum{
+enum {
     DT_SCREEN_MODE_NORMAL,
     DT_SCREEN_MODE_FULL,
     DT_SCREEN_MODE_4_3,
     DT_SCREEN_MODE_16_9
 };
 
+// =================================================
+// AUDIO
+typedef enum {
+    DT_AUDIO_FORMAT_INVALID = -1,
+    DT_AUDIO_FORMAT_MP2,
+    DT_AUDIO_FORMAT_MP3,
+    DT_AUDIO_FORMAT_AAC,
+    DT_AUDIO_FORMAT_AC3,
+    DT_AUDIO_FORMAT_UNKOWN,
+} dtaudio_format_t;
 
-/*audio part*/
-typedef enum _AO_ID_
-{
+typedef enum _AO_ID_ {
     AO_ID_EXAMPLE = -1,
     AO_ID_EX,                   // ex ao set to 0 default
     AO_ID_ALSA,                 // 0 default
@@ -311,15 +303,81 @@ typedef enum _AO_ID_
     AO_ID_IOS = 0x200,
 } dtao_format_t;
 
-/*subtitle part*/
+// =================================================
+// SUBTITLE
+typedef enum {
+    DT_SUB_FORMAT_INVALID = -1,
+    DT_SUB_FORMAT_DVD_SUB,
+    DT_SUB_FORMAT_DVB_SUB,
+    DT_SUB_FORMAT_UNKOWN,
+} dtsub_format_t;
+
+typedef enum dtav_sub_type {
+    DT_SUBTITLE_NONE,
+
+    DT_SUBTITLE_BITMAP,                ///< A bitmap, pict will be set
+
+    /**
+     * Plain text, the text field must be set by the decoder and is
+     * authoritative. ass and pict fields may contain approximations.
+     */
+    DT_SUBTITLE_TEXT,
+
+    /**
+     * Formatted text, the ass field must be set by the decoder and is
+     * authoritative. pict and text fields may contain approximations.
+     */
+    DT_SUBTITLE_ASS,
+} dtav_sub_type_t;
 
 
-void *dt_malloc(size_t size);
-void dt_free(void *ptr);
+typedef struct dt_sub_Rect {
+    int x;         ///< top left corner  of pict, undefined when pict is not set
+    int y;         ///< top left corner  of pict, undefined when pict is not set
+    int w;         ///< width            of pict, undefined when pict is not set
+    int h;         ///< height           of pict, undefined when pict is not set
+    int nb_colors; ///< number of colors in pict, undefined when pict is not set
+
+    /**
+     * data+linesize for the bitmap of this subtitle.
+     * can be set for text/ass as well once they where rendered
+     */
+    //AVPicture pict;
+    dt_av_frame_t pict;
+    dtav_sub_type_t type;
+
+    char *text;                     ///< 0 terminated plain UTF-8 text
+
+    /**
+     * 0 terminated ASS/SSA compatible event line.
+     * The presentation of this is unaffected by the other values in this
+     * struct.
+     */
+    char *ass;
+
+    int flags;
+} dtav_sub_rect_t;
+
+typedef struct dtav_subtitle {
+    uint16_t format; /* 0 = graphics */
+    uint32_t start_display_time; /* relative to packet pts, in ms */
+    uint32_t end_display_time; /* relative to packet pts, in ms */
+    unsigned num_rects;
+    dtav_sub_rect_t **rects;
+    int64_t pts;    ///< Same as packet pts, in AV_TIME_BASE
+} dtav_sub_frame_t;
+
 
 dt_av_frame_t *dtav_new_frame();
 int dtav_unref_frame(dt_av_frame_t *frame);
 int dtav_free_frame(dt_av_frame_t *frame);
 void dtav_clear_frame(void *frame);
 
+void *dt_malloc(size_t size);
+void dt_free(void *ptr);
+
+const char *dt_mediafmt2str(dtmedia_format_t format);
+const char *dt_afmt2str(dtaudio_format_t format);
+const char *dt_vfmt2str(dtvideo_format_t format);
+const char *dt_sfmt2str(dtsub_format_t format);
 #endif

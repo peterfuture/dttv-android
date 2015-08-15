@@ -3,16 +3,14 @@
 
 #include "stdint.h"
 
-typedef struct
-{
+typedef struct {
     int size;
     int data_len;
     int free_len;
     int total_len;
 } buf_state_t;
 
-typedef struct dec_state
-{
+typedef struct dec_state {
     int adec_channels;
     int adec_sample_rate;
     int adec_bps;
@@ -32,8 +30,7 @@ typedef struct dec_state
 } dec_state_t;
 
 #if 0
-typedef struct
-{
+typedef struct {
     int abuf_level;
     int vbuf_level;
 

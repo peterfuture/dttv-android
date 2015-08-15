@@ -4,8 +4,7 @@
 #include "dt_av.h"
 #include "dt_media_info.h"
 
-typedef struct
-{
+typedef struct {
     char *file_name;
 } dtdemuxer_para_t;
 

@@ -2,10 +2,9 @@
 #define DTAUDIO_PARA_H
 
 #define AUDIO_EXTRADATA_SIZE 4096
-typedef struct
-{
-    int channels,dst_channels;
-    int samplerate,dst_samplerate;
+typedef struct {
+    int channels, dst_channels;
+    int samplerate, dst_samplerate;
     int data_width;
     int bps;
     int num, den;

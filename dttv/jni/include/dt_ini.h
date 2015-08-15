@@ -23,8 +23,7 @@
 #define CONF_MAX_PATH 512
 typedef unsigned char BYTE;
 
-typedef enum
-{
+typedef enum {
     NET_PWD_METHOD_DISABLE = 0,
     NET_PWD_METHOD_WO,
     NET_PWD_METHOD_WS,
@@ -39,8 +38,7 @@ typedef enum
 #define NET_PWD_METHOD_WPA_STR          _T("WPA")
 #define NET_PWD_METHOD_WPA2_STR         _T("WPA2")
 
-typedef enum
-{
+typedef enum {
     NET_PWD1_TYPE_TKIP = 0,
     NET_PWD1_TYPE_AES,
     NET_PWD1_TYPE_NUM,
@@ -48,8 +46,7 @@ typedef enum
 #define NET_PWD1_TYPE_TKIP_STR  _T("TKIP")
 #define NET_PWD1_TYPE_AES_STR   _T("AES")
 
-typedef enum
-{
+typedef enum {
     NET_PWD2_TYPE_ASCII = 0,
     NET_PWD2_TYPE_HEX,
     NET_PWD2_TYPE_NUM,
@@ -81,16 +78,14 @@ typedef const char cchr;
 #define tpKEYVALUE   2
 #define tpCOMMENT    3
 
-typedef struct ENTRY
-{
+typedef struct ENTRY {
     char Type;
     char *Text;
     struct ENTRY *pPrev;
     struct ENTRY *pNext;
 } ENTRY;
 
-typedef struct
-{
+typedef struct {
     struct ENTRY *pSec;
     struct ENTRY *pKey;
     char KeyText[128];
@@ -103,32 +98,32 @@ typedef struct
 
 /* Connectors of this file (Prototypes) */
 
-bool OpenIniFile (cchr * FileName);
+bool OpenIniFile(cchr * FileName);
 
-bool ReadBool (cchr * Section, cchr * Key, bool Default);
-int ReadInt (cchr * Section, cchr * Key, int Default);
-double ReadDouble (cchr * Section, cchr * Key, double Default);
-cchr *ReadString (cchr * Section, cchr * Key, cchr * Default);
+bool ReadBool(cchr * Section, cchr * Key, bool Default);
+int ReadInt(cchr * Section, cchr * Key, int Default);
+double ReadDouble(cchr * Section, cchr * Key, double Default);
+cchr *ReadString(cchr * Section, cchr * Key, cchr * Default);
 
-void WriteBool (cchr * Section, cchr * Key, bool Value);
-void WriteInt (cchr * Section, cchr * Key, int Value);
-void WriteDouble (cchr * Section, cchr * Key, double Value);
-void WriteString (cchr * Section, cchr * Key, cchr * Value);
+void WriteBool(cchr * Section, cchr * Key, bool Value);
+void WriteInt(cchr * Section, cchr * Key, int Value);
+void WriteDouble(cchr * Section, cchr * Key, double Value);
+void WriteString(cchr * Section, cchr * Key, cchr * Value);
 
-bool DeleteKey (cchr * Section, cchr * Key);
+bool DeleteKey(cchr * Section, cchr * Key);
 
-void CloseIniFile ();
-bool WriteIniFile (cchr * FileName);
-void CloseTypeFile ();
+void CloseIniFile();
+bool WriteIniFile(cchr * FileName);
+void CloseTypeFile();
 //ssg add
-int GetPrivateProfileString (char *appNam, char *keyNam, char *keyVal, char *fileNam);
-int WritePrivateProfileString (char *appNam, char *keyNam, char *keyVal, char *filNam);
-int OpenTypeFile (char *filNam);
-int GetTypeKeyVal (char *appNam, char *keyNam, char *keyVal);
-int SetTypeKeyVal (char *appNam, char *keyNam, char *keyVal);
-void CloseWriteFile (char *filNam);
+int GetPrivateProfileString(char *appNam, char *keyNam, char *keyVal, char *fileNam);
+int WritePrivateProfileString(char *appNam, char *keyNam, char *keyVal, char *filNam);
+int OpenTypeFile(char *filNam);
+int GetTypeKeyVal(char *appNam, char *keyNam, char *keyVal);
+int SetTypeKeyVal(char *appNam, char *keyNam, char *keyVal);
+void CloseWriteFile(char *filNam);
 
 /*API ADDED BY DTSOFT*/
-int GetEnv (char *appNam, char *keyNam, char *keyVal);
+int GetEnv(char *appNam, char *keyNam, char *keyVal);
 
 #endif

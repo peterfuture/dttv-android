@@ -7,32 +7,29 @@
 
 struct dtsub_decoder;
 
-typedef enum
-{
+typedef enum {
     SDEC_STATUS_IDLE,
     SDEC_STATUS_RUNNING,
     SDEC_STATUS_PAUSED,
     SDEC_STATUS_EXIT
-}sdec_status_t;
+} sdec_status_t;
 
-typedef struct sd_wrapper
-{
+typedef struct sd_wrapper {
     const char *name;
     dtsub_para_t *para;
     dtsub_format_t sfmt;
     int type;
 
-    int (*init) (struct dtsub_decoder *decoder);
-    int (*decode_frame) (struct dtsub_decoder *decoder, dt_av_pkt_t * pkt, dtav_sub_frame_t ** frame);
-    int (*release) (struct dtsub_decoder *decoder);
-    
+    int (*init)(struct dtsub_decoder *decoder);
+    int (*decode_frame)(struct dtsub_decoder *decoder, dt_av_pkt_t * pkt, dtav_sub_frame_t ** frame);
+    int (*release)(struct dtsub_decoder *decoder);
+
     void *sd_priv;
     struct sd_wrapper *next;
     void *parent;
-}sd_wrapper_t;
+} sd_wrapper_t;
 
-typedef struct dtsub_decoder
-{
+typedef struct dtsub_decoder {
     dtsub_para_t *para;
     sd_wrapper_t *wrapper;
     pthread_t sub_decoder_pid;
@@ -46,6 +43,6 @@ typedef struct dtsub_decoder
 
     void *parent;
     void *sd_priv;
-}dtsub_decoder_t;
+} dtsub_decoder_t;
 
 #endif

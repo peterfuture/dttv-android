@@ -11,14 +11,14 @@
 #define MAX_AUDIO_STREAM_NUM 20
 #define MAX_SUBTITLE_STREAM_NUM 20
 
-typedef struct
-{
+#define LANGUAGE_MAX_SIZE 1024
+
+typedef struct {
     int num;
     int den;
 } dtratio;
 
-typedef struct
-{
+typedef struct {
     int index;
     int id;
     int bit_rate;
@@ -31,12 +31,12 @@ typedef struct
     dtratio time_base;
     int extradata_size;
     uint8_t extradata[VIDEO_EXTRADATA_SIZE];
+    char language[LANGUAGE_MAX_SIZE];
     dtvideo_format_t format;
     void *codec_priv;
 } vstream_info_t;
 
-typedef struct
-{
+typedef struct {
     char title[512];
     char author[512];
     char album[512];
@@ -46,10 +46,9 @@ typedef struct
     char genre[32];
     char copyright[512];
     int cover_type; // 0-none 1-jpg 2-png
-}album_info_t;
+} album_info_t;
 
-typedef struct
-{
+typedef struct {
     int index;
     int id;
     int bit_rate;
@@ -60,13 +59,13 @@ typedef struct
     dtratio time_base;
     int extradata_size;
     uint8_t *extradata;
+    char language[LANGUAGE_MAX_SIZE];
     dtaudio_format_t format;
-    album_info_t album_info; 
+    album_info_t album_info;
     void *codec_priv;
 } astream_info_t;
 
-typedef struct
-{
+typedef struct {
     int index;
     int id;
     int bit_rate;
@@ -74,12 +73,12 @@ typedef struct
     int height;
     int extradata_size;
     uint8_t *extradata;
-    dtsubtitle_format_t format;
+    char language[LANGUAGE_MAX_SIZE];
+    dtsub_format_t format;
     void *codec_priv;
 } sstream_info_t;
 
-typedef struct
-{
+typedef struct {
     char file_name[FILE_NAME_MAX_LENGTH];
     dtmedia_format_t format;
     int64_t start_time;

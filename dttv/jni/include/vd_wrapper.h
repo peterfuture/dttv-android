@@ -7,34 +7,35 @@
 
 struct dtvideo_decoder;
 
-typedef enum
-{
+typedef enum {
     VDEC_STATUS_IDLE,
     VDEC_STATUS_RUNNING,
     VDEC_STATUS_PAUSED,
     VDEC_STATUS_EXIT
 } vdec_status_t;
 
-typedef struct vd_wrapper
-{
+typedef struct vd_wrapper {
     const char *name;
     dtvideo_format_t vfmt;        // not used, for ffmpeg
-    dtvideo_para_t *para;          // info changed needed 
+    dtvideo_para_t *para;          // info changed needed
     int type;
     int is_hw;
 
-    int (*init) (struct dtvideo_decoder *decoder);
-    int (*decode_frame) (struct dtvideo_decoder *decoder, dt_av_pkt_t * frame, dt_av_frame_t ** pic);
-    int (*info_changed) (struct dtvideo_decoder *decoder);
-    int (*release) (struct dtvideo_decoder *decoder);
-    
+    int (*init)(struct dtvideo_decoder *decoder);
+    int (*decode_frame)(struct dtvideo_decoder *decoder, dt_av_pkt_t * frame, dt_av_frame_t ** pic);
+    int (*info_changed)(struct dtvideo_decoder *decoder);
+    int (*release)(struct dtvideo_decoder *decoder);
+
     void *vd_priv;
     struct vd_wrapper *next;
     void *parent;
 } vd_wrapper_t;
 
-typedef struct dtvideo_decoder
-{
+typedef struct {
+    int decoded_frame_count;
+} vd_statistics_info_t;
+
+typedef struct dtvideo_decoder {
     dtvideo_para_t para;
     vd_wrapper_t *wrapper;
     pthread_t video_decoder_pid;
@@ -49,8 +50,9 @@ typedef struct dtvideo_decoder
     int frame_count;
 
     dt_buffer_t *buf_out;
+    vd_statistics_info_t statistics_info;
     void *parent;
     void *vd_priv;
-}dtvideo_decoder_t;
+} dtvideo_decoder_t;
 
 #endif

@@ -3,8 +3,7 @@
 
 #include <dt_macro.h>
 #include <stdint.h>
-typedef struct
-{
+typedef struct {
     int vfmt;
     int d_width;                //dest w
     int d_height;               //dest h

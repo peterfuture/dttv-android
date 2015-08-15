@@ -9,12 +9,12 @@
 #include "vd_wrapper.h"
 #include "vo_wrapper.h"
 #include "vf_wrapper.h"
-/* 
+/*
  * DTPLAYER API DEFINITION
  *
  * */
 
-/* 
+/*
  * register external module
  * including ao vo ad vd stream demuxer
  * supporting third-party develop
@@ -29,7 +29,7 @@ void dtplayer_register_ext_vo(vo_wrapper_t *wrapper);
 void dtplayer_register_ext_vd(vd_wrapper_t *wrapper);
 void dtplayer_register_ext_vf(vf_wrapper_t *wrapper);
 
-/* 
+/*
  * do global initialization of dtplayer.
  * finish format detect, stream-demuxer init, etc
  *
@@ -37,7 +37,7 @@ void dtplayer_register_ext_vf(vf_wrapper_t *wrapper);
  * @return handle - pointer to dtplayer handle which used for do more contrl works
  *
  * */
-void *dtplayer_init (dtplayer_para_t * para);
+void *dtplayer_init(dtplayer_para_t * para);
 
 /*
  * mediainfo:
@@ -47,32 +47,32 @@ void *dtplayer_init (dtplayer_para_t * para);
  * @param handle - dtplayer handle
  * @param info - mediainfo structure, store
  * @return ret - 0 success , negtive failed
- * 
+ *
  * */
-int dtplayer_get_mediainfo (void *handle, dt_media_info_t *info);
+int dtplayer_get_mediainfo(void *handle, dt_media_info_t *info);
 
 /*
  * Note: will be removed soon
- * set Video Size: 
+ * set Video Size:
  *
  * @param handle - dtplayer handle
  * @param width  - dst width
  * @param height - dst height
  * @return ret - 0 success , negtive failed
- * 
+ *
  * */
-int dtplayer_set_video_size (void *handle, int w, int h);
+int dtplayer_set_video_size(void *handle, int w, int h);
 
 /*
  * start playing:
- * data fill loop 
+ * data fill loop
  * decode-render process
  *
  * @param handle - dtplayer handle
  * @return ret - 0 success , negtive failed
- * 
+ *
  * */
-int dtplayer_start (void *handle);
+int dtplayer_start(void *handle);
 
 /*
  * pause player:
@@ -80,9 +80,9 @@ int dtplayer_start (void *handle);
  *
  * @param handle - dtplayer handle
  * @return ret - 0 success , negtive failed
- * 
+ *
  * */
-int dtplayer_pause (void *handle);
+int dtplayer_pause(void *handle);
 
 /*
  * resume player:
@@ -90,9 +90,9 @@ int dtplayer_pause (void *handle);
  *
  * @param handle - dtplayer handle
  * @return ret - 0 success , negtive failed
- * 
+ *
  * */
-int dtplayer_resume (void *handle);
+int dtplayer_resume(void *handle);
 
 /*
  * stop player:
@@ -100,9 +100,9 @@ int dtplayer_resume (void *handle);
  *
  * @param handle - dtplayer handle
  * @return ret - 0 success , negtive failed
- * 
+ *
  * */
-int dtplayer_stop (void *handle);
+int dtplayer_stop(void *handle);
 
 /*
  * seek:
@@ -111,9 +111,9 @@ int dtplayer_stop (void *handle);
  * @param handle - dtplayer handle
  * @param step - step
  * @return ret - 0 success , negtive failed
- * 
+ *
  * */
-int dtplayer_seek (void *handle, int step);
+int dtplayer_seek(void *handle, int step);
 
 /*
  * seekto:
@@ -122,19 +122,19 @@ int dtplayer_seek (void *handle, int step);
  * @param handle - dtplayer handle
  * @param dest_pos - dest position time (s)
  * @return ret - 0 success , negtive failed
- * 
+ *
  * */
-int dtplayer_seekto (void *handle, int dest_pos);
+int dtplayer_seekto(void *handle, int dest_pos);
 
 /*
  * dtplayer states update:
  * called by user, get dtplayer states, for more details refer to player_state_t definition
  *
  * @param handle - dtplayer handle
- * @param state 
+ * @param state
  * @return ret - 0 success , negtive failed
- * 
+ *
  * */
-int dtplayer_get_states (void *handle, player_state_t * state);
+int dtplayer_get_states(void *handle, player_state_t * state);
 
 #endif

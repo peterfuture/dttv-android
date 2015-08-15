@@ -1,8 +1,7 @@
 #ifndef DT_EVENT_DEF_H
 #define DT_EVENT_DEF_H
 
-enum
-{
+enum {
     EVENT_SERVER_INVALID = -1,
     EVENT_SERVER_MAIN = 0,
     EVENT_SERVER_PLAYER,
@@ -10,8 +9,7 @@ enum
     EVENT_SERVER_VIDEO,
 };
 
-enum
-{
+enum {
     /*player event */
     PLAYER_EVENT_INVALID = -1,
     PLAYER_EVENT_START,

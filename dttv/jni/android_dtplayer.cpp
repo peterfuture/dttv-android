@@ -137,8 +137,10 @@ int DTPlayer::setDataSource(const char *file_name)
     ao_audiotrack_setup(&ao);
 #endif 
     dtplayer_register_ext_ao(&ao);
+#ifdef ENABLE_ANDROID_OMX
     vd_stagefright_setup(&vd);
     dtplayer_register_ext_vd(&vd);
+#endif
     vo_android_setup(&vo);
     dtplayer_register_ext_vo(&vo);
 

@@ -1,17 +1,11 @@
 #ifndef NELEM
 #define NELEM(x) ((int)(sizeof(x) / sizeof((x)[0])))
 #endif
-#define LOG_TAG "DTPLAYER-JNI"
 
-#include "android_runtime/AndroidRuntime.h"  
-#include "android_os_Parcel.h"
-#include "android_util_Binder.h"
-#include <binder/Parcel.h>
-#include <jni.h>
-#include <utils/Mutex.h>
 #include <android/log.h>
-#include <binder/IPCThreadState.h>
-#include <binder/IServiceManager.h>
+#define TAG "DTPLAYER-JNI"
+#define LOG_TAG "DTPLAYER-JNI"
+#define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, TAG, __VA_ARGS__)
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -60,9 +54,9 @@ dtpListenner::dtpListenner(JNIEnv *env, jobject thiz, jobject weak_thiz)
 
 dtpListenner::~dtpListenner()
 {
-    JNIEnv *env = AndroidRuntime::getJNIEnv();
-    env->DeleteGlobalRef(mObject);
-    env->DeleteGlobalRef(mClass);
+//    JNIEnv *env = AndroidRuntime::getJNIEnv();
+//    env->DeleteGlobalRef(mObject);
+//    env->DeleteGlobalRef(mClass);
 }
 
 int dtpListenner::notify(int msg, int ext1, int ext2)
@@ -423,7 +417,7 @@ static JNINativeMethod g_Methods[] = {
 
 static int register_android_dtplayer(JNIEnv *env)
 {
-#if 0
+#if 1
     jclass clazz;
     clazz = env->FindClass(kClassName);
 	if (clazz == NULL) {

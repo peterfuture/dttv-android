@@ -20,5 +20,19 @@
 *.out
 *.app
 
+# Gradle
+.gradle
+.idea
+**/*.iml
+local.properties
+build
+*~
+.DS_Store
+
+bin
+**/obj
+**/gen
+**/libs
+
 #other
 tags

@@ -115,6 +115,7 @@ typedef struct{
 
 #endif
 
+#include "native_log.h"
 #define TAG "AO-OPENSL"
 
 /*****************************************************************************
@@ -137,7 +138,7 @@ static int TimeGet(dtaudio_output_t* aout, int64_t* drift)
     SLAndroidSimpleBufferQueueState st;
     SLresult res = GetState(sys->playerBufferQueue, &st);
     if (unlikely(res != SL_RESULT_SUCCESS)) {
-        __android_log_print(ANDROID_LOG_DEBUG, TAG, "Could not query buffer queue state in TimeGet (%lu)", res);
+       LOGV( "Could not query buffer queue state in TimeGet (%lu)", (unsigned long)res);
         return -1;
     }
     

@@ -16,6 +16,7 @@ namespace android {
 
 extern "C" {
 
+#include "jni_log.h"
 #define TAG "AO-ANDROID"
 
 typedef struct{
@@ -34,12 +35,12 @@ static void audioCallback(int event, void* user, void *info)
 
     AudioTrack::Buffer *buffer = static_cast<AudioTrack::Buffer *>(info);
     if (event != AudioTrack::EVENT_MORE_DATA) {
-    	__android_log_print(ANDROID_LOG_DEBUG,TAG,"audioCallback: event = %d \n", event);
+    	LOGV("audioCallback: event = %d \n", event);
         return;
     }
 
     if (buffer == NULL || buffer->size == 0) {
-    	__android_log_print(ANDROID_LOG_DEBUG,TAG,"audioCallback: Wrong buffer\n");
+    	LOGV("audioCallback: Wrong buffer\n");
         return;
     }
 
@@ -69,7 +70,7 @@ static int android_audio_init(dtaudio_output_t *aout, dtaudio_para_t *para)
 	android_ao_ctx_t *ctx = (android_ao_ctx_t *)malloc(sizeof(*ctx));
 	if(!ctx)
 	{
-		__android_log_print(ANDROID_LOG_DEBUG,TAG,"SDL CTX MALLOC FAILED \n");
+		LOGV("SDL CTX MALLOC FAILED \n");
 		return -1;
 	}
 	memset(ctx,0,sizeof(*ctx));
@@ -107,12 +108,12 @@ static int android_audio_init(dtaudio_output_t *aout, dtaudio_para_t *para)
     
     if(track == 0 || track->initCheck() != NO_ERROR)
     {
-        __android_log_print(ANDROID_LOG_DEBUG,TAG,"Android Audiotrack new failed \n");
+    	LOGV("Android Audiotrack new failed \n");
         goto FAIL;
     }
 	track->start();
     ctx->sptrack = track;
-	__android_log_print(ANDROID_LOG_DEBUG,TAG,"Android AO Init OK\n");
+    LOGV("Android AO Init OK\n");
 	return 0;
 FAIL:
 	buf_release(&ctx->dbt);
@@ -123,7 +124,7 @@ FAIL:
 
 static int android_audio_pause(dtaudio_output_t *aout)
 {
-	__android_log_print(ANDROID_LOG_DEBUG,TAG,"android out pause");
+	LOGV("android out pause");
 
 	android_ao_ctx_t *ctx = (android_ao_ctx_t *)wrapper->ao_priv;
 	if(ctx->sptrack != 0)
@@ -133,7 +134,7 @@ static int android_audio_pause(dtaudio_output_t *aout)
 
 static int android_audio_resume(dtaudio_output_t *aout)
 {
-	__android_log_print(ANDROID_LOG_DEBUG,TAG,"android out pause");
+	LOGV("android out pause");
 
 	android_ao_ctx_t *ctx = (android_ao_ctx_t *)wrapper->ao_priv;
 	if(ctx->sptrack != 0)

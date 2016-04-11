@@ -1,19 +1,17 @@
-#ifndef NELEM
-#define NELEM(x) ((int)(sizeof(x) / sizeof((x)[0])))
-#endif
-
-#include <android/log.h>
-#define TAG "DTPLAYER-JNI"
-#define LOG_TAG "DTPLAYER-JNI"
-#define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, TAG, __VA_ARGS__)
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 
+#include "native_log.h"
 #include "android_dtplayer.h"
 #include "android_jni.h"
 #include "android_opengl.h"
+
+#include "native_log.h"
+#define TAG "DTPLAYER-JNI"
+#ifndef NELEM
+#define NELEM(x) ((int)(sizeof(x) / sizeof((x)[0])))
+#endif
 
 using namespace android;
 
@@ -45,7 +43,7 @@ dtpListenner::dtpListenner(JNIEnv *env, jobject thiz, jobject weak_thiz)
     jclass clazz = env->GetObjectClass(thiz);
     if(clazz == NULL)
     {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "can not find DtPlayer \n ");
+    	LOGV( "can not find DtPlayer \n ");
         return;
     }
     mClass = (jclass)env->NewGlobalRef(clazz);
@@ -65,10 +63,10 @@ int dtpListenner::notify(int msg, int ext1, int ext2)
     int isAttached = 0; 
     if(gvm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK)
     {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm getenv failed use AttachCurrentThread \n ");
+    	LOGV( "jvm getenv failed use AttachCurrentThread \n ");
         if(gvm->AttachCurrentThread(&env, NULL) != JNI_OK)
         {
-            __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "jvm AttachCurrentThread failed \n ");
+        	LOGV( "jvm AttachCurrentThread failed \n ");
             return -1;
         }
         isAttached = 1;
@@ -76,24 +74,24 @@ int dtpListenner::notify(int msg, int ext1, int ext2)
     
     if(!fields.post_event || !mClass)
     {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "updateState can not found ");
+    	LOGV( "updateState can not found ");
         goto END;
     }
     
     env->CallStaticVoidMethod(mClass, fields.post_event, mObject, msg, ext1, ext2, NULL);
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "NOtify with listener \n ");
+    LOGV( "NOtify with listener \n ");
 END:
     if(isAttached)
         gvm->DetachCurrentThread();  
 
 #if 0
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter notify \n ");
+    LOGV( "Enter notify \n ");
     JNIEnv *env = AndroidRuntime::getJNIEnv();
     env->CallStaticVoidMethod(mClass, fields.post_event, mObject, msg, ext1, ext2, NULL);
 
     if(env->ExceptionCheck())
     {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "An Exception occured while notifying an event \n ");
+    	LOGV( "An Exception occured while notifying an event \n ");
         env->ExceptionClear();
     }
 #endif
@@ -166,12 +164,12 @@ static int android_dtplayer_native_setup(JNIEnv *env, jobject obj, jobject weak_
 
 static int android_dtplayer_native_hw_enable(JNIEnv *env, jobject thiz, jint enable)
 {
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter hw codec enable set, enable:%d ", enable);
+	LOGV( "Enter hw codec enable set, enable:%d ", enable);
 
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if(mp == NULL)
     {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "set hw enable failed, mp == null ");
+    	LOGV(  "set hw enable failed, mp == null ");
         return -1;
     }
     
@@ -193,26 +191,26 @@ int android_dtplayer_native_setDataSource(JNIEnv *env, jobject thiz, jstring url
     int ret = 0;
     jboolean isCopy;
     const char * file_name = env->GetStringUTFChars(url, &isCopy);
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter setDataSource, path: [%s] size:%d ",file_name,strlen(file_name));
+    LOGV( "Enter setDataSource, path: [%s] size:%d ",file_name,strlen(file_name));
 
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if(mp == NULL)
     {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, failed, mp == null ");
+    	LOGV( "setDataSource, failed, mp == null ");
         return -1;
     }
     
     ret = mp->setDataSource(file_name);
     if(ret < 0)
     {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, failed, ret:%d ", ret);
+    	LOGV( "setDataSource, failed, ret:%d ", ret);
     }
     return ret;
 }
 
 int android_dtplayer_native_prePare(JNIEnv *env, jobject thiz)
 {
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter prePare");
+	LOGV( "Enter prePare");
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if(mp == NULL)
         return -1;
@@ -223,7 +221,7 @@ int android_dtplayer_native_prePare(JNIEnv *env, jobject thiz)
 
 int android_dtplayer_native_prepareAsync(JNIEnv *env, jobject thiz)
 {
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter prePareAsync");
+	LOGV( "Enter prePareAsync");
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if(mp == NULL)
         return -1;
@@ -233,7 +231,7 @@ int android_dtplayer_native_prepareAsync(JNIEnv *env, jobject thiz)
 
 int android_dtplayer_native_start(JNIEnv *env, jobject thiz)
 {
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter start");
+	LOGV( "Enter start");
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if(mp == NULL)
         return -1;
@@ -242,7 +240,7 @@ int android_dtplayer_native_start(JNIEnv *env, jobject thiz)
 
 int android_dtplayer_native_pause(JNIEnv *env, jobject thiz)
 {
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter pause");
+	LOGV( "Enter pause");
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if(mp == NULL)
         return -1;
@@ -251,7 +249,7 @@ int android_dtplayer_native_pause(JNIEnv *env, jobject thiz)
 
 int android_dtplayer_native_seekTo(JNIEnv *env, jobject thiz, jint pos)
 {
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter seekTo pos:%d s",pos);
+	LOGV( "Enter seekTo pos:%d s",pos);
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if(mp == NULL)
         return -1;
@@ -260,12 +258,12 @@ int android_dtplayer_native_seekTo(JNIEnv *env, jobject thiz, jint pos)
 
 int android_dtplayer_native_stop(JNIEnv *env, jobject thiz)
 {
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "Enter stop ");
+	LOGV( "Enter stop ");
     int ret = 0;
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if(mp == NULL)
         return -1;
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "native stop enter \n ");
+    LOGV( "native stop enter \n ");
     ret = mp->stop();
     if(ret == -1)
         return -1;
@@ -274,7 +272,7 @@ int android_dtplayer_native_stop(JNIEnv *env, jobject thiz)
         usleep(10000);
     }
 
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "native stop exit \n ");
+    LOGV( "native stop exit \n ");
     return 0;
 }
 
@@ -348,7 +346,7 @@ int android_dtplayer_native_onSurfaceCreated(JNIEnv *env, jobject thiz)
     if(mp)
         gles2_reg_player(mp);
     else
-        __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "onSurfaceCreated register player failed mp null\n");
+    	LOGV( "onSurfaceCreated register player failed mp null\n");
 
     return 0;
 }
@@ -357,7 +355,7 @@ int android_dtplayer_native_onSurfaceChanged(JNIEnv *env, jobject obj, int w, in
 {
 
     gles2_surface_changed(w, h);
-	__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "onSurfaceChanged, w:%d h:%d \n",w,h);
+    LOGV( "onSurfaceChanged, w:%d h:%d \n",w,h);
     android_dtplayer_native_setVideoSize(env, obj, w, h);
     return 0;
 }
@@ -377,7 +375,7 @@ static int android_dtplayer_native_setAudioEffect(JNIEnv *env, jobject thiz , ji
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if(mp == NULL)
     {
-        __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "setDataSource, failed, mp == null ");
+    	LOGV( "setDataSource, failed, mp == null ");
         return -1;
     }
     mp->setAudioEffect(id); 
@@ -443,13 +441,13 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     gvm = vm;
 
     if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
-        //ALOGE("ERROR: GetEnv failed\n");
+        LOGV("ERROR: GetEnv failed\n");
         goto bail;
     }
     assert(env != NULL);
 
     if (register_android_dtplayer(env) < 0) {
-        //ALOGE("ERROR: MediaPlayer native registration failed\n");
+    	LOGV("ERROR: MediaPlayer native registration failed\n");
         goto bail;
     }
 

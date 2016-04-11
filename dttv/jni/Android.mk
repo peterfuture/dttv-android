@@ -9,6 +9,7 @@ LOCAL_SRC_FILES += plugin/vo_android.c
 
 LOCAL_CFLAGS += -D GL_GLEXT_PROTOTYPES -g
 LOCAL_C_INCLUDES := $(DTP_TREE)/include
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include
 
 #control

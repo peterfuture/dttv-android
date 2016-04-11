@@ -9,6 +9,7 @@
 #include "dtvideo_android.h"
 #include "dt_lock.h"
 
+#include "native_log.h"
 #define TAG "VO-ANDROID"
 
 vo_wrapper_t vo_android_ops;
@@ -60,7 +61,7 @@ static int vo_android_init (dtvideo_output_t *vout)
     vo_android_ctx.dw = vout->para->d_width;
     vo_android_ctx.dh = vout->para->d_height;
 
-    __android_log_print(ANDROID_LOG_DEBUG,TAG, "android vo init OK, width:%d height:%d \n",vo_android_ctx.dw, vo_android_ctx.dh);
+    LOGV("android vo init OK, width:%d height:%d \n",vo_android_ctx.dw, vo_android_ctx.dh);
 
     return 0;
 }
@@ -74,7 +75,7 @@ static int vo_android_render (dtvideo_output_t *vout,dt_av_frame_t * frame)
     dt_lock (&ctx->vo_mutex);
     update_frame(frame);
     frame->data[0] = NULL;
-    //__android_log_print(ANDROID_LOG_DEBUG,TAG,"render one frame ok\n");
+    //LOGV("render one frame ok\n");
     dt_unlock (&ctx->vo_mutex);
     return 0;
 }
@@ -84,7 +85,7 @@ static int vo_android_stop (dtvideo_output_t *vout)
     vo_wrapper_t *wrap = &vo_android_ops;
     vo_android_ctx_t *ctx = (vo_android_ctx_t *)wrap->handle;
     wrap->handle = NULL;
-    __android_log_print(ANDROID_LOG_DEBUG,TAG,"stop vo sdl\n");
+    LOGV("stop vo sdl\n");
     return 0;
 }
 

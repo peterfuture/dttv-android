@@ -9,7 +9,8 @@
 #include "android_opengl.h"
 #include "android_dtplayer.h"
 
-#define LOG_TAG "OPENGL-ANDROID"
+#include "native_log.h"
+#define TAG "OPENGL-ANDROID"
 
 namespace android{
 
@@ -24,14 +25,14 @@ static void check_gl_error(const char* op)
 {
 	GLint error;
 	for (error = glGetError(); error; error = glGetError())
-		__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG,"after %s() glError (0x%x)\n", op, error);
+		LOGV("after %s() glError (0x%x)\n", op, error);
 }
 
 static void checkGlError(const char* op)
 {
 	GLint error;
 	for (error = glGetError(); error; error = glGetError())
-		__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG,"after %s() glError (0x%x)\n", op, error);
+		LOGV("after %s() glError (0x%x)\n", op, error);
 }
 
 static const char* FRAG_SHADER = 
@@ -209,7 +210,7 @@ static GLuint buildShader(const char* source, GLenum shaderType)
                 if (buf)  
                 {  
                     glGetShaderInfoLog(shaderHandle, infoLen, NULL, buf);  
-		            __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG," error: Could not compile shader %d \n %s\n", shaderType, buf);
+                    LOGV(" error: Could not compile shader %d \n %s\n", shaderType, buf);
                     free(buf);  
                 }  
                 glDeleteShader(shaderHandle);  
@@ -246,7 +247,7 @@ static GLuint buildProgram(const char* vertexShaderSource,
                 char* buf = (char*) malloc(bufLength);  
                 if (buf) {  
                     glGetProgramInfoLog(programHandle, bufLength, NULL, buf);  
-		            __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG," error: Could not link programe: %s\n", buf);
+                    LOGV(" error: Could not link programe: %s\n", buf);
                     free(buf);  
                 }  
             }  
@@ -268,7 +269,7 @@ extern "C" int update_frame(dt_av_frame_t *frame)
     {
         free(frame->data[0]);
         frame->data[0] = NULL;
-        __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "gles2 context not iniited yet \n");
+        LOGV( "gles2 context not iniited yet \n");
         dt_unlock (&mutex);
         return 0;
     }
@@ -286,7 +287,7 @@ extern "C" int update_frame(dt_av_frame_t *frame)
     DTPlayer *mp = gl_ctx.mp;
     if(!mp)
     {
-        __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "mp null \n");
+    	LOGV("mp null \n");
         return 0;
     }
     mp->Notify(MEDIA_FRESH_VIDEO);
@@ -304,7 +305,7 @@ void gles2_reg_player(DTPlayer *mp)
 {
     dt_lock (&mutex);
     gl_ctx.mp = mp;
-    __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "[%s:%d] register ok %p\n", __FUNCTION__, __LINE__, mp);
+    LOGV("[%s:%d] register ok %p\n", __FUNCTION__, __LINE__, mp);
     dt_unlock (&mutex);
 }
 
@@ -330,7 +331,7 @@ void gles2_init()
         gl_ctx.vertex_index = 0;
     gl_ctx.initialized = 1;
     dt_unlock (&mutex);
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "opengl esv2 init ok, ext:%s\n ", glExtension);
+    LOGV("opengl esv2 init ok, ext:%s\n ", glExtension);
 }
 
 void gles2_release() 
@@ -453,7 +454,7 @@ int gles2_surface_changed(int w, int h)
 	glEnable(GL_TEXTURE_2D);
 	//glClearColor( 0, 0, 0, 0 );
 
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "on surface changed, w:%d h:%d\n ", w, h);
+	LOGV( "on surface changed, w:%d h:%d\n ", w, h);
     dt_unlock(&mutex);
 }
 

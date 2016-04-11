@@ -11,8 +11,10 @@ extern "C"{
 #include <stdlib.h>
 #include "dt_lock.h"
 
+#include "native_log.h"
+
 }
-#define DEBUG_TAG "DTP-API"
+#define TAG "DTP-API"
 
 extern "C" int dtap_change_effect(ao_wrapper_t *wrapper, int id);
 #ifdef ENABLE_OPENSL
@@ -39,7 +41,7 @@ DTPlayer::DTPlayer()
 {
     memset(&media_info,0,sizeof(dt_media_info_t));
     dt_lock_init(&dtp_mutex, NULL);
-    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "DTPLAYER Constructor called \n");
+    LOGV("DTPLAYER Constructor called \n");
 }
 
 DTPlayer::~DTPlayer()
@@ -50,7 +52,7 @@ DTPlayer::~DTPlayer()
     if(mListenner)
         delete mListenner;
     gles2_release();
-    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "DTPLAYER Destructor called \n");
+    LOGV( "DTPLAYER Destructor called \n");
 }
 
 int DTPlayer::setGLContext(void *p)
@@ -92,7 +94,7 @@ int DTPlayer::setDataSource(const char *file_name)
     void *handle = mDtpHandle;
     if(handle != NULL)
     {
-	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "last player is running\n");
+    	LOGV( "last player is running\n");
         goto FAILED;
     }
 
@@ -105,21 +107,21 @@ int DTPlayer::setDataSource(const char *file_name)
     handle = dtplayer_init(&para);
     if (!handle)
     {
-	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "player init failed \n");
+    	LOGV("player init failed \n");
         goto FAILED;
     }
     //get media info
 	ret = dtplayer_get_mediainfo(handle, &info);
 	if(ret < 0)
 	{
-	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Get mediainfo failed, quit \n");
+		LOGV("Get mediainfo failed, quit \n");
 		return -1;
 	}
     //update dtPlayer info with mediainfo
 
 	memcpy(&media_info,&info,sizeof(dt_media_info_t));
     mDuration = info.duration;
-	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "Get Media Info Ok,filesize:%lld fulltime:%lld S \n",info.file_size,info.duration);
+    LOGV("Get Media Info Ok,filesize:%lld fulltime:%lld S \n",info.file_size,info.duration);
     
     mDtpHandle = handle;
 
@@ -199,7 +201,7 @@ int DTPlayer::start()
 
     if(status != PLAYER_PREPARED)
     {
-        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "player is running \n");
+    	LOGV( "player is running \n");
         goto END;
     }
 
@@ -244,7 +246,7 @@ int DTPlayer::seekTo(int pos) // ms
     void *handle = mDtpHandle;
     int ret = 0;
     
-    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seekto %d s \n",pos);
+    LOGV( "seekto %d s \n",pos);
     dt_lock(&dtp_mutex);    
     if(!handle)
     {
@@ -267,15 +269,15 @@ int DTPlayer::seekTo(int pos) // ms
         status = PLAYER_SEEKING;
         if(mSeekPosition < 0)
         {
-            __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seekTo execute \n");
+        	LOGV( "seekTo execute \n");
             mSeekPosition = pos;
             dtplayer_seekto(handle,pos);
         }
         else
-            __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seekTo is ececuting \n");
+        	LOGV( "seekTo is ececuting \n");
     }
     else
-        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seekTo is not ececuting in status:%d \n",status);
+    	LOGV("seekTo is not ececuting in status:%d \n",status);
 
 END:
     dt_unlock(&dtp_mutex);
@@ -432,7 +434,7 @@ int DTPlayer::getCurrentPosition()
     }
 
     cur_pos = mCurrentPosition;
-	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "getCurrentPos:%d status:%d \n", mCurrentPosition,status);
+    LOGV( "getCurrentPos:%d status:%d \n", mCurrentPosition,status);
     dt_unlock(&dtp_mutex);
     return cur_pos;
 }
@@ -493,26 +495,26 @@ int DTPlayer::notify(void *cookie, player_state_t *state)
     memcpy(&dtp->dtp_state,state,sizeof(player_state_t));
 	if (state->cur_status == PLAYER_STATUS_EXIT)
 	{
-		__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "PLAYER EXIT OK\n");
+		LOGV("PLAYER EXIT OK\n");
         dtp->mListenner->notify(MEDIA_PLAYBACK_COMPLETE);
         dtp->status = PLAYER_EXIT;
         goto END;
 	}
 	else if(state->cur_status == PLAYER_STATUS_SEEK_EXIT)
 	{
-	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "SEEK COMPLETE \n");
+		LOGV( "SEEK COMPLETE \n");
 	    if(dtp->mCurrentPosition != dtp->mSeekPosition)
         {
             //still have seek request
             dtp->mSeekPosition = dtp->mCurrentPosition;
             dtplayer_seekto(handle,dtp->mCurrentPosition);
-	        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "queued seek to %d \n",dtp->mCurrentPosition);
+            LOGV("queued seek to %d \n",dtp->mCurrentPosition);
         }
         else
         {
             //last seek complete, return to running
             dtp->mSeekPosition = -1;
-	        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "seek complete !\n");
+            LOGV( "seek complete !\n");
         }
         goto END;
 	}
@@ -521,13 +523,13 @@ int DTPlayer::notify(void *cookie, player_state_t *state)
     {
         if(dtp->mSeekPosition > 0) // receive seek again
             goto END;
-	    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "set status to running from seek complete \n");
+        LOGV("set status to running from seek complete \n");
         dtp->status = PLAYER_RUNNING;
         dtp->mListenner->notify(MEDIA_INFO);
     }
 
-	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "UPDATECB CURSTATUS:%x status:%d \n", state->cur_status, dtp->status);
-	__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "CUR TIME %lld S  FULL TIME:%lld  \n",state->cur_time,state->full_time);
+    LOGV("UPDATECB CURSTATUS:%x status:%d \n", state->cur_status, dtp->status);
+    LOGV("CUR TIME %lld S  FULL TIME:%lld  \n",state->cur_time,state->full_time);
 END:
     dt_unlock(&dtp->dtp_mutex);
 	return ret;

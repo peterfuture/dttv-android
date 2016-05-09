@@ -1,5 +1,6 @@
 apply plugin: 'com.android.model.application'
 
+def ndkDir = System.getenv("ANDROID_NDK_HOME")
 // Root of 3rd party lib(s): location could be anywhere on the host system
 def lib_distribution_root = '../3rd'
 
@@ -23,12 +24,16 @@ model {
             applicationId = "dttv.app"
             minSdkVersion.apiLevel    = 19
             targetSdkVersion.apiLevel = 23
+            versionCode = 1
+            versionName = '1.0'
         }
         ndk {
-            platformVersion = 9
+            platformVersion = 21
             moduleName = 'dttv_jni'
             toolchain = 'clang'
             stl        = 'gnustl_static'
+            cppFlags.addAll(['-I' + "${ndkDir}/sources/android/cpufeatures",
+                             '-I' + file('src/main/jni/')])
             cppFlags.addAll(['-std=c++11','-Wall'])
             ldLibs.addAll(['log', 'GLESv2'])
         }
@@ -37,7 +42,7 @@ model {
             main {
                 jni {
                     dependencies {
-                        library 'libdtp' linkage 'shared'
+                        library 'dtp' linkage 'shared'
                     }
                 }
                 jniLibs {
@@ -61,10 +66,4 @@ model {
             }
         }
     }
-}
-
-dependencies {
-    println rootProject.getName()
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:23.3.0'
 }

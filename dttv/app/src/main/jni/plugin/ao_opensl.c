@@ -5,7 +5,7 @@
  * Porting From vlc
  *****************************************************************************/
 
-#include "dtaudio_android.h"
+#include "../dtaudio_android.h"
 #include "dt_buffer.h"
 #include "dt_lock.h"
 
@@ -115,7 +115,7 @@ typedef struct{
 
 #endif
 
-#include "native_log.h"
+#include "../native_log.h"
 #define TAG "AO-OPENSL"
 
 /*****************************************************************************

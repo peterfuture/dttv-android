@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dt_player_rootview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:orientation="vertical" >
+    
+    <LinearLayout
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:gravity="center" >
+
+ 		<dttv.app.widget.GlVideoView
+ 		    android:id="@+id/glvideo_view"
+ 		    style="@style/AppTheme"
+ 		    android:layout_width="match_parent"
+ 		    android:layout_height="match_parent"
+ 		     />
+
+	</LinearLayout>
+	<!-- top opration bar-->
+    <RelativeLayout
+        android:id="@+id/dt_top_play_bar_lay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:gravity="center_vertical"
+        android:background="@color/opreate_bar_bg_color"
+        android:visibility="gone" >
+        <TextView
+            android:id="@+id/dt_media_name_txt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:textSize="18sp"
+            android:textColor="@color/txt_color"
+            android:layout_centerVertical="true"
+             />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentRight="true"
+            android:gravity="center" >
+            <Button
+                android:id="@+id/dt_decoder_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textColor="@color/txt_color"
+                android:text="@string/dt_decode_type_soft" />
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:paddingTop="15dp"
+                android:paddingBottom="15dp"
+                android:layout_marginLeft="10dp"
+                android:background="@drawable/vertical_diliver_color" />
+            <ImageView
+                android:id="@+id/dt_track_img"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:background="@drawable/dt_player_audio_icon" />
+        </LinearLayout>
+    </RelativeLayout>
+    <!-- rotate screen -->
+    <ImageButton
+        android:id="@+id/dt_player_rotate_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/dt_player_rotate"
+        android:layout_below="@+id/dt_top_play_bar_lay"
+        android:visibility="gone" />
+    <!-- player opration bar -->
+    <include
+        android:id="@+id/audio_player_bar_lay"  
+        layout="@layout/operation_bar"
+        android:visibility="gone" />
+    
+    <ProgressBar
+         android:id="@+id/bright_progressbar"
+         android:layout_width="20dp"
+         android:layout_height="200dp"
+         android:progressDrawable="@drawable/brightbar_progress"
+         android:indeterminateOnly="false"
+         android:progress="100"
+         android:max="255"
+         android:visibility="gone"
+         android:layout_marginLeft="50dp"
+         android:layout_centerVertical="true"  />
+     <ProgressBar
+         android:id="@+id/volume_progress"
+         android:layout_marginRight="100dp"
+         android:layout_width="20dp"
+         android:layout_height="200dp"
+         android:progressDrawable="@drawable/soundbar_progress"
+         android:indeterminateOnly="false"
+         android:progress="5"
+         android:max="15"
+         android:visibility="gone"
+         android:layout_centerVertical="true"
+         android:layout_alignParentRight="true" />
+</RelativeLayout>

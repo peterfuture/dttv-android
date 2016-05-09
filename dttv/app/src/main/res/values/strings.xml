@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">DTTV</string>
+    <string name="action_settings">Settings</string>
+    <string name="edit_message">Enter a Message</string>
+    <string name="file_select">open</string>
+    <string name="title_activity_display_message">MyMessage</string>
+    <string name="show_text">here</string>
+    <string name="player_start">start</string>
+    <string name="player_pause">pause</string>
+    <string name="player_resume">resume</string>
+    <string name="player_stop">stop</string>
+    <string name="title_activity_play">PlayActivity</string>
+    <string name="video_activity_play">VideoPlayerActivity</string>
+    <string name="hello_world">Hello world!</string>
+	<string name="time_default_show">00:00:00</string>
+	
+	<string name="audio_play_txt_str">test for audio</string>
+	<string name="audio_play_btn_str">audio btn</string>
+	
+	<string name="nav_desc">nav_desc</string>
+	<string name="audio_effect_btn_str">Normal</string>
+	
+	<string name="dt_decode_type_soft">软解码</string>
+	<string name="dt_decode_type_hard">硬解码</string>
+	<string name="dt_setting_title">播放器设置</string>
+	
+	<string name="dt_decode_audio_filter_str">过滤时长小于60秒音频</string>
+	<string name="dt_decode_video_filter_str">过滤时长小于60秒视频</string>
+	<string name="dt_setting_yes">是</string>
+	<string name="dt_setting_no">否</string>
+</resources>

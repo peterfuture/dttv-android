@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+	<Preference
+	    android:title="@string/dt_setting_title"
+	    android:layout="@layout/text_setting" />
+	<CheckBoxPreference android:key="filter_audio"
+	    android:title="@string/dt_decode_audio_filter_str"
+	    android:summaryOn="@string/dt_setting_yes"
+	    android:summaryOff="@string/dt_setting_no" />
+	<CheckBoxPreference android:key="filter_video"
+	    android:title="@string/dt_decode_video_filter_str"
+	    android:summaryOn="@string/dt_setting_yes"
+	    android:summaryOff="@string/dt_setting_no" />
+	<ListPreference
+	    android:key="dt_setting_decode_list"
+	    android:title="解码格式"
+	    android:summary="软解码"
+	    android:defaultValue="@string/dt_decode_type_soft"
+	    android:entries="@array/dt_player_code_types"
+	    android:entryValues="@array/dt_player_code_types" />
+</PreferenceScreen>

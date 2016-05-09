@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="txt_color">#ffffffff</color>
+    <color name="opreate_bar_bg_color">#50000000</color>
+    <color name="bg_black">#000000</color>
+    
+    <drawable name="vertical_diliver_color">#5B5B5B</drawable>
+</resources>

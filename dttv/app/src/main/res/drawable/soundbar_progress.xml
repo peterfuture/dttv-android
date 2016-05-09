@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background">
+        <shape>
+            <stroke android:width="1.0px" android:color="#ff888888" />
+            <solid android:color="#00000000" />
+        </shape>
+    </item>
+    <item android:id="@android:id/progress">
+        <clip android:gravity="bottom|center" android:clipOrientation="vertical">
+            <shape>
+                <stroke android:width="4.0dip" android:color="#00000000" />
+                <solid android:color="#cc6296ff" />
+            </shape>
+        </clip>
+    </item>
+</layer-list>

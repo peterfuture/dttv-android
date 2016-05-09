@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:padding="10dp">
+	<ImageView
+	    android:id="@+id/media_row_icon"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:background="@drawable/dt_player_audio_icon" />
+	<TextView
+		android:id="@+id/media_row_name"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:scrollbars="vertical"
+		android:fadingEdge="vertical"
+		android:singleLine="true"
+		android:textSize="20sp"
+		android:layout_toRightOf="@+id/media_row_icon"
+		/>
+	<TextView
+		android:id="@+id/media_row_artist"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:scrollbars="vertical"
+		android:fadingEdge="vertical"
+		android:singleLine="true"
+		android:layout_below="@+id/media_row_name"
+		android:layout_toRightOf="@+id/media_row_icon"
+		/>
+	<TextView
+	    android:id="@+id/media_row_uri"
+	    android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:scrollbars="vertical"
+		android:fadingEdge="vertical"
+		android:singleLine="true"
+		android:visibility="gone"
+		android:layout_below="@+id/media_row_artist" />
+</RelativeLayout>

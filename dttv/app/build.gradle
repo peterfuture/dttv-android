@@ -1,0 +1,70 @@
+apply plugin: 'com.android.model.application'
+
+// Root of 3rd party lib(s): location could be anywhere on the host system
+def lib_distribution_root = '../3rd'
+
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            dtp {
+                headers.srcDir "${lib_distribution_root}/libdtp/include"
+                binaries.withType(SharedLibraryBinary) {
+                    sharedLibraryFile = file("${lib_distribution_root}/libdtp/libdtp.so")
+                }
+            }
+        }
+    }
+
+    android {
+        compileSdkVersion 23
+        buildToolsVersion "23.0.2"
+
+        defaultConfig {
+            applicationId = "dttv.app"
+            minSdkVersion.apiLevel    = 19
+            targetSdkVersion.apiLevel = 23
+        }
+        ndk {
+            platformVersion = 9
+            moduleName = 'dttv_jni'
+            toolchain = 'clang'
+            stl        = 'gnustl_static'
+            cppFlags.addAll(['-std=c++11','-Wall'])
+            ldLibs.addAll(['log', 'GLESv2'])
+        }
+
+        sources {
+            main {
+                jni {
+                    dependencies {
+                        library 'libdtp' linkage 'shared'
+                    }
+                }
+                jniLibs {
+                    // for shared lib, lib need to be pushed to the target too
+                    // Once libs are copied into app/src/main/jniLibs directory,
+                    // Android Studio will pack them into APK's lib/ directory
+                    // Here we like to avoid another duplication by pointing
+                    // to the files that containing our libs' distribution location
+                    // so the same file is used by compiler at host, also packed
+                    // into APk to be used at Target (phone/tablet)
+                    source {
+                        srcDir "${lib_distribution_root}/libdtp/"
+                    }
+                }
+            }
+        }
+        buildTypes {
+            release {
+                minifyEnabled false
+                proguardFiles.add(file('proguard-android.txt'))
+            }
+        }
+    }
+}
+
+dependencies {
+    println rootProject.getName()
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:23.3.0'
+}

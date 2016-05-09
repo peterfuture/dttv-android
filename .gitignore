@@ -1,4 +1,4 @@
-# Compiled Object files
+p  Compiled Object files
 *.slo
 *.lo
 *.o
@@ -36,3 +36,12 @@ bin
 
 #other
 tags
+
+#gradle
+.gradle
+.idea
+**/*.iml
+local.properties
+build
+*~
+.DS_Store

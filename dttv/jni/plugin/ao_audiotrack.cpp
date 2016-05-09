@@ -16,7 +16,7 @@ namespace android {
 
 extern "C" {
 
-#include "jni_log.h"
+#include "native_log.h"
 #define TAG "AO-ANDROID"
 
 typedef struct{

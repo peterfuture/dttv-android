@@ -1,5 +1,18 @@
 LOCAL_PATH := $(call my-dir)
 
+##############################################
+include $(CLEAR_VARS)
+LOCAL_MODULE := dtp_prebuilt
+LOCAL_SRC_FILES := $(DTP_ANDROID_LIB)/libdtp.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := dtap_prebuilt
+LOCAL_SRC_FILES := $(LOCAL_PATH)/libs/libdtap.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+##############################################
+
 include $(CLEAR_VARS)
 LOCAL_MODULE    := dtp_jni
 LOCAL_SRC_FILES := android_jni.cpp
@@ -49,7 +62,8 @@ ifeq ($(ENABLE_DTAP),yes)
 endif
 
 LOCAL_LDLIBS    += -L$(DTP_ANDROID_LIB) -ldtp
-LOCAL_LDLIBS    += -lOpenMAXAL -lmediandk
+#LOCAL_LDLIBS    += -lOpenMAXAL -lmediandk
+LOCAL_LDLIBS    += -lOpenMAXAL
 LOCAL_LDLIBS    += -llog
 LOCAL_LDLIBS    += -landroid
 

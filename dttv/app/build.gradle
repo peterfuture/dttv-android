@@ -17,18 +17,18 @@ model {
     }
 
     android {
-        compileSdkVersion 23
+        compileSdkVersion 19
         buildToolsVersion "23.0.2"
 
         defaultConfig {
             applicationId = "dttv.app"
             minSdkVersion.apiLevel    = 19
-            targetSdkVersion.apiLevel = 23
+            targetSdkVersion.apiLevel = 19
             versionCode = 1
             versionName = '1.0'
         }
         ndk {
-            platformVersion = 21
+            platformVersion = 19
             moduleName = 'dttv_jni'
             toolchain = 'clang'
             stl        = 'gnustl_static'
@@ -36,6 +36,7 @@ model {
                              '-I' + file('src/main/jni/')])
             cppFlags.addAll(['-std=c++11','-Wall'])
             ldLibs.addAll(['log', 'GLESv2'])
+            abiFilters.addAll(['armeabi-v7a'])
         }
 
         sources {

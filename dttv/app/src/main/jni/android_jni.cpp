@@ -102,7 +102,8 @@ static DTPlayer * setMediaPlayer(JNIEnv *env, jobject thiz, DTPlayer *player)
 {
     dt_lock(&sLock);
     DTPlayer *old = (DTPlayer *)env->GetIntField(thiz, fields.context);
-    env->SetIntField(thiz, fields.context, (int)player);
+    //env->SetIntField(thiz, fields.context, (u_long)player);
+    env->SetLongField(thiz, fields.context, (u_long)player);
     dt_unlock(&sLock);
     return old;
 }

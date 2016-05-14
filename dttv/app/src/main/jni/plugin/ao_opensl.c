@@ -458,7 +458,7 @@ static void Close(dtaudio_output_t *aout)
     Destroy(sys->outputMixObject);
     Destroy(sys->engineObject);
     dlclose(sys->p_so_handle);
-    vlc_mutex_destroy(&sys->lock);
+    //vlc_mutex_destroy(&sys->lock);
     free(sys);
 }
 

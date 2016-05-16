@@ -73,10 +73,10 @@ public class DtPlayer {
 	private static final int MEDIA_CACHING_UPDATE = 2000;
 	
 	static{
-		System.loadLibrary("gnustl_shared");
+		//System.loadLibrary("gnustl_shared");
 		System.loadLibrary("dtp");
-		System.loadLibrary("dtap");
-		System.loadLibrary("dtp_jni");
+		//System.loadLibrary("dtap");
+		System.loadLibrary("dttv_jni");
 		
 		native_init();
 	}

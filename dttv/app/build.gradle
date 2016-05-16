@@ -10,7 +10,7 @@ model {
             dtp {
                 headers.srcDir "${lib_distribution_root}/libdtp/include"
                 binaries.withType(SharedLibraryBinary) {
-                    sharedLibraryFile = file("${lib_distribution_root}/libdtp/libdtp.so")
+                    sharedLibraryFile = file("${lib_distribution_root}/libdtp/${targetPlatform.getName()}/libdtp.so")
                 }
             }
         }
@@ -67,4 +67,11 @@ model {
             }
         }
     }
+}
+
+dependencies {
+    println rootProject.getName()
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:19.0.0'
+    compile 'com.android.support:support-v4:19.0.0'
 }

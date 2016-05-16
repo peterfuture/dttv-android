@@ -14,13 +14,14 @@
 #define GLRENDER_STATUS_RUNNING 1
 #define GLRENDER_STATUS_QUIT 2
 
-namespace android{
+namespace android
+{
 
-enum {  
-    ATTRIB_VERTEX,  
-    ATTRIB_TEXTURE,  
-}; 
-typedef struct{
+enum {
+    ATTRIB_VERTEX,
+    ATTRIB_TEXTURE,
+};
+typedef struct {
     int g_width;
     int g_height;
     int orig_width;
@@ -35,18 +36,18 @@ typedef struct{
 
     dt_av_frame_t frame;
 
-	int status;
+    int status;
     int invalid_frame;
     int vertex_index;
 
     int initialized;
 
     DTPlayer *mp; // point to dtplayer
-}gles2_ctx_t;
+} gles2_ctx_t;
 
 void gles2_setup();
-void gles2_reg_player(DTPlayer *mp); 
-void gles2_init(); 
+void gles2_reg_player(DTPlayer *mp);
+void gles2_init();
 void gles2_release();
 int gles2_surface_changed(int w, int h);
 int gles2_draw_frame();

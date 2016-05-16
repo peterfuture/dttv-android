@@ -2,7 +2,7 @@
  * =====================================================================================
  *
  *    Filename   :  jni_log.h
- *    Description:  
+ *    Description:
  *    Version    :  1.0
  *    Created    :  2016年04月11日 16时28分41秒
  *    Revision   :  none

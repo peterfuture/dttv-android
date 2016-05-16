@@ -2,10 +2,11 @@
 #define ANDROID_DTPLAYER_H
 
 #include "android_jni.h"
-extern "C"{
+extern "C" {
 #include "dtplayer_api.h"
 }
-namespace android {
+namespace android
+{
 
 const static int MEDIA_PREPARED = 1;
 const static int MEDIA_PLAYBACK_COMPLETE = 2;
@@ -21,7 +22,8 @@ const static int MEDIA_HW_ERROR = 400;
 const static int MEDIA_TIMED_TEXT = 1000;
 const static int MEDIA_CACHING_UPDATE = 2000;
 
-class DTPlayer{
+class DTPlayer
+{
 public:
     DTPlayer();
     ~DTPlayer();
@@ -61,7 +63,7 @@ private:
         PLAYER_EXIT                = 0x40,
         PLAYER_EOS                 = 0x200,
     };
-    
+
     dt_media_info_t media_info;
 
     int status;

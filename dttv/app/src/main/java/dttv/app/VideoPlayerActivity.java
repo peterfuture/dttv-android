@@ -119,23 +119,23 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,OnT
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.video_play);
 		Log.i(TAG, "enter onCreate");
-		mState = PLAYER_IDLE;		
-		dtPlayer = new DtPlayer(this);
+
 		if(OpenglES2Support() == 0)
 		{
 			Toast.makeText(this, "opengl es2.0 not supported， Exit!", 1).show();
 			return;
 		}
-		else
-		{
-			//opengl
-			glSurfaceView = (GlVideoView)findViewById(R.id.glvideo_view);
-			glSurfaceView.setRenderer(new GLSurfaceViewRender());
-			glSurfaceView.setTouchMoveListener(new GLMoveTouchListener());
-	        //glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-	        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-	        //glSurfaceView.setOnTouchListener((OnTouchListener) this);
-		}
+
+		mState = PLAYER_IDLE;
+		dtPlayer = new DtPlayer(this);
+		//opengl
+		glSurfaceView = (GlVideoView)findViewById(R.id.glvideo_view);
+		glSurfaceView.setRenderer(new GLSurfaceViewRender());
+		glSurfaceView.setTouchMoveListener(new GLMoveTouchListener());
+		//glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+		glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+		//glSurfaceView.setOnTouchListener((OnTouchListener) this);
+
 
 		getWindow().setBackgroundDrawableResource(R.color.bg_black);
 		

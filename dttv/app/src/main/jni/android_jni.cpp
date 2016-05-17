@@ -7,7 +7,7 @@
 #include "native_log.h"
 #include "android_dtplayer.h"
 #include "android_jni.h"
-#include "android_opengl.h"
+#include "gl_yuv.h"
 
 #include "native_log.h"
 #define TAG "DTPLAYER-JNI"
@@ -118,8 +118,6 @@ static void android_dttv_native_init(JNIEnv *env)
     if (fields.post_event == NULL) {
         return;
     }
-
-    gles2_setup();
 
 }
 
@@ -337,28 +335,21 @@ int android_dttv_native_setInfo(JNIEnv *env, jobject thiz, int cmd, jlong arg)
 
 int android_dttv_native_onSurfaceCreated(JNIEnv *env, jobject thiz)
 {
-    gles2_init();
-    DTPlayer *mp = getMediaPlayer(env, thiz);
-    if (mp) {
-        gles2_reg_player(mp);
-    } else {
-        LOGV("onSurfaceCreated register player failed mp null\n");
-    }
-
+    yuv_dttv_reset();
+    yuv_reg_player((void *)getMediaPlayer(env, thiz));
     return 0;
 }
 
 int android_dttv_native_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h)
 {
-    gles2_surface_changed(w, h);
+    yuv_setupGraphics(w, h);
     LOGV("onSurfaceChanged, w:%d h:%d \n", w, h);
-    android_dttv_native_setVideoSize(env, obj, w, h);
     return 0;
 }
 
 int android_dttv_native_onDrawFrame(JNIEnv *env, jobject thiz)
 {
-    gles2_draw_frame();
+    yuv_renderFrame();
     return 0;
 }
 

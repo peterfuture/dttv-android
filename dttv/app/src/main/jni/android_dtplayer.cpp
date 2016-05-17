@@ -2,8 +2,9 @@
 // TOP-LEVEL API provided for DtPlayer.java
 
 #include "android_dtplayer.h"
-#include "android_opengl.h"
 #include "android_jni.h"
+#include "../../../../3rd/libdtp/include/vo_wrapper.h"
+#include "gl_yuv.h"
 
 extern "C" {
 
@@ -20,11 +21,10 @@ extern "C" int dtap_change_effect(ao_wrapper_t *wrapper, int id);
 #ifdef ENABLE_OPENSL
 extern "C" void ao_opensl_setup(ao_wrapper_t *ao);
 #endif
-#ifdef ENABLE_AUDIOTRACK
-extern "C" void ao_audiotrack_setup(ao_wrapper_t *ao);
-#endif
-extern "C" void vo_android_setup(vo_wrapper_t *vo);
+#ifdef ENABLE_ANDROID_OMX
 extern "C" void vd_stagefright_setup(vd_wrapper_t *vd);
+#endif
+void vo_android_setup(vo_wrapper_t **vo);
 
 namespace android
 {
@@ -68,7 +68,7 @@ DTPlayer::~DTPlayer()
     if (mListenner) {
         delete mListenner;
     }
-    gles2_release();
+    yuv_dttv_reset();
     LOGV("dtplayer destructor called \n");
 }
 
@@ -137,30 +137,26 @@ int DTPlayer::setDataSource(const char *file_name)
 
     memcpy(&media_info, &info, sizeof(dt_media_info_t));
     mDuration = info.duration;
-    LOGV("Get Media Info Ok,filesize:%lld fulltime:%lld S \n", info.file_size, info.duration);
-
     mDtpHandle = handle;
-
+    LOGV("Get Media Info Ok,filesize:%lld fulltime:%lld S \n", info.file_size, info.duration);
 
     /*
      *
-     *  register ext plugin
-     *  AO - VO - VD
+     *  register plugin - [AO AD AF - VO VD VF]
      *
      * */
 #ifdef ENABLE_OPENSL
     ao_opensl_setup(&ao);
-#endif
-#ifdef ENABLE_AUDIOTRACK
-    ao_audiotrack_setup(&ao);
-#endif
     dtplayer_register_ext_ao(&ao);
+#endif
+
 #ifdef ENABLE_ANDROID_OMX
     vd_stagefright_setup(&vd);
     dtplayer_register_ext_vd(&vd);
 #endif
+
     vo_android_setup(&vo);
-    dtplayer_register_ext_vo(&vo);
+    dtplayer_register_ext_vo(vo);
 
     status = PLAYER_INITED;
     return 0;

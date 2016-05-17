@@ -4,6 +4,8 @@
 #include "android_jni.h"
 extern "C" {
 #include "dtplayer_api.h"
+#include "dtaudio_android.h"
+#include "dtvideo_android.h"
 }
 namespace android
 {
@@ -82,7 +84,7 @@ private:
     int mHWEnable;
     int volume;
     ao_wrapper_t ao;
-    vo_wrapper_t vo;
+    vo_wrapper_t *vo;
     vd_wrapper_t vd;
     int audio_pp_id;   // audio effect id
 };

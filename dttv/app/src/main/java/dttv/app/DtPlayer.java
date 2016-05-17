@@ -80,7 +80,7 @@ public class DtPlayer {
 		
 		native_init();
 	}
-	private int mNativeContext; // accessed by native methods
+	private long mNativeContext; // accessed by native methods
 
 	public DtPlayer(Context ctx) {
 		// TODO Auto-generated constructor stub
@@ -89,7 +89,7 @@ public class DtPlayer {
           * It's easier to create it here than in C++.
           */
         native_setup(new WeakReference<DtPlayer>(this));
-        native_hw_enable(1);
+        native_hw_enable(0);
 	}
 	
 	public DtPlayer(Context ctx,boolean isHardWare) {
@@ -740,6 +740,9 @@ public class DtPlayer {
 	public native int native_getCurrentPosition();
 	public native Bitmap getCurrentFrame();
 	public native int native_getDuration();
+
+	public native int native_getInfo(int cmd, long arg);
+	public native int native_setInfo(int cmd, long arg);
 	
 	//opengl esv2
 	public native int native_onSurfaceCreated();

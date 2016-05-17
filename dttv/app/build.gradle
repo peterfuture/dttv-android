@@ -32,10 +32,13 @@ model {
             moduleName = 'dttv_jni'
             toolchain = 'clang'
             stl        = 'gnustl_static'
+
+            cppFlags.addAll(['-DENABLE_OPENSL'])
+            cppFlags.addAll(['-DUSE_OPENGL_V2'])
             cppFlags.addAll(['-I' + "${ndkDir}/sources/android/cpufeatures",
                              '-I' + file('src/main/jni/')])
             cppFlags.addAll(['-std=c++11','-Wall'])
-            ldLibs.addAll(['log', 'GLESv2'])
+            ldLibs.addAll(['log', 'GLESv2', 'OpenSLES'])
             abiFilters.addAll(['armeabi-v7a'])
         }
 

@@ -26,6 +26,7 @@ class DTPlayer
 {
 public:
     DTPlayer();
+    DTPlayer(dtpListenner *listenner);
     ~DTPlayer();
     int setGLContext(void *pgl);
     int setListenner(dtpListenner *listenner);

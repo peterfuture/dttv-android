@@ -14,7 +14,7 @@ extern "C" {
 #include "native_log.h"
 
 }
-#define TAG "DTP-API"
+#define TAG "NATIVE-DTP"
 
 extern "C" int dtap_change_effect(ao_wrapper_t *wrapper, int id);
 #ifdef ENABLE_OPENSL
@@ -42,8 +42,23 @@ DTPlayer::DTPlayer()
 {
     memset(&media_info, 0, sizeof(dt_media_info_t));
     dt_lock_init(&dtp_mutex, NULL);
-    LOGV("DTPLAYER Constructor called \n");
+    LOGV("dtplayer constructor ok \n");
 }
+DTPlayer::DTPlayer(dtpListenner *listenner)
+            : status(0),
+              mHWEnable(1),
+              mDtpHandle(NULL),
+              mCurrentPosition(-1),
+              mSeekPosition(-1),
+              mDuration(-1),
+              mDisplayHeight(0),
+              mDisplayWidth(0)
+    {
+        memset(&media_info, 0, sizeof(dt_media_info_t));
+        dt_lock_init(&dtp_mutex, NULL);
+        mListenner = listenner;
+        LOGV("dtplayer constructor ok \n");
+    }
 
 DTPlayer::~DTPlayer()
 {
@@ -54,7 +69,7 @@ DTPlayer::~DTPlayer()
         delete mListenner;
     }
     gles2_release();
-    LOGV("DTPLAYER Destructor called \n");
+    LOGV("dtplayer destructor called \n");
 }
 
 int DTPlayer::setGLContext(void *p)
@@ -65,7 +80,8 @@ int DTPlayer::setGLContext(void *p)
 
 int DTPlayer::setListenner(dtpListenner *listenner)
 {
-    mListenner = listenner;
+    LOGV("[%d:%p] [%d:%p]", sizeof(mListenner), this->mListenner, sizeof(listenner), listenner);
+    this->mListenner = listenner;
 }
 
 int DTPlayer::setDataSource(const char *file_name)

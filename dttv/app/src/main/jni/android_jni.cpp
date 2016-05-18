@@ -335,7 +335,7 @@ int android_dttv_native_setInfo(JNIEnv *env, jobject thiz, int cmd, jlong arg)
 
 int android_dttv_native_onSurfaceCreated(JNIEnv *env, jobject thiz)
 {
-    yuv_dttv_reset();
+    yuv_dttv_init();
     yuv_reg_player((void *)getMediaPlayer(env, thiz));
     return 0;
 }

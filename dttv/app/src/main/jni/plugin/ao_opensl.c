@@ -151,8 +151,8 @@ static int TimeGet(dtaudio_output_t* aout, int64_t* drift)
     *drift = (CLOCK_FREQ * OPENSLES_BUFLEN * st.count / 1000)
 	     + sys->samples * CLOCK_FREQ / sys->rate;
 
-//	__android_log_print(ANDROID_LOG_DEBUG, TAG, "latency %lld ms, %d/%d buffers, samples:%d", *drift / 1000,
-//            (int)st.count, OPENSLES_BUFFERS, sys->samples);
+	//__android_log_print(ANDROID_LOG_DEBUG, TAG, "latency %lld ms, %d/%d buffers, samples:%d", *drift / 1000,
+    //        (int)st.count, OPENSLES_BUFFERS, sys->samples);
 	 
     return 0;
 }

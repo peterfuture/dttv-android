@@ -7,7 +7,7 @@
 
 #include "../../../../3rd/libdtp/include/dt_av.h"
 
-void yuv_dttv_reset();
+void yuv_dttv_init();
 void yuv_reg_player(void *mp);
 int yuv_update_frame(dt_av_frame_t *frame);
 

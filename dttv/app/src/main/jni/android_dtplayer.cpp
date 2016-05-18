@@ -45,20 +45,20 @@ DTPlayer::DTPlayer()
     LOGV("dtplayer constructor ok \n");
 }
 DTPlayer::DTPlayer(dtpListenner *listenner)
-            : status(0),
-              mHWEnable(1),
-              mDtpHandle(NULL),
-              mCurrentPosition(-1),
-              mSeekPosition(-1),
-              mDuration(-1),
-              mDisplayHeight(0),
-              mDisplayWidth(0)
-    {
-        memset(&media_info, 0, sizeof(dt_media_info_t));
-        dt_lock_init(&dtp_mutex, NULL);
-        mListenner = listenner;
-        LOGV("dtplayer constructor ok \n");
-    }
+    : status(0),
+      mHWEnable(1),
+      mDtpHandle(NULL),
+      mCurrentPosition(-1),
+      mSeekPosition(-1),
+      mDuration(-1),
+      mDisplayHeight(0),
+      mDisplayWidth(0)
+{
+    memset(&media_info, 0, sizeof(dt_media_info_t));
+    dt_lock_init(&dtp_mutex, NULL);
+    mListenner = listenner;
+    LOGV("dtplayer constructor ok \n");
+}
 
 DTPlayer::~DTPlayer()
 {
@@ -68,7 +68,7 @@ DTPlayer::~DTPlayer()
     if (mListenner) {
         delete mListenner;
     }
-    yuv_dttv_reset();
+    yuv_dttv_init();
     LOGV("dtplayer destructor called \n");
 }
 
@@ -89,6 +89,7 @@ int DTPlayer::setDataSource(const char *file_name)
     int ret = 0;
     dt_media_info_t info;
     dtplayer_para_t para;
+    memset(&para, 0, sizeof(dtplayer_para_t));
     para.disable_audio = para.disable_video = para.disable_sub = -1;
     para.height = para.width = -1;
     para.loop_mode = 0;

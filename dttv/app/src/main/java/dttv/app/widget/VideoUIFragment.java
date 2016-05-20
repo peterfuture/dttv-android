@@ -10,6 +10,7 @@ import dttv.app.impl.I_OnMyKey;
 import dttv.app.utils.Constant;
 import dttv.app.utils.PlayerUtil;
 import dttv.app.utils.SettingUtil;
+
 import android.annotation.SuppressLint;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
@@ -32,98 +33,98 @@ import android.widget.TextView;
 
 
 @SuppressLint("NewApi")
-public class VideoUIFragment extends Fragment implements I_OnMyKey{
-	final static String TAG = "VideoUIFragment";
-	View rootView;
-	ListView video_listview;
-	SettingUtil settingUtil;
-	
-	private List<String> playList;
-	//private AsyncQueryHandler mQueryHandler;
-	
-	public VideoUIFragment() {
-		// TODO Auto-generated constructor stub
-	}
-	
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
-		super.onCreate(savedInstanceState);
-		settingUtil = new SettingUtil(getActivity());
-	}
-	
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
-		
-		rootView = inflater.inflate(R.layout.dt_video_ui_fragment, container, false);
-		/*TextView tv_tabName = (TextView) rootView.findViewById(R.id.tv_tabName);
+public class VideoUIFragment extends Fragment implements I_OnMyKey {
+    final static String TAG = "VideoUIFragment";
+    View rootView;
+    ListView video_listview;
+    SettingUtil settingUtil;
+
+    private List<String> playList;
+    //private AsyncQueryHandler mQueryHandler;
+
+    public VideoUIFragment() {
+        // TODO Auto-generated constructor stub
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        // TODO Auto-generated method stub
+        super.onCreate(savedInstanceState);
+        settingUtil = new SettingUtil(getActivity());
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+        rootView = inflater.inflate(R.layout.dt_video_ui_fragment, container, false);
+        /*TextView tv_tabName = (TextView) rootView.findViewById(R.id.tv_tabName);
 		Bundle bundle = getArguments();
 		tv_tabName.setText(bundle.getString(Constant.ARGUMENTS_NAME, ""));*/
-		
-		return rootView;
-	}
-	
-	
-	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
-		super.onActivityCreated(savedInstanceState);
-		initViews();
-	}
-	
-	
-	private void initViews(){
-		video_listview = (ListView)rootView.findViewById(R.id.video_listview);
+
+        return rootView;
+    }
+
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        // TODO Auto-generated method stub
+        super.onActivityCreated(savedInstanceState);
+        initViews();
+    }
+
+
+    private void initViews() {
+        video_listview = (ListView) rootView.findViewById(R.id.video_listview);
 		/*mQueryHandler = new QueryHandler(getActivity().getContentResolver());
 		getQueryCursor(mQueryHandler, null);*/
-		MakeCursor();
-		fillDataToListView();
-		video_listview.setOnItemClickListener(new ListOnItemClickListener());
-	}
-	
-	private class ListOnItemClickListener implements OnItemClickListener{
-		@Override
-		public void onItemClick(AdapterView<?> adapter, View v, int position,
-				long arg3) {
-			// TODO Auto-generated method stub
-			String uri = playList.get(position);
-			String name = ((TextView)v.findViewById(R.id.media_row_name)).getText().toString();
-			PlayerUtil.getInstance().beginToPlayer(getActivity(), uri, name,Constant.LOCAL_VIDEO);
-		}
-	}
-	
-	
-	class QueryHandler extends AsyncQueryHandler {
+        MakeCursor();
+        fillDataToListView();
+        video_listview.setOnItemClickListener(new ListOnItemClickListener());
+    }
+
+    private class ListOnItemClickListener implements OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> adapter, View v, int position,
+                                long arg3) {
+            // TODO Auto-generated method stub
+            String uri = playList.get(position);
+            String name = ((TextView) v.findViewById(R.id.media_row_name)).getText().toString();
+            PlayerUtil.getInstance().beginToPlayer(getActivity(), uri, name, Constant.LOCAL_VIDEO);
+        }
+    }
+
+
+    class QueryHandler extends AsyncQueryHandler {
         QueryHandler(ContentResolver res) {
             super(res);
         }
-        
+
         @Override
         protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
             //mActivity.init(cursor);
-        	//Log.i(TAG, "cursor.getCount() is:"+cursor.getCount());
-        	//fillDataToListView(cursor);
+            //Log.i(TAG, "cursor.getCount() is:"+cursor.getCount());
+            //fillDataToListView(cursor);
         }
     }
-	
-	private void fillDataToListView(){
-		playList = new ArrayList<String>();
-		String[] fromColumns = new String[] {MediaStore.Video.Media.TITLE};
-		int[] toLayoutIDs = new int[]{R.id.media_row_name};
-		//Cursor cursor = readDataFromSD(getActivity());
-		SimpleCursorAdapter adapter = new SimpleCursorAdapter(getActivity(), R.layout.dt_video_item, mCursor, fromColumns, toLayoutIDs, 0);
-		
-		video_listview.setAdapter(adapter);
-		while(mCursor.moveToNext()){
-			//Log.i(TAG, "mine-type is:"+mCursor.getString(mCursor.getColumnIndex(MediaStore.Video.Media.MIME_TYPE)));
-			playList.add(mCursor.getString(mCursor.getColumnIndex(MediaStore.Video.Media.DATA)));
-		}
-	}
-	
-	
-	private void MakeCursor() {
-        String[] cols = new String[] {
+
+    private void fillDataToListView() {
+        playList = new ArrayList<String>();
+        String[] fromColumns = new String[]{MediaStore.Video.Media.TITLE};
+        int[] toLayoutIDs = new int[]{R.id.media_row_name};
+        //Cursor cursor = readDataFromSD(getActivity());
+        SimpleCursorAdapter adapter = new SimpleCursorAdapter(getActivity(), R.layout.dt_video_item, mCursor, fromColumns, toLayoutIDs, 0);
+
+        video_listview.setAdapter(adapter);
+        while (mCursor.moveToNext()) {
+            //Log.i(TAG, "mine-type is:"+mCursor.getString(mCursor.getColumnIndex(MediaStore.Video.Media.MIME_TYPE)));
+            playList.add(mCursor.getString(mCursor.getColumnIndex(MediaStore.Video.Media.DATA)));
+        }
+    }
+
+
+    private void MakeCursor() {
+        String[] cols = new String[]{
                 MediaStore.Video.Media._ID,
                 MediaStore.Video.Media.TITLE,
                 MediaStore.Video.Media.DATA,
@@ -134,41 +135,42 @@ public class VideoUIFragment extends Fragment implements I_OnMyKey{
         if (resolver == null) {
             System.out.println("resolver = null");
         } else {
-        	StringBuffer select = new StringBuffer("");
-    		// 查询语句：检索出.mp3为后缀名，时长大于1分钟，文件大小大于1MB的媒体文件
+            StringBuffer select = new StringBuffer("");
+            // 查询语句：检索出.mp3为后缀名，时长大于1分钟，文件大小大于1MB的媒体文件
     		/*if(sp.getFilterSize()) {
     			select.append(" and " + Media.SIZE + " > " + FILTER_SIZE);
     		}*/
-    		if(settingUtil.isFilterVideo()) {
-    			select.append(" and " + Media.DURATION + " > " + Constant.FILTER_DURATION);
-    		}
+            if (settingUtil.isFilterVideo()) {
+                select.append(" and " + Media.DURATION + " > " + Constant.FILTER_DURATION);
+            }
             mSortOrder = MediaStore.Video.Media.TITLE + " COLLATE UNICODE";
             mWhereClause = MediaStore.Video.Media.TITLE + " != ''";
             mCursor = resolver.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                cols, mWhereClause + select, null, mSortOrder);
+                    cols, mWhereClause + select, null, mSortOrder);
         }
     }
-	
-	@Override
-	public void onDestroyView() {
-		// TODO Auto-generated method stub
-		super.onDestroyView();
-	}
-	
-	@Override
-	public void onDestroy() {
-		// TODO Auto-generated method stub
-		if(mCursor!=null)
-			mCursor.close();
-		super.onDestroy();
-	}
-	
-	private Cursor mCursor;
-	private String mWhereClause;
+
+    @Override
+    public void onDestroyView() {
+        // TODO Auto-generated method stub
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onDestroy() {
+        // TODO Auto-generated method stub
+        if (mCursor != null)
+            mCursor.close();
+        super.onDestroy();
+    }
+
+    private Cursor mCursor;
+    private String mWhereClause;
     private String mSortOrder;
-	@Override
-	public void myOnKeyDown(int keyCode) {
-		// TODO Auto-generated method stub
-		
-	}
+
+    @Override
+    public void myOnKeyDown(int keyCode) {
+        // TODO Auto-generated method stub
+
+    }
 }

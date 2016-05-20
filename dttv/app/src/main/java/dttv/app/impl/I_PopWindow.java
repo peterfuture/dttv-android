@@ -4,10 +4,11 @@ import android.view.View;
 
 /**
  * for popwindow
- * @author shihx1
  *
+ * @author shihx1
  */
 public interface I_PopWindow {
-	public void onItemClick(View v);
-	public void onProgressChanged(int widgetId);
+    public void onItemClick(View v);
+
+    public void onProgressChanged(int widgetId);
 }

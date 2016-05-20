@@ -4,7 +4,7 @@
  *    Filename   :  jni_log.h
  *    Description:
  *    Version    :  1.0
- *    Created    :  2016Äê04ÔÂ11ÈÕ 16Ê±28·Ö41Ãë
+ *    Created    :  2016ï¿½ï¿½04ï¿½ï¿½11ï¿½ï¿½ 16Ê±28ï¿½ï¿½41ï¿½ï¿½
  *    Revision   :  none
  *    Compiler   :  gcc
  *    Author     :  peter-s (), peter_future@outlook.com
@@ -14,4 +14,5 @@
  */
 
 #include <android/log.h>
+
 #define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, TAG, __VA_ARGS__)

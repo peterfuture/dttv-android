@@ -3,22 +3,21 @@
 //
 
 #include <android/log.h>
+
 #define  LOG_TAG    "gl2_utils"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 #include "gl_util.h"
 
-void checkGlError(const char* op)
-{
+void checkGlError(const char *op) {
     for (GLint error = glGetError(); error; error
-         = glGetError()) {
+                                                    = glGetError()) {
         LOGI("after %s() glError (0x%x)\n", op, error);
     }
 }
 
-GLuint loadShader(GLenum shaderType, const char* pSource)
-{
+GLuint loadShader(GLenum shaderType, const char *pSource) {
     GLuint shader = glCreateShader(shaderType);
     if (shader) {
         glShaderSource(shader, 1, &pSource, NULL);
@@ -29,7 +28,7 @@ GLuint loadShader(GLenum shaderType, const char* pSource)
             GLint infoLen = 0;
             glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
             if (infoLen) {
-                char* buf = (char*) malloc(infoLen);
+                char *buf = (char *) malloc(infoLen);
                 if (buf) {
                     glGetShaderInfoLog(shader, infoLen, NULL, buf);
                     LOGE("Could not compile shader %d:\n%s\n",
@@ -44,8 +43,7 @@ GLuint loadShader(GLenum shaderType, const char* pSource)
     return shader;
 }
 
-GLuint createProgram(const char* pVertexSource, const char* pFragmentSource)
-{
+GLuint createProgram(const char *pVertexSource, const char *pFragmentSource) {
     GLuint vertexShader = loadShader(GL_VERTEX_SHADER, pVertexSource);
     if (!vertexShader) {
         return 0;
@@ -69,7 +67,7 @@ GLuint createProgram(const char* pVertexSource, const char* pFragmentSource)
             GLint bufLength = 0;
             glGetProgramiv(program, GL_INFO_LOG_LENGTH, &bufLength);
             if (bufLength) {
-                char* buf = (char*) malloc(bufLength);
+                char *buf = (char *) malloc(bufLength);
                 if (buf) {
                     glGetProgramInfoLog(program, bufLength, NULL, buf);
                     LOGE("Could not link program:\n%s\n", buf);

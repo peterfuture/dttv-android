@@ -4,28 +4,28 @@ import java.io.File;
 
 
 public class Item extends File {
-	
-	private static final long serialVersionUID = 1L;
 
-	public Item(File dir, String name) {
-		super(dir, name);
-		this.file = name;
-		// TODO Auto-generated constructor stub
-	}
+    private static final long serialVersionUID = 1L;
 
-	public String file;
-	private int icon;
+    public Item(File dir, String name) {
+        super(dir, name);
+        this.file = name;
+        // TODO Auto-generated constructor stub
+    }
 
-	public int getIcon() {
-		return icon;
-	}
+    public String file;
+    private int icon;
 
-	public void setIcon(int icon) {
-		this.icon = icon;
-	}
+    public int getIcon() {
+        return icon;
+    }
 
-	@Override
-	public String toString() {
-		return file;
-	}
+    public void setIcon(int icon) {
+        this.icon = icon;
+    }
+
+    @Override
+    public String toString() {
+        return file;
+    }
 }

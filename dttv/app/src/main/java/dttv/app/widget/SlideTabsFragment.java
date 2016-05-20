@@ -5,6 +5,7 @@ import dttv.app.R;
 import dttv.app.impl.I_KeyIntercept;
 import dttv.app.impl.I_OnMyKey;
 import dttv.app.utils.Constant;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
@@ -28,62 +29,63 @@ import android.widget.TabWidget;
 import android.widget.TextView;
 
 @SuppressLint("ValidFragment")
-public class SlideTabsFragment extends Fragment implements I_OnMyKey{
-	
-	private static final String TAG = "SlideTabsFragment";
-	private View mRootView;
+public class SlideTabsFragment extends Fragment implements I_OnMyKey {
+
+    private static final String TAG = "SlideTabsFragment";
+    private View mRootView;
     private ViewPager mViewPager;
     private PagerAdapter mPagerAdapter;
     private TabWidget mTabWidget;
-    private String[] addresses = { "first", "second", "third" };
+    private String[] addresses = {"first", "second", "third"};
     private TextView[] mTextTabs = new TextView[addresses.length];
     private Context mContext;
     private int currentIndicatorLeft = 0;
     private ImageView iv_nav_indicator;
-    private int indicatorWidth=0;
+    private int indicatorWidth = 0;
     private ChangeActionModeListener mChangeActionModeListener;
     private I_KeyIntercept mIntercept;
     private int mode;
-    
-    public SlideTabsFragment(){
-    	super();
+
+    public SlideTabsFragment() {
+        super();
     }
-    public SlideTabsFragment(ChangeActionModeListener listener,I_KeyIntercept i_KeyIntercept) {
-		// TODO Auto-generated constructor stub
-    	mChangeActionModeListener = listener;
-    	mIntercept = i_KeyIntercept;
-	}
+
+    public SlideTabsFragment(ChangeActionModeListener listener, I_KeyIntercept i_KeyIntercept) {
+        // TODO Auto-generated constructor stub
+        mChangeActionModeListener = listener;
+        mIntercept = i_KeyIntercept;
+    }
+
     @Override
-	public void onCreate(Bundle savedInstanceState)
-    {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.fragment_slidetabs3);
         mContext = getActivity();
     }
-    
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-    		Bundle savedInstanceState) {
-    	// TODO Auto-generated method stub
-    	mRootView = inflater.inflate(R.layout.dt_fragment_slidetabs, null);
-    	return mRootView;
+                             Bundle savedInstanceState) {
+        // TODO Auto-generated method stub
+        mRootView = inflater.inflate(R.layout.dt_fragment_slidetabs, null);
+        return mRootView;
     }
-    
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-    	// TODO Auto-generated method stub
-    	super.onActivityCreated(savedInstanceState);
-    	iv_nav_indicator = (ImageView)mRootView.findViewById(R.id.tab_pager_nav_indicator);
-    	DisplayMetrics dm = new DisplayMetrics();
-		getActivity().getWindowManager().getDefaultDisplay().getMetrics(dm);
-		indicatorWidth = dm.widthPixels /3;
-		
-		LayoutParams cursor_Params = iv_nav_indicator.getLayoutParams();
-		//Toast.makeText(getActivity(), "indicatorWidth is:"+indicatorWidth, 1).show();
-		cursor_Params.width = indicatorWidth;
-		iv_nav_indicator.setLayoutParams(cursor_Params);
-		addresses = getActivity().getResources().getStringArray(R.array.dt_nav_tab_menu);
-    	mTabWidget = (TabWidget) mRootView.findViewById(R.id.tabWidget1);
+        // TODO Auto-generated method stub
+        super.onActivityCreated(savedInstanceState);
+        iv_nav_indicator = (ImageView) mRootView.findViewById(R.id.tab_pager_nav_indicator);
+        DisplayMetrics dm = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(dm);
+        indicatorWidth = dm.widthPixels / 3;
+
+        LayoutParams cursor_Params = iv_nav_indicator.getLayoutParams();
+        //Toast.makeText(getActivity(), "indicatorWidth is:"+indicatorWidth, 1).show();
+        cursor_Params.width = indicatorWidth;
+        iv_nav_indicator.setLayoutParams(cursor_Params);
+        addresses = getActivity().getResources().getStringArray(R.array.dt_nav_tab_menu);
+        mTabWidget = (TabWidget) mRootView.findViewById(R.id.tabWidget1);
         mTabWidget.setStripEnabled(false);
         mTextTabs[0] = new TextView(mContext);
         mTextTabs[0].setFocusable(true);
@@ -123,17 +125,17 @@ public class SlideTabsFragment extends Fragment implements I_OnMyKey{
         mTabWidget.setCurrentTab(0);
         //mTabWidget.setOnFocusChangeListener(mTabChangeListener);
     }
-    
-    private void startAniation(View v){
-		TranslateAnimation animation = new TranslateAnimation(
-				currentIndicatorLeft, v.getLeft(), 0f, 0f);
-		animation.setInterpolator(new LinearInterpolator());
-		animation.setDuration(100);
-		animation.setFillAfter(true);
-		iv_nav_indicator.setAnimation(animation);
-		iv_nav_indicator.startAnimation(animation);
-		currentIndicatorLeft = v.getLeft();
-		/*animation.setAnimationListener(new AnimationListener() {
+
+    private void startAniation(View v) {
+        TranslateAnimation animation = new TranslateAnimation(
+                currentIndicatorLeft, v.getLeft(), 0f, 0f);
+        animation.setInterpolator(new LinearInterpolator());
+        animation.setDuration(100);
+        animation.setFillAfter(true);
+        iv_nav_indicator.setAnimation(animation);
+        iv_nav_indicator.startAnimation(animation);
+        currentIndicatorLeft = v.getLeft();
+        /*animation.setAnimationListener(new AnimationListener() {
 			@Override
 			public void onAnimationStart(Animation animation) {
 				// TODO Auto-generated method stub
@@ -153,19 +155,15 @@ public class SlideTabsFragment extends Fragment implements I_OnMyKey{
 			}
 		});*/
     }
-    
+
     private OnClickListener mTabClickListener = new OnClickListener() {
         @Override
-        public void onClick(View v)
-        {
-            if (v == mTextTabs[0])
-            {
+        public void onClick(View v) {
+            if (v == mTextTabs[0]) {
                 mViewPager.setCurrentItem(0);
-            } else if (v == mTextTabs[1])
-            {
+            } else if (v == mTextTabs[1]) {
                 mViewPager.setCurrentItem(1);
-            } else if (v == mTextTabs[2])
-            {
+            } else if (v == mTextTabs[2]) {
                 mViewPager.setCurrentItem(2);
             }
             v.setSelected(true);
@@ -176,15 +174,14 @@ public class SlideTabsFragment extends Fragment implements I_OnMyKey{
     private OnPageChangeListener mPageChangeListener = new OnPageChangeListener() {
 
         @Override
-        public void onPageSelected(int arg0)
-        {
-        	mode = arg0;
-        	mChangeActionModeListener.changeActionMode(arg0);
+        public void onPageSelected(int arg0) {
+            mode = arg0;
+            mChangeActionModeListener.changeActionMode(arg0);
             mTabWidget.setCurrentTab(arg0);
-        	//isUser = false;
-        	//mTabWidget.getChildAt(arg0).performClick();
-        	View v = mTabWidget.getChildAt(arg0);
-        	startAniation(v);
+            //isUser = false;
+            //mTabWidget.getChildAt(arg0).performClick();
+            View v = mTabWidget.getChildAt(arg0);
+            startAniation(v);
         	/*Toast.makeText(mContext, "v.getLeft() is:"+v.getLeft(), 1).show();
         	TranslateAnimation animation = new TranslateAnimation(currentIndicatorLeft, 
 					v.getLeft(), 0f, 0f);
@@ -193,68 +190,65 @@ public class SlideTabsFragment extends Fragment implements I_OnMyKey{
 			animation.setFillAfter(true);
 			iv_nav_indicator.setAnimation(animation);
 			currentIndicatorLeft = v.getLeft();*/
-        	//isUser = true;
+            //isUser = true;
         }
 
         @Override
-        public void onPageScrolled(int arg0, float arg1, int arg2)
-        {
+        public void onPageScrolled(int arg0, float arg1, int arg2) {
 
         }
 
         @Override
-        public void onPageScrollStateChanged(int arg0)
-        {
-        	
+        public void onPageScrollStateChanged(int arg0) {
+
         }
     };
     Fragment ft = null;
-    private class MyPagerAdapter extends FragmentStatePagerAdapter
-    {
-        public MyPagerAdapter(FragmentManager fm)
-        {
+
+    private class MyPagerAdapter extends FragmentStatePagerAdapter {
+        public MyPagerAdapter(FragmentManager fm) {
             super(fm);
         }
+
         @Override
-        public Fragment getItem(int position)
-        {
-        	//Fragment ft = null;
-			switch (position) {
-			case 0:
-				ft = new VideoUIFragment();
-				Bundle args = new Bundle();
-				args.putString(Constant.ARGUMENTS_NAME, mTextTabs[position].getText().toString());
-				ft.setArguments(args);
-				break;
-			case 1:
-				ft = new AudioUIFragment();
-				break;
-			case 2:
-				ft = new FilesUIFragment(mIntercept);
-				break;
-			default:
-				break;
-			}
-			return ft;
+        public Fragment getItem(int position) {
+            //Fragment ft = null;
+            switch (position) {
+                case 0:
+                    ft = new VideoUIFragment();
+                    Bundle args = new Bundle();
+                    args.putString(Constant.ARGUMENTS_NAME, mTextTabs[position].getText().toString());
+                    ft.setArguments(args);
+                    break;
+                case 1:
+                    ft = new AudioUIFragment();
+                    break;
+                case 2:
+                    ft = new FilesUIFragment(mIntercept);
+                    break;
+                default:
+                    break;
+            }
+            return ft;
         }
+
         @Override
-        public int getCount()
-        {
+        public int getCount() {
             return addresses.length;
         }
     }
-    
-    public interface ChangeActionModeListener{
-		public void changeActionMode(int mode);
-	}
 
-	@Override
-	public void myOnKeyDown(int keyCode) {
-		// TODO Auto-generated method stub
-		switch(mode){
-		case Constant.LOCAL_FILE:
-			((FilesUIFragment)ft).myOnKeyDown(keyCode);
-			break;
-		}
-	}
+    public interface ChangeActionModeListener {
+        public void changeActionMode(int mode);
+    }
+
+    @Override
+    public void myOnKeyDown(int keyCode) {
+        // TODO Auto-generated method stub
+        switch (mode) {
+            case Constant.LOCAL_FILE:
+                ((FilesUIFragment) ft).myOnKeyDown(keyCode);
+                break;
+        }
+    }
 }

@@ -1,4 +1,5 @@
 #include "native_log.h"
+
 #define TAG "VO-ANDROID"
 
 #include <jni.h>
@@ -13,7 +14,9 @@
 #include "gl_yuv.h"
 
 static int vo_android_init(dtvideo_output_t *vout);
-static int vo_android_render(dtvideo_output_t *vout, dt_av_frame_t * frame);
+
+static int vo_android_render(dtvideo_output_t *vout, dt_av_frame_t *frame);
+
 static int vo_android_stop(dtvideo_output_t *vout);
 
 struct vo_info {
@@ -22,15 +25,14 @@ struct vo_info {
 };
 
 vo_wrapper_t vo_android = {
-    .id = 0x100,//VO_ID_ANDROID,
-    .name = "vo android",
-    .vo_init = vo_android_init,
-    .vo_stop = vo_android_stop,
-    .vo_render = vo_android_render,
+        .id = 0x100,//VO_ID_ANDROID,
+        .name = "vo android",
+        .vo_init = vo_android_init,
+        .vo_stop = vo_android_stop,
+        .vo_render = vo_android_render,
 };
 
-static void dump_frame(dt_av_frame_t * pFrame, int width, int height, int iFrame)
-{
+static void dump_frame(dt_av_frame_t *pFrame, int width, int height, int iFrame) {
     FILE *pFile;
     char szFilename[32];
     int y;
@@ -50,9 +52,8 @@ static void dump_frame(dt_av_frame_t * pFrame, int width, int height, int iFrame
     fclose(pFile);
 }
 
-static int vo_android_init(dtvideo_output_t *vout)
-{
-    struct vo_info *info = (struct vo_info *)malloc(sizeof(struct vo_info));
+static int vo_android_init(dtvideo_output_t *vout) {
+    struct vo_info *info = (struct vo_info *) malloc(sizeof(struct vo_info));
     vo_android.handle = info;
     info->dx = 0;
     info->dy = 0;
@@ -63,9 +64,8 @@ static int vo_android_init(dtvideo_output_t *vout)
     return 0;
 }
 
-static int vo_android_render(dtvideo_output_t *vout, dt_av_frame_t * frame)
-{
-    struct vo_info *info = (struct vo_info *)vo_android.handle;
+static int vo_android_render(dtvideo_output_t *vout, dt_av_frame_t *frame) {
+    struct vo_info *info = (struct vo_info *) vo_android.handle;
     int size = info->dw * info->dh * 3 / 2; // yuv 420 size
 
     dt_lock(&info->mutex);
@@ -75,17 +75,15 @@ static int vo_android_render(dtvideo_output_t *vout, dt_av_frame_t * frame)
     return 0;
 }
 
-static int vo_android_stop(dtvideo_output_t *vout)
-{
-    struct vo_info *info = (struct vo_info *)vo_android.handle;
+static int vo_android_stop(dtvideo_output_t *vout) {
+    struct vo_info *info = (struct vo_info *) vo_android.handle;
     free(info);
     vo_android.handle = NULL;
     LOGV("stop vo android\n");
     return 0;
 }
 
-void vo_android_setup(vo_wrapper_t **vo)
-{
+void vo_android_setup(vo_wrapper_t **vo) {
     *vo = &vo_android;
-    return ;
+    return;
 }

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <color name="filebrowser_bar_bg">#ffffffff</color>>
     <color name="txt_color">#ffffffff</color>
     <color name="opreate_bar_bg_color">#50000000</color>
     <color name="bg_black">#000000</color>

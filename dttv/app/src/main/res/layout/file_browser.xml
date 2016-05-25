@@ -17,35 +17,28 @@
             android:gravity="center_vertical">
             <Button android:id="@+id/btn_home"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:background="@drawable/filebrowser_button_home"/>
             <Button android:id="@+id/btn_style"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:background="@drawable/filebrowser_button_style"/>
             <Button android:id="@+id/btn_back"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:background="@drawable/filebrowser_button_back"/>
             <Button android:id="@+id/btn_search"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:background="@drawable/filebrowser_button_search"/>
             <Button android:id="@+id/btn_about"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:background="@drawable/filebrowser_button_about"/>
         </LinearLayout>
     </HorizontalScrollView>
-    <LinearLayout
-        android:id="@+id/dt_file_index_lay"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <TextView
-            android:id="@+id/dt_file_index_txt"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:textSize="18sp" />
-    </LinearLayout>
 	<ListView
-	    android:id="@+id/dt_file_listview"
+	    android:id="@+id/filebrowser_listview"
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent" >
 	    

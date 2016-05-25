@@ -12,36 +12,58 @@ package dttv.app;
 
 //General Java imports 
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Handler;
 
 import dttv.app.utils.Constant;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Message;
+import android.os.PowerManager;
 import android.os.StatFs;
+import android.os.storage.StorageManager;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ToggleButton;
 //Android imports 
 //Import of resources file for file browser
+import dttv.app.FileBrowserDatabase.ThumbnailCursor;
+import dttv.app.FileOp.FileOpReturn;
+import dttv.app.FileOp.FileOpTodo;
 
 public class FileBrowserActivity extends Activity {
     // Intent Action Constants
@@ -81,365 +103,603 @@ public class FileBrowserActivity extends Activity {
     private static final int SELECT_DIRECTORY = 1;
     private static final int SELECT_FILE = 2;
 
+
+    public static final String TAG = "FileBrower";
+
+    private static final String ROOT = "/storage";
+    private static final String SHEILD_EXT_STOR = Environment.getExternalStorageDirectory().getPath();
+    private static final String NAND_PATH = Environment.getExternalStorageDirectory().getPath();
+    private static final String SD_PATH = Environment.getExternalStorageDirectory().getPath();
+    private static String USB_PATH = Environment.getExternalStorageDirectory().getPath();
+    private static final String SATA_PATH = Environment.getExternalStorageDirectory().getPath();
+    private static final String NFS_PATH = "/mnt/nfs";
+
+    StorageManager mStorageManager = null;
+    public static FileBrowserDatabase mDataBase;
+    public static FileBrowserDatabase.FileMarkCursor mCursor;
+    private ListView mListView;
+    public static Handler mProgressHandler;
+    private List<Map<String, Object>> mList;
+    private boolean mListLoaded = false;
+    private boolean mLoadCancel = false;
+    private boolean mIsSorted = false;
+
+    private static final int FILEBROWSER_SORT_BY_NONE = 0;
+    private static final int FILEBROWSER_SORT_BY_DATE = 1;
+    private static final int FILEBROWSER_SORT_BY_SIZE = 2;
+    private static final int FILEBROWSER_SORT_BY_NAME = 3;
+    private int mSortType = FILEBROWSER_SORT_BY_NONE;
+    private List<String> mDevList = new ArrayList<String>();
+
+
+    private static final String FILEINFO_KEY_FULL_NAMNE = "fileinfo_item_full_name";
+    private static final String FILEINFO_KEY_NAMNE = "fileinfo_item_name";
+    private static final String FILEINFO_KEY_PATH = "fileinfo_item_path";
+    private static final String FILEINFO_KEY_SELECTED = "fileinfo_item_selected";
+    private static final String FILEINFO_KEY_TYPE = "fileinfo_item_type";
+    private static final String FILEINFO_KEY_SUFFIX = "fileinfo_item_suffix";
+    private static final String FILEINFO_KEY_ACCESS = "fileinfo_item_access";
+    private static final String FILEINFO_KEY_DATE_DISPLAY = "fileinfo_item_date_display";
+    private static final String FILEINFO_KEY_DATE_SORT = "fileinfo_item_date_sort";
+    private static final String FILEINFO_KEY_SIZE_DISPLAY = "fileinfo_item_size_display";
+    private static final String FILEINFO_KEY_SIZE_SORT = "fileinfo_item_size_sort";
+
+    public static String mCurrentPath = ROOT;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // In case of
-        // ua.com.vassiliev.androidfilebrowser.SELECT_DIRECTORY_ACTION
-        // Expects com.mburman.fileexplore.directoryPath parameter to
-        // point to the start folder.
-        // If empty or null, will start from SDcard root.
-        setContentView(R.layout.ua_com_vassiliev_filebrowser_layout);
+        setContentView(R.layout.file_browser);
+        mStorageManager = (StorageManager) getSystemService(Context.STORAGE_SERVICE);
 
-        // Set action for this activity
-        /*Intent thisInt = this.getIntent();
-		currentAction = SELECT_DIRECTORY;// This would be a default action in
-											// case not set by intent
-		if (thisInt.getAction().equalsIgnoreCase(INTENT_ACTION_SELECT_FILE)) {
-			Log.d(LOGTAG, "SELECT ACTION - SELECT FILE");
-			currentAction = SELECT_FILE;
-		}
+        /* setup database */
+        mDataBase = new FileBrowserDatabase(this);
 
-		showHiddenFilesAndDirs = thisInt.getBooleanExtra(
-				showCannotReadParameter, true);
+        /* get path */
+        USB_PATH = getStoragepath();
 
-		filterFileExtension = thisInt.getStringExtra(filterExtension);*/
-        path = new File("/");
-        setInitialDirectory();
+        /* setup file list */
+        mListView = (ListView) findViewById(R.id.filebrowser_listview);
+        mList = new ArrayList<Map<String, Object>>();
 
-        parseDirectoryPath();
-        loadFileList();
-        this.createFileListAdapter();
-        this.initializeButtons();
-        this.initializeFileListView();
-        updateCurrentDirectoryTextView();
-        Log.d(LOGTAG, path.getAbsolutePath());
-    }
+        /* ListView OnItemClickListener */
+        mListView.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+                Map<String, Object> item = (Map<String, Object>) parent.getItemAtPosition(pos);
+                String mPath = (String) item.get("file_path");
+                if (mPath.equals(NFS_PATH)) {
+                    return;
+                }
 
-    private void setInitialDirectory() {
-        Intent thisInt = this.getIntent();
-        String requestedStartDir = thisInt
-                .getStringExtra(startDirectoryParameter);
+                File mFile = new File(mPath);
+                if (!mFile.exists()) {
+                    return;
+                }
+                if (Intent.ACTION_GET_CONTENT.equalsIgnoreCase(FileBrowserActivity.this.getIntent().getAction())) {
+                    if (mFile.isDirectory()) {
+                        mCurrentPath = mPath;
+                        mListView.setAdapter(getFileListAdapterSorted(mCurrentPath, mSortType));
+                    } else {
+                        FileBrowserActivity.this.setResult(Activity.RESULT_OK, new Intent(null, Uri.fromFile(mFile)));
+                        FileBrowserActivity.this.finish();
+                    }
+                } else {
+                    ToggleButton btn_mode = (ToggleButton) findViewById(R.id.btn_mode);
+                    if (!btn_mode.isChecked()) {
+                        if (mFile.isDirectory()) {
+                            mCurrentPath = mPath;
+                            mListView.setAdapter(getFileListAdapterSorted(mCurrentPath, mSortType));
+                        } else {
+                            openFile(file);
+                            //showDialog(CLICK_DIALOG_ID);
+                        }
+                    } else {
+                        if (!mCurrentPath.equals(ROOT)) {
+                            if (item.get("item_sel").equals(R.drawable.item_img_unsel)) {
+                                FileOp.updateFileStatus(file_path, 1, "list");
+                                item.put("item_sel", R.drawable.item_img_sel);
+                            } else if (item.get("item_sel").equals(R.drawable.item_img_sel)) {
+                                FileOp.updateFileStatus(file_path, 0, "list");
+                                item.put("item_sel", R.drawable.item_img_unsel);
+                            }
+                            ((BaseAdapter) lv.getAdapter()).notifyDataSetChanged();
+                        } else {
+                            cur_path = file_path;
+                            lv.setAdapter(getFileListAdapterSorted(cur_path, lv_sort_flag));
+                        }
+                    }
 
-        if (requestedStartDir != null && requestedStartDir.length() > 0) {// if(requestedStartDir!=null
-            File tempFile = new File(requestedStartDir);
-            if (tempFile.isDirectory())
-                this.path = tempFile;
-        }// if(requestedStartDir!=null
-
-        if (this.path == null) {// No or invalid directory supplied in intent
-            // parameter
-            if (Environment.getExternalStorageDirectory().isDirectory()
-                    && Environment.getExternalStorageDirectory().canRead())
-                path = Environment.getExternalStorageDirectory();
-            else
-                path = new File("/");
-        }// if(this.path==null) {//No or invalid directory supplied in intent
-        // parameter
-    }// private void setInitialDirectory() {
-
-    private void parseDirectoryPath() {
-        pathDirsList.clear();
-        String pathString = path.getAbsolutePath();
-        String[] parts = pathString.split("/");
-        int i = 0;
-        while (i < parts.length) {
-            pathDirsList.add(parts[i]);
-            i++;
-        }
-    }
-
-    private void initializeButtons() {
-        Button upDirButton = (Button) this.findViewById(R.id.upDirectoryButton);
-        upDirButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                Log.d(LOGTAG, "onclick for upDirButton");
-                loadDirectoryUp();
-                loadFileList();
-                adapter.notifyDataSetChanged();
-                updateCurrentDirectoryTextView();
+                    item_position_selected = lv.getSelectedItemPosition();
+                    item_position_first = lv.getFirstVisiblePosition();
+                    item_position_last = lv.getLastVisiblePosition();
+                    View cv = lv.getChildAt(item_position_selected - item_position_first);
+                    if (cv != null) {
+                        fromtop_piexl = cv.getTop();
+                    }
+                }
             }
-        });// upDirButton.setOnClickListener(
+        });
 
-        Button selectFolderButton = (Button) this
-                .findViewById(R.id.selectCurrentDirectoryButton);
-        if (currentAction == SELECT_DIRECTORY) {
-            selectFolderButton.setOnClickListener(new OnClickListener() {
-                public void onClick(View v) {
-                    Log.d(LOGTAG, "onclick for selectFolderButton");
-                    returnDirectoryFinishActivity();
+
+    }
+
+    public String getStoragepath() {
+        String finalpath = "";
+        try {
+            Runtime runtime = Runtime.getRuntime();
+            Process proc = runtime.exec("mount");
+            InputStream is = proc.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is);
+            String line;
+            String[] patharray = new String[10];
+
+            int i = 0;
+            int available = 0;
+
+            BufferedReader br = new BufferedReader(isr);
+            while ((line = br.readLine()) != null) {
+                String mount = new String();
+                if (line.contains("secure"))
+                    continue;
+                if (line.contains("asec"))
+                    continue;
+
+                if (line.contains("fat")) {// TF card
+                    String columns[] = line.split(" ");
+                    if (columns != null && columns.length > 1) {
+                        mount = mount.concat(columns[1] + "/requiredfiles");
+
+                        patharray[i] = mount;
+                        i++;
+
+                        // check directory is exist or not
+                        File dir = new File(mount);
+                        if (dir.exists() && dir.isDirectory()) {
+                            // do something here
+
+                            available = 1;
+                            finalpath = mount;
+                            break;
+                        } else {
+
+                        }
+                    }
+                }
+            }
+            if (available == 1) {
+
+            } else if (available == 0) {
+                finalpath = patharray[0];
+            }
+
+        } catch (Exception e) {
+
+        }
+        return finalpath;
+    }
+
+    private void DeviceScan() {
+        mDevList.clear();
+        String internal = getString(R.string.memory_device_str);
+        String sdcard = getString(R.string.sdcard_device_str);
+        String usb = getString(R.string.usb_device_str);
+        String cdrom = getString(R.string.cdrom_device_str);
+        String sdcardExt = getString(R.string.ext_sdcard_device_str);
+        String nfs = getString(R.string.nfs_device_str);
+        String DeviceArray[] = {internal, sdcard, usb, cdrom, sdcardExt, nfs};
+
+        int length = 0;
+        length = DeviceArray.length;
+
+        for (int i = 0; i < length; i++) {
+            if (FileOp.deviceExist(DeviceArray[i])) {
+                mDevList.add(DeviceArray[i]);
+            }
+        }
+        mListView.setAdapter(getDeviceListAdapter());
+    }
+
+    private ListAdapter getDeviceListAdapter() {
+        return new SimpleAdapter(this, getDeviceListData(), R.layout.filebrowser_device_item,
+                new String[]{
+                        "item_type",
+                        "item_name",
+                        "item_rw",
+                        "item_size"
+                },
+                new int[]{
+                        R.id.device_type,
+                        R.id.device_name,
+                        R.id.device_rw,
+                        R.id.device_size
+                });
+    }
+
+    private List<Map<String, Object>> getDeviceListData() {
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        Map<String, Object> map;
+        File dir = new File(NAND_PATH);
+        if (dir.exists() && dir.isDirectory()) {
+            map = new HashMap<String, Object>();
+            map.put("item_name", getText(R.string.sdcard_device_str));
+            map.put("file_path", NAND_PATH);
+            map.put("item_type", R.drawable.filebrowser_icon_sdcard);
+            map.put("file_date", 0);
+            map.put("file_size", 1);    //for sort
+            map.put("item_size", null);
+            map.put("item_rw", null);
+            map.put("item_file_type", null);
+            map.put("item_file_name", null);
+            list.add(map);
+        }
+
+        dir = new File(SD_PATH);
+        if (dir.exists() && dir.isDirectory()) {
+            map = new HashMap<String, Object>();
+            String label = mStorageManager.getVolumeFSLabel(SD_PATH);
+            map.put("item_name", (label == null) ? getText(R.string.ext_sdcard_device_str) : label);
+            map.put("file_path", SD_PATH);
+            map.put("item_type", R.drawable.filebrowser_icon_sdcard);
+            map.put("file_date", 0);
+            map.put("file_size", 1);    //for sort
+            map.put("item_size", null);
+            map.put("item_rw", null);
+            map.put("item_file_type", null);
+            map.put("item_file_name", null);
+            list.add(map);
+        }
+
+        dir = new File(USB_PATH);
+        if (dir.exists() && dir.isDirectory()) {
+            if (dir.listFiles() != null) {
+                int dev_count = 0;
+                for (File file : dir.listFiles()) {
+                    if (file.isDirectory()) {
+                        String devname = null;
+                        String path = file.getAbsolutePath();
+                        if (path.startsWith(USB_PATH + "/sd") && !path.equals(SD_PATH)) {
+                            map = new HashMap<String, Object>();
+                            dev_count++;
+                            char data = (char) ('A' + dev_count - 1);
+                            String label = mStorageManager.getVolumeFSLabel(path);
+                            devname = getText(R.string.usb_device_str) + "(" + data + ":)";
+                            map.put("item_name", (label == null) ? devname : label);
+                            map.put("file_path", path);
+                            map.put("item_type", R.drawable.filebrowser_icon_usb);
+                            map.put("file_date", 0);
+                            map.put("file_size", 3);    //for sort
+                            map.put("item_size", null);
+                            map.put("item_rw", null);
+                            map.put("item_file_type", null);
+                            map.put("item_file_name", null);
+                            list.add(map);
+                        }
+                    }
+                }
+            }
+        }
+
+        dir = new File(USB_PATH);
+        if (dir.exists() && dir.isDirectory()) {
+            if (dir.listFiles() != null) {
+                int dev_count = 0;
+                for (File file : dir.listFiles()) {
+                    if (file.isDirectory()) {
+                        String devname = null;
+                        String path = file.getAbsolutePath();
+                        if (path.startsWith(USB_PATH + "/sr") && !path.equals(SD_PATH)) {
+                            map = new HashMap<String, Object>();
+                            dev_count++;
+                            char data = (char) ('A' + dev_count - 1);
+                            devname = getText(R.string.cdrom_device_str) + "(" + data + ":)";
+                            map.put("item_name", devname);
+                            map.put("file_path", path);
+                            map.put("item_type", R.drawable.filebrowser_icon_cdrom);
+                            map.put("file_date", 0);
+                            map.put("file_size", 3);    //for sort
+                            map.put("item_size", null);
+                            map.put("item_rw", null);
+                            map.put("item_file_type", null);
+                            map.put("item_file_name", null);
+                            list.add(map);
+                        }
+                    }
+                }
+            }
+        }
+
+        dir = new File(SATA_PATH);
+        if (dir.exists() && dir.isDirectory()) {
+            map = new HashMap<String, Object>();
+            map.put("item_name", getText(R.string.sata_device_str));
+            map.put("file_path", SATA_PATH);
+            map.put("item_type", R.drawable.filebrowser_icon_sata);
+            map.put("file_date", 0);
+            map.put("file_size", 1);    //for sort
+            map.put("item_size", null);
+            map.put("item_rw", null);
+            map.put("item_file_type", null);
+            map.put("item_file_name", null);
+            list.add(map);
+        }
+
+        dir = new File(NFS_PATH);
+        if (dir.exists() && dir.isDirectory()) {
+            map = new HashMap<String, Object>();
+            map.put("item_name", getText(R.string.nfs_device_str));
+            map.put("file_path", NFS_PATH);
+            map.put("item_type", R.drawable.filebrowser_icon_nfs);
+            map.put("file_date", 0);
+            map.put("file_size", 1);
+            map.put("item_size", null);
+            map.put("item_rw", null);
+            map.put("item_file_type", null);
+            map.put("item_file_name", null);
+            list.add(map);
+        }
+
+        updatePathShow(ROOT);
+        if (!list.isEmpty()) {
+            Collections.sort(list, new Comparator<Map<String, Object>>() {
+                public int compare(Map<String, Object> object1, Map<String, Object> object2) {
+                    return ((Integer) object1.get("file_size")).compareTo(
+                            (Integer) object2.get("file_size"));
                 }
             });
-        } else {// if(currentAction == this.SELECT_DIRECTORY) {
-            selectFolderButton.setVisibility(View.GONE);
-        }// } else {//if(currentAction == this.SELECT_DIRECTORY) {
-    }// private void initializeButtons() {
-
-    private void loadDirectoryUp() {
-        // present directory removed from list
-        String s = pathDirsList.remove(pathDirsList.size() - 1);
-        // path modified to exclude present directory
-        path = new File(path.toString().substring(0,
-                path.toString().lastIndexOf(s)));
-        fileList.clear();
+        }
+        return list;
     }
 
-    private void updateCurrentDirectoryTextView() {
-        int i = 0;
-        String curDirString = "";
-        while (i < pathDirsList.size()) {
-            curDirString += pathDirsList.get(i) + "/";
-            i++;
-        }
-        if (pathDirsList.size() == 0) {
-            ((Button) this.findViewById(R.id.upDirectoryButton))
-                    .setEnabled(false);
-            curDirString = "/";
-        } else
-            ((Button) this.findViewById(R.id.upDirectoryButton))
-                    .setEnabled(true);
-        long freeSpace = getFreeSpace(curDirString);
-        String formattedSpaceString = formatBytes(freeSpace);
-        if (freeSpace == 0) {
-            Log.d(LOGTAG, "NO FREE SPACE");
-            File currentDir = new File(curDirString);
-            if (!currentDir.canWrite())
-                formattedSpaceString = "NON Writable";
-        }
+    /**
+     * getFileListAdapterSorted
+     */
+    private SimpleAdapter getFileListAdapterSorted(String path, int sort_type) {
 
-        ((Button) this.findViewById(R.id.selectCurrentDirectoryButton))
-                .setText("Select\n[" + formattedSpaceString
-                        + "]");
-
-        ((TextView) this.findViewById(R.id.currentDirectoryTextView))
-                .setText("Current directory: " + curDirString);
-    }// END private void updateCurrentDirectoryTextView() {
-
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-    }
-
-    private void initializeFileListView() {
-        ListView lView = (ListView) this.findViewById(R.id.fileListView);
-        lView.setBackgroundColor(Color.LTGRAY);
-        LinearLayout.LayoutParams lParam = new LinearLayout.LayoutParams(
-                LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
-        lParam.setMargins(15, 5, 15, 5);
-        lView.setAdapter(this.adapter);
-        lView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-                chosenFile = fileList.get(position).file;
-                File sel = new File(path + "/" + chosenFile);
-                Log.d(LOGTAG, "Clicked:" + chosenFile);
-                if (sel.isDirectory()) {
-                    if (sel.canRead()) {
-                        // Adds chosen directory to list
-                        pathDirsList.add(chosenFile);
-                        path = new File(sel + "");
-                        Log.d(LOGTAG, "Just reloading the list");
-                        loadFileList();
-                        adapter.notifyDataSetChanged();
-                        updateCurrentDirectoryTextView();
-                        Log.d(LOGTAG, path.getAbsolutePath());
-                    } else {// if(sel.canRead()) {
-                        showToast("Path does not exist or cannot be read");
-                    }// } else {//if(sel.canRead()) {
-                }// if (sel.isDirectory()) {
-                // File picked or an empty directory message clicked
-                else {// if (sel.isDirectory()) {
-                    Log.d(LOGTAG, "item clicked");
-                    if (!directoryShownIsEmpty) {
-                        Log.d(LOGTAG, "File selected:" + chosenFile);
-                        //returnFileFinishActivity(sel.getAbsolutePath());
-                        startAudioPlayer(sel.getAbsolutePath());
-                    }
-                }// else {//if (sel.isDirectory()) {
-            }// public void onClick(DialogInterface dialog, int which) {
-        });// lView.setOnClickListener(
-    }// private void initializeFileListView() {
-
-    private void startAudioPlayer(String uri) {
-        Intent retIntent = new Intent();
-        retIntent.setClass(this, VideoPlayerActivity.class);
-        retIntent.putExtra(Constant.FILE_MSG, uri);
-        startActivity(retIntent);
-    }
-
-    private void returnDirectoryFinishActivity() {
-        Intent retIntent = new Intent();
-        retIntent.putExtra(returnDirectoryParameter, path.getAbsolutePath());
-        this.setResult(RESULT_OK, retIntent);
-        //this.finish();
-    }// END private void returnDirectoryFinishActivity() {
-
-    private void returnFileFinishActivity(String filePath) {
-        Intent retIntent = new Intent();
-        retIntent.putExtra(returnFileParameter, filePath);
-        this.setResult(RESULT_OK, retIntent);
-        this.finish();
-    }// END private void returnDirectoryFinishActivity() {
-
-    private void loadFileList() {
-        try {
-            path.mkdirs();
-        } catch (SecurityException e) {
-            Log.e(LOGTAG, "unable to write on the sd card ");
-        }
-        fileList.clear();
-
-        if (path.exists() && path.canRead()) {
-            FilenameFilter filter = new FilenameFilter() {
-                public boolean accept(File dir, String filename) {
-                    File sel = new File(dir, filename);
-                    boolean showReadableFile = showHiddenFilesAndDirs
-                            || sel.canRead();
-                    // Filters based on whether the file is hidden or not
-                    if (currentAction == SELECT_DIRECTORY) {
-                        return (sel.isDirectory() && showReadableFile);
-                    }
-                    if (currentAction == SELECT_FILE) {
-
-                        // If it is a file check the extension if provided
-                        if (sel.isFile() && filterFileExtension != null) {
-                            return (showReadableFile && sel.getName().endsWith(
-                                    filterFileExtension));
-                        }
-                        return (showReadableFile);
-                    }
-                    return true;
-                }
-            };
-
-            String[] fList = path.list(filter);
-            this.directoryShownIsEmpty = false;
-            for (int i = 0; i < fList.length; i++) {
-                // Convert into file path
-                File sel = new File(path, fList[i]);
-                Log.d(LOGTAG,
-                        "File:" + fList[i] + " readable:"
-                                + (Boolean.valueOf(sel.canRead())).toString());
-                int drawableID = R.drawable.file_icon;
-                boolean canRead = sel.canRead();
-                // Set drawables
-                if (sel.isDirectory()) {
-                    if (canRead) {
-                        drawableID = R.drawable.folder_icon;
-                    } else {
-                        drawableID = R.drawable.folder_icon_light;
-                    }
-                }
-                fileList.add(i, new Item(fList[i], drawableID, canRead));
-            }
-            if (fileList.size() == 0) {
-                this.directoryShownIsEmpty = true;
-                fileList.add(0, new Item("Directory is empty", -1, true));
-            } else {// sort non empty list
-                Collections.sort(fileList, new ItemFileNameComparator());
-            }
+        if (path.equals(ROOT)) {
+            return new SimpleAdapter(FileBrowserActivity.this, getDeviceListData(),
+                    R.layout.filebrowser_device_item,
+                    new String[]{
+                            FILEINFO_KEY_TYPE,
+                            FILEINFO_KEY_NAMNE,
+                            FILEINFO_KEY_ACCESS,
+                            FILEINFO_KEY_SIZE_DISPLAY
+                    },
+                    new int[]{
+                            R.id.filebrowser_device_type,
+                            R.id.filebrowser_device_name,
+                            R.id.filebrowser_device_access,
+                            R.id.filebrowser_device_size
+                    });
         } else {
-            Log.e(LOGTAG, "path does not exist or cannot be read");
+            return new SimpleAdapter(FileBrowserActivity.this, getFileListDataSorted(path, sort_type),
+                    R.layout.filebrowser_filelist_item,
+                    new String[]{
+                            FILEINFO_KEY_TYPE,
+                            FILEINFO_KEY_NAMNE,
+                            FILEINFO_KEY_SELECTED,
+                            FILEINFO_KEY_SIZE_DISPLAY,
+                            FILEINFO_KEY_DATE_DISPLAY,
+                            FILEINFO_KEY_ACCESS,
+                            FILEINFO_KEY_SUFFIX,
+                            FILEINFO_KEY_FULL_NAMNE
+                    },
+                    new int[]{
+                            R.id.filebrowser_file_type,
+                            R.id.filebrowser_file_name,
+                            R.id.filebrowser_file_selected,
+                            R.id.filebrowser_file_size,
+                            R.id.filebrowser_file_date,
+                            R.id.filebrowser_file_access,
+                            R.id.filebrowser_file_suffix,
+                            R.id.filebrowser_file_name
+                    });
         }
     }
 
-    private void createFileListAdapter() {
-        adapter = new ArrayAdapter<Item>(this,
-                android.R.layout.select_dialog_item, android.R.id.text1,
-                fileList) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                // creates view
-                View view = super.getView(position, convertView, parent);
-                TextView textView = (TextView) view
-                        .findViewById(android.R.id.text1);
-                // put the image on the text view
-                int drawableID = 0;
-                if (fileList.get(position).icon != -1) {
-                    // If icon == -1, then directory is empty
-                    drawableID = fileList.get(position).icon;
+    private List<Map<String, Object>> getFileListDataSorted(String path, int sort_type) {
+        updatePathShow(path);
+        if (!mListLoaded) {
+            mListLoaded = true;
+            //showDialog(LOAD_DIALOG_ID);
+
+            final String ppath = path;
+            final int ssort_type = sort_type;
+            new Thread("getFileListDataSortedAsync") {
+                @Override
+                public void run() {
+                    mList = getFileListDataSortedAsync(ppath, ssort_type);
+                    if (null != mProgressHandler)
+                        mProgressHandler.sendMessage(Message.obtain(mProgressHandler, 10));
                 }
-                textView.setCompoundDrawablesWithIntrinsicBounds(drawableID, 0,
-                        0, 0);
-
-                textView.setEllipsize(null);
-
-                // add margin between image and text (support various screen
-                // densities)
-                // int dp5 = (int) (5 *
-                // getResources().getDisplayMetrics().density + 0.5f);
-                int dp3 = (int) (3 * getResources().getDisplayMetrics().density + 0.5f);
-                // TODO: change next line for empty directory, so text will be
-                // centered
-                textView.setCompoundDrawablePadding(dp3);
-                textView.setBackgroundColor(Color.LTGRAY);
-                return view;
-            }// public View getView(int position, View convertView, ViewGroup
-        };// adapter = new ArrayAdapter<Item>(this,
-    }// private createFileListAdapter(){
-
-    private class Item {
-        public String file;
-        public int icon;
-
-        public Item(String file, Integer icon, boolean canRead) {
-            this.file = file;
-            this.icon = icon;
-        }
-
-        @Override
-        public String toString() {
-            return file;
+            }.start();
+            return new ArrayList<Map<String, Object>>();
+        } else {
+            return mList;
         }
     }
 
-    private class ItemFileNameComparator implements Comparator<Item> {
-        public int compare(Item lhs, Item rhs) {
-            return lhs.file.toLowerCase().compareTo(rhs.file.toLowerCase());
+    private List<Map<String, Object>> getFileListDataSortedAsync(String path, int sort_type) {
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        try {
+            File file_path = new File(path);
+            if (file_path != null && file_path.exists()) {
+                if (file_path.listFiles() != null) {
+                    if (file_path.listFiles().length > 0) {
+                        for (File file : file_path.listFiles()) {
+                            if (mLoadCancel) return list;
+                            Map<String, Object> map = new HashMap<String, Object>();
+                            String file_abs_path = file.getAbsolutePath();
+
+                            //shield external_sdcard and usbdrive under /storage/sdcard0/
+                            if ((file_abs_path.equals(SD_PATH)) || (file_abs_path.equals(USB_PATH)) || (file_abs_path.equals(SHEILD_EXT_STOR)))
+                                continue;
+
+                            map.put(FILEINFO_KEY_FULL_NAMNE, file.getName());
+                            map.put(FILEINFO_KEY_PATH, file_abs_path);
+
+                            if (file.isDirectory()) {
+                                if (FileOp.isFileSelected(file_abs_path, "list"))
+                                    map.put(FILEINFO_KEY_SELECTED, R.drawable.filebrowser_file_selected);
+                                else
+                                    map.put(FILEINFO_KEY_SELECTED, R.drawable.filebrowser_file_unselected);
+                                map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_file_type_dir);
+                                String rw = "d";
+                                if (file.canRead())
+                                    rw += "r";
+                                else
+                                    rw += "-";
+                                if (file.canWrite())
+                                    rw += "w";
+                                else
+                                    rw += "-";
+                                map.put(FILEINFO_KEY_ACCESS, rw);
+
+                                long file_date = file.lastModified();
+                                String date = new SimpleDateFormat("yyyy/MM/dd HH:mm")
+                                        .format(new Date(file_date));
+                                map.put(FILEINFO_KEY_DATE_DISPLAY, " | " + date + " | ");
+                                map.put(FILEINFO_KEY_DATE_SORT, file_date);    //use for sorting
+
+                                long file_size = file.length();
+                                map.put(FILEINFO_KEY_SIZE_SORT, file_size);    //use for sorting
+                                map.put(FILEINFO_KEY_SIZE_DISPLAY, file_size);
+                            } else {
+                                if (FileOp.isFileSelected(file_abs_path, "list"))
+                                    map.put(FILEINFO_KEY_SELECTED, R.drawable.filebrowser_file_selected);
+                                else
+                                    map.put(FILEINFO_KEY_SELECTED, R.drawable.filebrowser_file_unselected);
+
+                                map.put(FILEINFO_KEY_TYPE, FileOp.getFileTypeImg(file.getName()));
+                                map.put(FILEINFO_KEY_NAMNE, getFileDescripe(file));
+                                map.put(FILEINFO_KEY_SUFFIX, getFileType(file) + " | ");
+
+                                String rw = "-";
+                                if (file.canRead())
+                                    rw += "r";
+                                else
+                                    rw += "-";
+                                if (file.canWrite())
+                                    rw += "w";
+                                else
+                                    rw += "-";
+                                map.put(FILEINFO_KEY_ACCESS, rw + " | ");
+
+                                long file_date = file.lastModified();
+                                String date = new SimpleDateFormat("yyyy/MM/dd HH:mm")
+                                        .format(new Date(file_date));
+                                map.put(FILEINFO_KEY_DATE_DISPLAY, " | " + date + " | ");
+                                map.put(FILEINFO_KEY_DATE_SORT, file_date);    //use for sorting
+
+                                long file_size = file.length();
+                                map.put(FILEINFO_KEY_SIZE_SORT, file_size);    //use for sorting
+                                map.put(FILEINFO_KEY_SIZE_DISPLAY, FileOp.getFileSizeStr(file_size));
+                            }
+                            if (!file.isHidden()) {
+                                list.add(map);
+                            }
+
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Exception when getFileListData(): ", e);
+            return list;
         }
+
+        /* sorting */
+        if (!list.isEmpty()) {
+            if (sort_type == FILEBROWSER_SORT_BY_NAME) {
+                if (mIsSorted == false) {
+                    mIsSorted = true;
+                    Collections.sort(list, new Comparator<Map<String, Object>>() {
+                        public int compare(Map<String, Object> object1, Map<String, Object> object2) {
+                            File file1 = new File((String) object1.get(FILEINFO_KEY_PATH));
+                            File file2 = new File((String) object2.get(FILEINFO_KEY_PATH));
+                            if (file1.isFile() && file2.isFile() || file1.isDirectory() && file2.isDirectory()) {
+                                return ((String) object1.get(FILEINFO_KEY_NAMNE)).toLowerCase()
+                                        .compareTo(((String) object2.get(FILEINFO_KEY_NAMNE)).toLowerCase());
+                            } else {
+                                return file1.isFile() ? 1 : -1;
+                            }
+                        }
+
+                    });
+                } else {
+                    mIsSorted = false;
+                    Collections.sort(list, new Comparator<Map<String, Object>>() {
+                        public int compare(Map<String, Object> object1, Map<String, Object> object2) {
+                            File file1 = new File((String) object1.get(FILEINFO_KEY_PATH));
+                            File file2 = new File((String) object2.get(FILEINFO_KEY_PATH));
+                            if (file1.isFile() && file2.isFile() || file1.isDirectory() && file2.isDirectory()) {
+                                return ((String) object2.get(FILEINFO_KEY_NAMNE)).toLowerCase()
+                                        .compareTo(((String) object1.get(FILEINFO_KEY_NAMNE)).toLowerCase());
+                            } else {
+                                return file1.isFile() ? -1 : 1;
+                            }
+                        }
+
+                    });
+                }
+
+            } else if (sort_type == FILEBROWSER_SORT_BY_DATE) {
+                if (mIsSorted == false) {
+                    mIsSorted = true;
+                    Collections.sort(list, new Comparator<Map<String, Object>>() {
+                        public int compare(Map<String, Object> object1, Map<String, Object> object2) {
+                            int compareResult;
+                            compareResult = ((Long) object1.get(FILEINFO_KEY_DATE_SORT)).compareTo(
+                                    (Long) object2.get(FILEINFO_KEY_DATE_SORT));
+                            compareResult = (~compareResult) + 1;
+                            return (compareResult);
+                        }
+                    });
+                } else {
+                    mIsSorted = false;
+                    Collections.sort(list, new Comparator<Map<String, Object>>() {
+                        public int compare(Map<String, Object> object1, Map<String, Object> object2) {
+                            return ((Long) object1.get(FILEINFO_KEY_DATE_SORT)).compareTo((Long) object2.get(FILEINFO_KEY_DATE_SORT));
+                        }
+                    });
+                }
+            } else if (sort_type == FILEBROWSER_SORT_BY_SIZE) {
+                if (mIsSorted == false) {
+                    mIsSorted = true;
+                    Collections.sort(list, new Comparator<Map<String, Object>>() {
+                        public int compare(Map<String, Object> object1, Map<String, Object> object2) {
+                            return ((Long) object1.get(FILEINFO_KEY_SIZE_SORT)).compareTo((Long) object2.get(FILEINFO_KEY_SIZE_SORT));
+                        }
+                    });
+                } else {
+                    mIsSorted = false;
+                    Collections.sort(list, new Comparator<Map<String, Object>>() {
+                        public int compare(Map<String, Object> object1, Map<String, Object> object2) {
+                            return ((Long) object2.get(FILEINFO_KEY_SIZE_SORT)).compareTo((Long) object1.get(FILEINFO_KEY_SIZE_SORT));
+                        }
+                    });
+                }
+            }
+        }
+        return list;
     }
 
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            Log.d(LOGTAG, "ORIENTATION_LANDSCAPE");
-        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            Log.d(LOGTAG, "ORIENTATION_PORTRAIT");
-        }
-        // Layout apparently changes itself, only have to provide good onMeasure
-        // in custom components
-        // TODO: check with keyboard
-        // if(newConfig.keyboard == Configuration.KEYBOARDHIDDEN_YES)
-    }// END public void onConfigurationChanged(Configuration newConfig) {
-
-    public static long getFreeSpace(String path) {
-        StatFs stat = new StatFs(path);
-        long availSize = (long) stat.getAvailableBlocks()
-                * (long) stat.getBlockSize();
-        return availSize;
-    }// END public static long getFreeSpace(String path) {
-
-    public static String formatBytes(long bytes) {
-        // TODO: add flag to which part is needed (e.g. GB, MB, KB or bytes)
-        String retStr = "";
-        // One binary gigabyte equals 1,073,741,824 bytes.
-        if (bytes > 1073741824) {// Add GB
-            long gbs = bytes / 1073741824;
-            retStr += (new Long(gbs)).toString() + "GB ";
-            bytes = bytes - (gbs * 1073741824);
-        }
-        // One MB - 1048576 bytes
-        if (bytes > 1048576) {// Add GB
-            long mbs = bytes / 1048576;
-            retStr += (new Long(mbs)).toString() + "MB ";
-            bytes = bytes - (mbs * 1048576);
-        }
-        if (bytes > 1024) {
-            long kbs = bytes / 1024;
-            retStr += (new Long(kbs)).toString() + "KB";
-            bytes = bytes - (kbs * 1024);
+    private String getFileType(File file) {
+        String fileName = file.getName();
+        String fileType = "unknown";
+        if (fileName.contains(".")) {
+            fileType = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
         } else
-            retStr += (new Long(bytes)).toString() + " bytes";
-        return retStr;
-    }// public static String formatBytes(long bytes){
+            fileType = "unknown";
+        return fileType;
+    }
+
+    private String getFileDescripe(File file) {
+        String fileDescripe = file.getName();
+        if (fileDescripe.contains(".")) {
+            fileDescripe = fileDescripe.substring(0, fileDescripe.lastIndexOf("."));
+        }
+        return fileDescripe;
+    }
+
 
 }// END public class FileBrowserActivity extends Activity {

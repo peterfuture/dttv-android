@@ -7,6 +7,15 @@
     <string name="action_settings">设置</string>
     <string name="edit_message">Enter a Message</string>
     <string name="file_select">open</string>
+
+    <string name="FileBrowserDatabase_onCreate">
+        "CREATE TABLE file_mark_table (_id INTEGER PRIMARY KEY AUTOINCREMENT, file_path TEXT, is_sel INTEGER);
+        CREATE TABLE file_thumbnails_table (_id INTEGER PRIMARY KEY AUTOINCREMENT, file_path TEXT, file_data BLOB, dir_path TEXT );"
+    </string>
+    <string name="FileBrowserDatabase_onUpgrade">
+        "DROP TABLE IF EXISTS file_mark_table
+        DROP TABLE IF EXISTS file_thumbnails_table"
+    </string>
     <string name="title_activity_display_message">MyMessage</string>
     <string name="show_text">here</string>
     <string name="player_start">start</string>
@@ -32,4 +41,19 @@
 	<string name="dt_decode_video_filter_str">过滤时长小于60秒视频</string>
 	<string name="dt_setting_yes">是</string>
 	<string name="dt_setting_no">否</string>
+
+
+    <!--Storage -->
+    <string name="memory_device_str">Internal Memory </string>
+    <string name="sdcard_device_str">Local Disk</string>
+    <string name="ext_sdcard_device_str">External Storage Card</string>
+    <string name="sata_device_str">SATA</string>
+    <string name="usb_device_str">USB</string>
+    <string name="cdrom_device_str">CD ROM</string>
+    <string name="nfs_device_str">NFS</string>
+    <string name="nfsip_str">NFS IP:</string>
+    <string name="nfsroute_str">NFS ROUTE:</string>
+    <string name="nfsip_default_str">8.8.8.8</string>
+    <string name="nfsroute_default_str">/home/ae/nfs</string>
+
 </resources>

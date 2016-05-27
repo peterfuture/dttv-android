@@ -126,8 +126,8 @@ public class FilesUIFragment extends Fragment implements I_Async, OnBackStackCha
     }
 
     private void initViews() {
-        mListView = (ListView) rootView.findViewById(R.id.dt_file_listview);
-        indexTxt = (TextView) rootView.findViewById(R.id.dt_file_index_txt);
+        mListView = (ListView) rootView.findViewById(R.id.filebrowser_listview);
+        //indexTxt = (TextView) rootView.findViewById(R.id.dt_file_index_txt);
     }
 
     private void showToast(String message) {

@@ -81,8 +81,8 @@ public class FileShowActivity extends Activity implements I_Async {
     }
 
     private void initViews() {
-        mListView = (ListView) findViewById(R.id.dt_file_listview);
-        indexTxt = (TextView) findViewById(R.id.dt_file_index_txt);
+        //mListView = (ListView) findViewById(R.id.dt_file_listview);
+        //indexTxt = (TextView) findViewById(R.id.dt_file_index_txt);
     }
 
     private void showToast(String message) {

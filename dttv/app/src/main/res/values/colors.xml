@@ -2,8 +2,10 @@
 <resources>
 
     <color name="filebrowser_bar_bg">#ffffffff</color>>
+    <color name="filebrowser_bar_text_color">#FFFFFFFF</color>>
     <color name="filebrowser_device_item_color">#FFFFFFFF</color>
     <color name="filebrowser_file_item_color">#FFFFFFFF</color>
+    <color name="filebrowser_device_color">#FFFFFFFF</color>
 
     <color name="txt_color">#ffffffff</color>
     <color name="opreate_bar_bg_color">#50000000</color>

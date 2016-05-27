@@ -42,6 +42,8 @@
 	<string name="dt_setting_yes">是</string>
 	<string name="dt_setting_no">否</string>
 
+    <!--filebrowser -->
+    <string name="device_list">Device List</string>
 
     <!--Storage -->
     <string name="memory_device_str">Internal Memory </string>

@@ -22,7 +22,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import dttv.app.utils.Constant;
-import dttv.app.utils.FileUtil;
+import dttv.app.utils.FileUtils;
 import dttv.app.utils.Log;
 
 /**
@@ -179,7 +179,7 @@ public class DtPlayer {
             throw new IllegalArgumentException();
         String scheme = uri.getScheme();
         if (scheme == null || scheme.equals("file")) {
-            setDataSource(FileUtil.getPath(uri.toString()));
+            setDataSource(FileUtils.getPath(uri.toString()));
             return;
         }
 

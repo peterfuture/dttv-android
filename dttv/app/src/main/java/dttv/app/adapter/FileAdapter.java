@@ -60,7 +60,7 @@ public class FileAdapter extends BaseAdapter {
         Item file = mList.get(position);
         if (contentView == null) {
             viewHolder = new ViewHolder();
-            contentView = inflater.inflate(R.layout.file_browser_item, null);
+            //contentView = inflater.inflate(R.layout.file_browser_item, null);
             viewHolder.iconImg = (ImageView) contentView.findViewById(R.id.dt_file_item_icon);
             viewHolder.nameTxt = (TextView) contentView.findViewById(R.id.dt_file_item_name);
             viewHolder.timeTxt = (TextView) contentView.findViewById(R.id.dt_file_item_time);

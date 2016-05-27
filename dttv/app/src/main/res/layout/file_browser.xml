@@ -37,6 +37,13 @@
                 android:background="@drawable/filebrowser_button_about"/>
         </LinearLayout>
     </HorizontalScrollView>
+    <TextView
+        android:id="@+id/filebrowser_current_path"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/filebrowser_bar_text_color"
+        android:textStyle="italic|bold"
+        android:background="@color/filebrowser_bar_bg"/>
 	<ListView
 	    android:id="@+id/filebrowser_listview"
 	    android:layout_width="match_parent"

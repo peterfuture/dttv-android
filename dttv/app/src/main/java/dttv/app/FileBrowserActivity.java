@@ -1,16 +1,6 @@
 package dttv.app;
 
-//Heavily based on code from
-//https://github.com/mburman/Android-File-Explore
-//	Version of Aug 13, 2011
-//Also contributed:
-//  Sugan Krishnan (https://github.com/rgksugan) - Jan 2013.
-//
-
-//Project type now is Android library: 
-//  http://developer.android.com/guide/developing/projects/projects-eclipse.html#ReferencingLibraryProject
-
-//General Java imports 
+import android.os.storage.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,8 +15,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Handler;
 
+import android.os.Handler;
+
+import dttv.app.model.Item;
 import dttv.app.utils.Constant;
 
 import android.app.Activity;
@@ -50,6 +42,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
@@ -118,6 +111,8 @@ public class FileBrowserActivity extends Activity {
     public static FileBrowserDatabase mDataBase;
     public static FileBrowserDatabase.FileMarkCursor mCursor;
     private ListView mListView;
+    private int mItemSelected, mItemFirst, mItemLast;
+    private int mItemTop;
     public static Handler mProgressHandler;
     private List<Map<String, Object>> mList;
     private boolean mListLoaded = false;
@@ -184,37 +179,20 @@ public class FileBrowserActivity extends Activity {
                         FileBrowserActivity.this.finish();
                     }
                 } else {
-                    ToggleButton btn_mode = (ToggleButton) findViewById(R.id.btn_mode);
-                    if (!btn_mode.isChecked()) {
-                        if (mFile.isDirectory()) {
-                            mCurrentPath = mPath;
-                            mListView.setAdapter(getFileListAdapterSorted(mCurrentPath, mSortType));
-                        } else {
-                            openFile(file);
-                            //showDialog(CLICK_DIALOG_ID);
-                        }
+                    if (mFile.isDirectory()) {
+                        mCurrentPath = mPath;
+                        mListView.setAdapter(getFileListAdapterSorted(mCurrentPath, mSortType));
                     } else {
-                        if (!mCurrentPath.equals(ROOT)) {
-                            if (item.get("item_sel").equals(R.drawable.item_img_unsel)) {
-                                FileOp.updateFileStatus(file_path, 1, "list");
-                                item.put("item_sel", R.drawable.item_img_sel);
-                            } else if (item.get("item_sel").equals(R.drawable.item_img_sel)) {
-                                FileOp.updateFileStatus(file_path, 0, "list");
-                                item.put("item_sel", R.drawable.item_img_unsel);
-                            }
-                            ((BaseAdapter) lv.getAdapter()).notifyDataSetChanged();
-                        } else {
-                            cur_path = file_path;
-                            lv.setAdapter(getFileListAdapterSorted(cur_path, lv_sort_flag));
-                        }
+                        //openFile(file);
+                        //showDialog(CLICK_DIALOG_ID);
                     }
 
-                    item_position_selected = lv.getSelectedItemPosition();
-                    item_position_first = lv.getFirstVisiblePosition();
-                    item_position_last = lv.getLastVisiblePosition();
-                    View cv = lv.getChildAt(item_position_selected - item_position_first);
+                    mItemSelected = mListView.getSelectedItemPosition();
+                    mItemFirst = mListView.getFirstVisiblePosition();
+                    mItemLast = mListView.getLastVisiblePosition();
+                    View cv = mListView.getChildAt(mItemSelected - mItemFirst);
                     if (cv != null) {
-                        fromtop_piexl = cv.getTop();
+                        mItemTop = cv.getTop();
                     }
                 }
             }
@@ -302,16 +280,16 @@ public class FileBrowserActivity extends Activity {
     private ListAdapter getDeviceListAdapter() {
         return new SimpleAdapter(this, getDeviceListData(), R.layout.filebrowser_device_item,
                 new String[]{
-                        "item_type",
-                        "item_name",
-                        "item_rw",
-                        "item_size"
+                        FILEINFO_KEY_TYPE,
+                        FILEINFO_KEY_NAMNE,
+                        FILEINFO_KEY_ACCESS,
+                        FILEINFO_KEY_SIZE_DISPLAY
                 },
                 new int[]{
-                        R.id.device_type,
-                        R.id.device_name,
-                        R.id.device_rw,
-                        R.id.device_size
+                        R.id.filebrowser_device_type,
+                        R.id.filebrowser_device_name,
+                        R.id.filebrowser_device_access,
+                        R.id.filebrowser_device_size
                 });
     }
 
@@ -321,18 +299,17 @@ public class FileBrowserActivity extends Activity {
         File dir = new File(NAND_PATH);
         if (dir.exists() && dir.isDirectory()) {
             map = new HashMap<String, Object>();
-            map.put("item_name", getText(R.string.sdcard_device_str));
-            map.put("file_path", NAND_PATH);
-            map.put("item_type", R.drawable.filebrowser_icon_sdcard);
-            map.put("file_date", 0);
-            map.put("file_size", 1);    //for sort
-            map.put("item_size", null);
-            map.put("item_rw", null);
-            map.put("item_file_type", null);
-            map.put("item_file_name", null);
+            map.put(FILEINFO_KEY_NAMNE, getText(R.string.sdcard_device_str));
+            map.put(FILEINFO_KEY_FULL_NAMNE, NAND_PATH);
+            map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_sdcard);
+            map.put(FILEINFO_KEY_DATE_DISPLAY, 0);
+            map.put(FILEINFO_KEY_SIZE_SORT, 1);    //for sort
+            map.put(FILEINFO_KEY_SIZE_DISPLAY, null);
+            map.put(FILEINFO_KEY_ACCESS, null);
+            map.put(FILEINFO_KEY_SUFFIX, null);
             list.add(map);
         }
-
+/*
         dir = new File(SD_PATH);
         if (dir.exists() && dir.isDirectory()) {
             map = new HashMap<String, Object>();
@@ -362,6 +339,7 @@ public class FileBrowserActivity extends Activity {
                             dev_count++;
                             char data = (char) ('A' + dev_count - 1);
                             String label = mStorageManager.getVolumeFSLabel(path);
+
                             devname = getText(R.string.usb_device_str) + "(" + data + ":)";
                             map.put("item_name", (label == null) ? devname : label);
                             map.put("file_path", path);
@@ -378,7 +356,7 @@ public class FileBrowserActivity extends Activity {
                 }
             }
         }
-
+*/
         dir = new File(USB_PATH);
         if (dir.exists() && dir.isDirectory()) {
             if (dir.listFiles() != null) {
@@ -392,15 +370,14 @@ public class FileBrowserActivity extends Activity {
                             dev_count++;
                             char data = (char) ('A' + dev_count - 1);
                             devname = getText(R.string.cdrom_device_str) + "(" + data + ":)";
-                            map.put("item_name", devname);
-                            map.put("file_path", path);
-                            map.put("item_type", R.drawable.filebrowser_icon_cdrom);
-                            map.put("file_date", 0);
-                            map.put("file_size", 3);    //for sort
-                            map.put("item_size", null);
-                            map.put("item_rw", null);
-                            map.put("item_file_type", null);
-                            map.put("item_file_name", null);
+                            map.put(FILEINFO_KEY_NAMNE, devname);
+                            map.put(FILEINFO_KEY_FULL_NAMNE, path);
+                            map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_cdrom);
+                            map.put(FILEINFO_KEY_DATE_DISPLAY, 0);
+                            map.put(FILEINFO_KEY_SIZE_SORT, 3);    //for sort
+                            map.put(FILEINFO_KEY_SIZE_DISPLAY, null);
+                            map.put(FILEINFO_KEY_ACCESS, null);
+                            map.put(FILEINFO_KEY_SUFFIX, null);
                             list.add(map);
                         }
                     }
@@ -411,30 +388,28 @@ public class FileBrowserActivity extends Activity {
         dir = new File(SATA_PATH);
         if (dir.exists() && dir.isDirectory()) {
             map = new HashMap<String, Object>();
-            map.put("item_name", getText(R.string.sata_device_str));
-            map.put("file_path", SATA_PATH);
-            map.put("item_type", R.drawable.filebrowser_icon_sata);
-            map.put("file_date", 0);
-            map.put("file_size", 1);    //for sort
-            map.put("item_size", null);
-            map.put("item_rw", null);
-            map.put("item_file_type", null);
-            map.put("item_file_name", null);
+            map.put(FILEINFO_KEY_NAMNE, getText(R.string.sata_device_str));
+            map.put(FILEINFO_KEY_FULL_NAMNE, SATA_PATH);
+            map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_sata);
+            map.put(FILEINFO_KEY_DATE_DISPLAY, 0);
+            map.put(FILEINFO_KEY_SIZE_SORT, 1);    //for sort
+            map.put(FILEINFO_KEY_SIZE_DISPLAY, null);
+            map.put(FILEINFO_KEY_ACCESS, null);
+            map.put(FILEINFO_KEY_SUFFIX, null);
             list.add(map);
         }
 
         dir = new File(NFS_PATH);
         if (dir.exists() && dir.isDirectory()) {
             map = new HashMap<String, Object>();
-            map.put("item_name", getText(R.string.nfs_device_str));
-            map.put("file_path", NFS_PATH);
-            map.put("item_type", R.drawable.filebrowser_icon_nfs);
-            map.put("file_date", 0);
-            map.put("file_size", 1);
-            map.put("item_size", null);
-            map.put("item_rw", null);
-            map.put("item_file_type", null);
-            map.put("item_file_name", null);
+            map.put(FILEINFO_KEY_NAMNE, getText(R.string.nfs_device_str));
+            map.put(FILEINFO_KEY_FULL_NAMNE, NFS_PATH);
+            map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_nfs);
+            map.put(FILEINFO_KEY_DATE_DISPLAY, 0);
+            map.put(FILEINFO_KEY_SIZE_SORT, 1);
+            map.put(FILEINFO_KEY_SIZE_DISPLAY, null);
+            map.put(FILEINFO_KEY_ACCESS, null);
+            map.put(FILEINFO_KEY_SUFFIX, null);
             list.add(map);
         }
 
@@ -448,6 +423,17 @@ public class FileBrowserActivity extends Activity {
             });
         }
         return list;
+    }
+
+    /**
+     * updatePathShow
+     */
+    private void updatePathShow(String path) {
+        TextView tv = (TextView) findViewById(R.id.filebrowser_current_path);
+        if (path.equals(ROOT))
+            tv.setText(getText(R.string.device_list));
+        else
+            tv.setText(path);
     }
 
     /**

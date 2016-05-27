@@ -62,25 +62,15 @@ import dttv.app.FileBrowserDatabase.ThumbnailCursor;
 import dttv.app.FileOp.FileOpReturn;
 import dttv.app.FileOp.FileOpTodo;
 import dttv.app.utils.FileUtils;
+import dttv.app.utils.StorageUtils;
 
 public class FileBrowserActivity extends Activity {
 
     public static final String TAG = "FileBrowser";
 
     private static final String ROOT = "/storage";
-    private static final String SHEILD_EXT_STOR = Environment.getExternalStorageDirectory().getPath();
-    private static final String NAND_PATH = Environment.getExternalStorageDirectory().getPath();
-    /*
-    private static final String SD_PATH = Environment.getExternalStorageDirectory().getPath();
-    private static String USB_PATH = Environment.getExternalStorageDirectory().getPath();
-    private static final String SATA_PATH = Environment.getExternalStorageDirectory().getPath();
-    private static final String NFS_PATH = "/mnt/nfs";*/
 
-    private static final String SD_PATH = "/storage/external_storage/sdcard1";
-    private static final String USB_PATH = "/storage/external_storage";
-    private static final String SATA_PATH = "/storage/external_storage/sata";
-    private static final String NFS_PATH = "/mnt/nfs";
-
+    List<StorageUtils.StorageInfo> mRootDevices = null;
     StorageManager mStorageManager = null;
     public static FileBrowserDatabase mDataBase;
     public static FileBrowserDatabase.FileMarkCursor mCursor;
@@ -98,8 +88,6 @@ public class FileBrowserActivity extends Activity {
     private static final int FILEBROWSER_SORT_BY_SIZE = 2;
     private static final int FILEBROWSER_SORT_BY_NAME = 3;
     private int mSortType = FILEBROWSER_SORT_BY_NONE;
-    private List<String> mDevList = new ArrayList<String>();
-
 
     private static final String FILEINFO_KEY_FULL_NAMNE = "fileinfo_item_full_name";
     private static final String FILEINFO_KEY_NAMNE = "fileinfo_item_name";
@@ -142,9 +130,6 @@ public class FileBrowserActivity extends Activity {
             public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
                 Map<String, Object> item = (Map<String, Object>) parent.getItemAtPosition(pos);
                 String mPath = (String) item.get(FILEINFO_KEY_FULL_NAMNE);
-                if (mPath.equals(NFS_PATH)) {
-                    return;
-                }
 
                 File mFile = new File(mPath);
                 if (!mFile.exists()) {
@@ -194,8 +179,7 @@ public class FileBrowserActivity extends Activity {
                 if (!mCurrentPath.equals(ROOT)) {
                     File file = new File(mCurrentPath);
                     String parent_path = file.getParent();
-                    if(mCurrentPath.equals(NAND_PATH) || mCurrentPath.equals(SD_PATH)
-                            || mCurrentPath.equals(NFS_PATH) ||parent_path.equals(USB_PATH)) {
+                    if (isDeviceFile(mCurrentPath)) {
                         mCurrentPath = ROOT;
                         DeviceScan();
                     } else {
@@ -215,7 +199,7 @@ public class FileBrowserActivity extends Activity {
 
         Button btn_search = (Button) findViewById(R.id.btn_search);
         boolean isEnableSearch = false;
-        if(!isEnableSearch)
+        if (!isEnableSearch)
             btn_search.setVisibility(View.GONE);
         btn_search.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
@@ -232,9 +216,6 @@ public class FileBrowserActivity extends Activity {
 
     }
 
-    /**
-     * Called when the activity is first created or resumed.
-     */
     @Override
     public void onResume() {
         super.onResume();
@@ -331,24 +312,21 @@ public class FileBrowserActivity extends Activity {
         }
     }
 
-    private void DeviceScan() {
-        mDevList.clear();
-        String internal = getString(R.string.memory_device_str);
-        String sdcard = getString(R.string.sdcard_device_str);
-        String usb = getString(R.string.usb_device_str);
-        String cdrom = getString(R.string.cdrom_device_str);
-        String sdcardExt = getString(R.string.ext_sdcard_device_str);
-        String nfs = getString(R.string.nfs_device_str);
-        String DeviceArray[] = {internal, sdcard, usb, cdrom, sdcardExt, nfs};
-
-        int length = 0;
-        length = DeviceArray.length;
-
-        for (int i = 0; i < length; i++) {
-            if (FileOp.deviceExist(DeviceArray[i])) {
-                mDevList.add(DeviceArray[i]);
+    private boolean isDeviceFile(String path) {
+        if(mRootDevices.size() <= 0)
+            mRootDevices = StorageUtils.getStorageList();
+        Boolean isDevice = false;
+        for (int i = 0; i < mRootDevices.size(); i++) {
+            StorageUtils.StorageInfo device = mRootDevices.get(i);
+            if (path.equals(device.path)) {
+                isDevice = true;
+                break;
             }
         }
+        return isDevice;
+    }
+
+    private void DeviceScan() {
         mListView.setAdapter(getDeviceListAdapter());
     }
 
@@ -371,119 +349,25 @@ public class FileBrowserActivity extends Activity {
     private List<Map<String, Object>> getDeviceListData() {
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         Map<String, Object> map;
-        File dir = new File(NAND_PATH);
-        if (dir.exists() && dir.isDirectory()) {
+        File dir;
+
+        mRootDevices = StorageUtils.getStorageList();
+        for (int i = 0; i < mRootDevices.size(); i++) {
+            StorageUtils.StorageInfo device = mRootDevices.get(i);
             map = new HashMap<String, Object>();
-            map.put(FILEINFO_KEY_NAMNE, getText(R.string.sdcard_device_str));
-            map.put(FILEINFO_KEY_FULL_NAMNE, NAND_PATH);
-            map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_sdcard);
-            map.put(FILEINFO_KEY_DATE_DISPLAY, 0);
-            map.put(FILEINFO_KEY_SIZE_SORT, 1);    //for sort
-            map.put(FILEINFO_KEY_SIZE_DISPLAY, null);
-            map.put(FILEINFO_KEY_ACCESS, null);
-            map.put(FILEINFO_KEY_SUFFIX, null);
-            list.add(map);
-        }
-
-        dir = new File(SD_PATH);
-        if (dir.exists() && dir.isDirectory()) {
-            map = new HashMap<String, Object>();
-            String label = null;
-            map.put(FILEINFO_KEY_NAMNE, (label == null) ? getText(R.string.ext_sdcard_device_str) : label);
-            map.put(FILEINFO_KEY_FULL_NAMNE, SD_PATH);
-            map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_sdcard);
-            map.put(FILEINFO_KEY_DATE_DISPLAY, 0);
-            map.put(FILEINFO_KEY_SIZE_SORT, 1);    //for sort
-            map.put(FILEINFO_KEY_SIZE_DISPLAY, null);
-            map.put(FILEINFO_KEY_ACCESS, null);
-            map.put(FILEINFO_KEY_SUFFIX, null);
-            list.add(map);
-        }
-
-        dir = new File(USB_PATH);
-        if (dir.exists() && dir.isDirectory()) {
-            if (dir.listFiles() != null) {
-                int dev_count = 0;
-                for (File file : dir.listFiles()) {
-                    if (file.isDirectory()) {
-                        String devname = null;
-                        String path = file.getAbsolutePath();
-                        if (path.startsWith(USB_PATH + "/sd") && !path.equals(SD_PATH)) {
-                            map = new HashMap<String, Object>();
-                            dev_count++;
-                            char data = (char) ('A' + dev_count - 1);
-                            String label = null;
-
-                            devname = getText(R.string.usb_device_str) + "(" + data + ":)";
-                            map.put(FILEINFO_KEY_NAMNE, (label == null) ? devname : label);
-                            map.put(FILEINFO_KEY_FULL_NAMNE, path);
-                            map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_usb);
-                            map.put(FILEINFO_KEY_DATE_DISPLAY, 0);
-                            map.put(FILEINFO_KEY_SIZE_SORT, 3);    //for sort
-                            map.put(FILEINFO_KEY_SIZE_DISPLAY, null);
-                            map.put(FILEINFO_KEY_ACCESS, null);
-                            map.put(FILEINFO_KEY_SUFFIX, null);
-                            list.add(map);
-                        }
-                    }
-                }
-            }
-        }
-
-        dir = new File(USB_PATH);
-        if (dir.exists() && dir.isDirectory()) {
-            if (dir.listFiles() != null) {
-                int dev_count = 0;
-                for (File file : dir.listFiles()) {
-                    if (file.isDirectory()) {
-                        String devname = null;
-                        String path = file.getAbsolutePath();
-                        if (path.startsWith(USB_PATH + "/sr") && !path.equals(SD_PATH)) {
-                            map = new HashMap<String, Object>();
-                            dev_count++;
-                            char data = (char) ('A' + dev_count - 1);
-                            devname = getText(R.string.cdrom_device_str) + "(" + data + ":)";
-                            map.put(FILEINFO_KEY_NAMNE, devname);
-                            map.put(FILEINFO_KEY_FULL_NAMNE, path);
-                            map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_cdrom);
-                            map.put(FILEINFO_KEY_DATE_DISPLAY, 0);
-                            map.put(FILEINFO_KEY_SIZE_SORT, 3);    //for sort
-                            map.put(FILEINFO_KEY_SIZE_DISPLAY, null);
-                            map.put(FILEINFO_KEY_ACCESS, null);
-                            map.put(FILEINFO_KEY_SUFFIX, null);
-                            list.add(map);
-                        }
-                    }
-                }
-            }
-        }
-
-        dir = new File(SATA_PATH);
-        if (dir.exists() && dir.isDirectory()) {
-            map = new HashMap<String, Object>();
-            map.put(FILEINFO_KEY_NAMNE, getText(R.string.sata_device_str));
-            map.put(FILEINFO_KEY_FULL_NAMNE, SATA_PATH);
-            map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_sata);
-            map.put(FILEINFO_KEY_DATE_DISPLAY, 0);
-            map.put(FILEINFO_KEY_SIZE_SORT, 1);    //for sort
-            map.put(FILEINFO_KEY_SIZE_DISPLAY, null);
-            map.put(FILEINFO_KEY_ACCESS, null);
-            map.put(FILEINFO_KEY_SUFFIX, null);
-            list.add(map);
-        }
-
-        dir = new File(NFS_PATH);
-        if (dir.exists() && dir.isDirectory()) {
-            map = new HashMap<String, Object>();
-            map.put(FILEINFO_KEY_NAMNE, getText(R.string.nfs_device_str));
-            map.put(FILEINFO_KEY_FULL_NAMNE, NFS_PATH);
-            map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_nfs);
+            map.put(FILEINFO_KEY_NAMNE, device.getDisplayName());
+            map.put(FILEINFO_KEY_FULL_NAMNE, device.path);
+            if (device.path.contains("sda"))
+                map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_usb);
+            else
+                map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_sdcard);
             map.put(FILEINFO_KEY_DATE_DISPLAY, 0);
             map.put(FILEINFO_KEY_SIZE_SORT, 1);
             map.put(FILEINFO_KEY_SIZE_DISPLAY, null);
             map.put(FILEINFO_KEY_ACCESS, null);
             map.put(FILEINFO_KEY_SUFFIX, null);
             list.add(map);
+
         }
 
         updatePathShow(ROOT);
@@ -498,9 +382,6 @@ public class FileBrowserActivity extends Activity {
         return list;
     }
 
-    /**
-     * updatePathShow
-     */
     private void updatePathShow(String path) {
         TextView tv = (TextView) findViewById(R.id.filebrowser_current_path);
         if (path.equals(ROOT))
@@ -509,9 +390,6 @@ public class FileBrowserActivity extends Activity {
             tv.setText(path);
     }
 
-    /**
-     * getFileListAdapterSorted
-     */
     private SimpleAdapter getFileListAdapterSorted(String path, int sort_type) {
 
         if (path.equals(ROOT)) {
@@ -590,8 +468,7 @@ public class FileBrowserActivity extends Activity {
                             Map<String, Object> map = new HashMap<String, Object>();
                             String file_abs_path = file.getAbsolutePath();
 
-                            //shield external_sdcard and usbdrive under /storage/sdcard0/
-                            if ((file_abs_path.equals(SD_PATH)) || (file_abs_path.equals(USB_PATH)) || (file_abs_path.equals(SHEILD_EXT_STOR)))
+                            if(isDeviceFile(file_abs_path))
                                 continue;
 
                             map.put(FILEINFO_KEY_NAMNE, file.getName());
@@ -768,14 +645,13 @@ public class FileBrowserActivity extends Activity {
             if (!mCurrentPath.equals(ROOT)) {
                 File file = new File(mCurrentPath);
                 String parent_path = file.getParent();
-                if (mCurrentPath.equals(NAND_PATH) || mCurrentPath.equals(SD_PATH)
-                        || mCurrentPath.equals(NFS_PATH) || parent_path.equals(USB_PATH)) {
+                if (isDeviceFile(mCurrentPath)) {
                     mCurrentPath = ROOT;
                     DeviceScan();
                     Log.d(TAG, "onKeyDown(),keyCode : " + keyCode);
                     return false;
                 } else {
-                    if(mCurrentPath.equals(parent_path) == false) {
+                    if (mCurrentPath.equals(parent_path) == false) {
                         mCurrentPath = parent_path;
                         mListView.setAdapter(getFileListAdapterSorted(mCurrentPath, mSortType));
                     }

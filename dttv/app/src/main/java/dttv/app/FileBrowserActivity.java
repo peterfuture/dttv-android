@@ -1,14 +1,7 @@
 package dttv.app;
 
 import android.content.ActivityNotFoundException;
-import android.content.IntentFilter;
-import android.os.storage.*;
-
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FilenameFilter;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,49 +12,32 @@ import java.util.List;
 import java.util.Map;
 
 import android.os.Handler;
-
-import dttv.app.model.Item;
-import dttv.app.utils.Constant;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Message;
-import android.os.PowerManager;
-import android.os.StatFs;
+
 import android.os.storage.StorageManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 
-import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ToggleButton;
-//Android imports 
-//Import of resources file for file browser
-import dttv.app.FileBrowserDatabase.ThumbnailCursor;
-import dttv.app.FileOp.FileOpReturn;
+
 import dttv.app.FileOp.FileOpTodo;
+import dttv.app.utils.Constant;
 import dttv.app.utils.FileUtils;
+import dttv.app.utils.PlayerUtil;
 import dttv.app.utils.StorageUtils;
 
 public class FileBrowserActivity extends Activity {
@@ -149,7 +125,6 @@ public class FileBrowserActivity extends Activity {
                         mListView.setAdapter(getFileListAdapterSorted(mCurrentPath, mSortType));
                     } else {
                         openFile(mFile);
-                        //showDialog(CLICK_DIALOG_ID);
                     }
 
                     mItemSelected = mListView.getSelectedItemPosition();
@@ -300,10 +275,20 @@ public class FileBrowserActivity extends Activity {
     }
 
     protected void openFile(File f) {
+        String type = "*/*";
+        String uri = f.getPath();
+        type = FileOp.CheckMediaType(f);
+        String name = f.getPath();
+        if(type.contains("video") || type.contains("audio")) {
+            PlayerUtil.getInstance().beginToPlayer(this, uri, name, Constant.LOCAL_VIDEO);
+            return;
+        }
+
+        // Use system app
         Intent intent = new Intent();
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setAction(android.content.Intent.ACTION_VIEW);
-        String type = "*/*";
+        type = "*/*";
         type = FileOp.CheckMediaType(f);
         intent.setDataAndType(Uri.fromFile(f), type);
         try {

@@ -2,13 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical">
+
     <HorizontalScrollView
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="horizontal"
         android:fadeScrollbars="false"
-        android:background="@android:color/darker_gray">
+        android:background="@drawable/filebrowser_button_bar_bg">
 
         <LinearLayout
             android:orientation="horizontal"
@@ -43,11 +44,11 @@
         android:layout_height="wrap_content"
         android:textColor="@color/filebrowser_bar_text_color"
         android:textStyle="italic|bold"
-        android:background="@color/filebrowser_bar_bg"/>
+        android:background="@drawable/filebrowser_button_bar_bg"/>
 	<ListView
 	    android:id="@+id/filebrowser_listview"
-	    android:layout_width="match_parent"
-	    android:layout_height="match_parent" >
-	    
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent" >
 	</ListView>
+
 </LinearLayout>

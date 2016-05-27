@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="filebrowser_bar_bg">#ffffffff</color>>
+    <color name="filebrowser_bar_bg">#FFFFFF</color>>
     <color name="filebrowser_bar_text_color">#FFFFFFFF</color>>
     <color name="filebrowser_device_item_color">#FFFFFFFF</color>
     <color name="filebrowser_file_item_color">#FFFFFFFF</color>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">DTTV</string>
+    <string name="app_name">dttv</string>
     <string name="action_online_video">在线视频</string>
     <string name="action_local_video">本地视频</string>
     <string name="action_settings">设置</string>

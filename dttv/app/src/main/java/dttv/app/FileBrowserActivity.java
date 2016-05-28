@@ -43,8 +43,6 @@ public class FileBrowserActivity extends Activity {
     private static final String ROOT = "/mnt";
 
     List<StorageUtils.StorageInfo> mRootDevices = null;
-    public static FileBrowserDatabase mDataBase;
-    public static FileBrowserDatabase.FileMarkCursor mCursor;
     private ListView mListView;
     private int mItemSelected, mItemFirst, mItemLast;
     private int mItemTop;
@@ -80,10 +78,6 @@ public class FileBrowserActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.file_browser);
-
-        /* setup database */
-        mDataBase = new FileBrowserDatabase(this);
-
 
         /* setup file list */
         mListView = (ListView) findViewById(R.id.filebrowser_listview);
@@ -236,9 +230,6 @@ public class FileBrowserActivity extends Activity {
 
         if (mListLoaded)
             mListLoaded = false;
-        mDataBase.deleteAllFileMark();
-        mDataBase.close();
-
     }
 
     /**
@@ -247,9 +238,6 @@ public class FileBrowserActivity extends Activity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mDataBase.deleteAllFileMark();
-        mDataBase.close();
-
     }
 
     protected void openFile(File f) {

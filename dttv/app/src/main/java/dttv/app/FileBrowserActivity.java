@@ -32,9 +32,7 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
-import dttv.app.FileOp.FileOpTodo;
 import dttv.app.utils.Constant;
-import dttv.app.utils.FileUtils;
 import dttv.app.utils.PlayerUtil;
 import dttv.app.utils.StorageUtils;
 
@@ -200,23 +198,6 @@ public class FileBrowserActivity extends Activity {
                 super.handleMessage(msg);
 
                 switch (msg.what) {
-                    case FILEBROWSER_MESSAGE_COPY://file copy cancel
-                        if ((FileOp.copying_file != null) && (FileOp.copying_file.exists())) {
-                            try {
-                                if (FileOp.copying_file.isDirectory())
-                                    FileUtils.deleteDirectory(FileOp.copying_file);
-                                else
-                                    FileOp.copying_file.delete();
-                            } catch (Exception e) {
-                                Log.e("Exception when delete", e.toString());
-                            }
-                        }
-
-                        FileOp.copy_cancel = false;
-                        FileOp.copying_file = null;
-                        mListView.setAdapter(getFileListAdapterSorted(mCurrentPath, mSortType));
-                        FileOp.file_op_todo = FileOpTodo.TODO_NOTHING;
-                        break;
                     case FILEBROWSER_MESSAGE_UPDATE_LIST:
                         if (mListLoaded == false) {
                             break;
@@ -253,7 +234,6 @@ public class FileBrowserActivity extends Activity {
         editor.putString("cur_path", mCurrentPath);
         editor.commit();
 
-        FileOp.copy_cancel = true;
         if (mListLoaded)
             mListLoaded = false;
         mDataBase.deleteAllFileMark();
@@ -275,7 +255,7 @@ public class FileBrowserActivity extends Activity {
     protected void openFile(File f) {
         String type = "*/*";
         String uri = f.getPath();
-        type = FileOp.CheckMediaType(f);
+        type =  FileInfo.getFileType(f);
         String name = f.getPath();
         if(type.contains("video") || type.contains("audio")) {
             PlayerUtil.getInstance().beginToPlayer(this, uri, name, Constant.LOCAL_VIDEO);
@@ -286,8 +266,6 @@ public class FileBrowserActivity extends Activity {
         Intent intent = new Intent();
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setAction(android.content.Intent.ACTION_VIEW);
-        type = "*/*";
-        type = FileOp.CheckMediaType(f);
         intent.setDataAndType(Uri.fromFile(f), type);
         try {
             startActivity(intent);
@@ -460,10 +438,7 @@ public class FileBrowserActivity extends Activity {
                             map.put(FILEINFO_KEY_PATH, file_abs_path);
 
                             if (file.isDirectory()) {
-                                if (FileOp.isFileSelected(file_abs_path, "list"))
-                                    map.put(FILEINFO_KEY_SELECTED, R.drawable.filebrowser_file_selected);
-                                else
-                                    map.put(FILEINFO_KEY_SELECTED, R.drawable.filebrowser_file_unselected);
+                                map.put(FILEINFO_KEY_SELECTED, R.drawable.filebrowser_file_unselected);
                                 map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_file_type_dir);
                                 String rw = "d";
                                 if (file.canRead())
@@ -486,12 +461,9 @@ public class FileBrowserActivity extends Activity {
                                 map.put(FILEINFO_KEY_SIZE_SORT, file_size);    //use for sorting
                                 map.put(FILEINFO_KEY_SIZE_DISPLAY, file_size);
                             } else {
-                                if (FileOp.isFileSelected(file_abs_path, "list"))
-                                    map.put(FILEINFO_KEY_SELECTED, R.drawable.filebrowser_file_selected);
-                                else
-                                    map.put(FILEINFO_KEY_SELECTED, R.drawable.filebrowser_file_unselected);
 
-                                map.put(FILEINFO_KEY_TYPE, FileOp.getFileTypeImg(file.getName()));
+                                map.put(FILEINFO_KEY_SELECTED, R.drawable.filebrowser_file_unselected);
+                                map.put(FILEINFO_KEY_TYPE,FileInfo.getFileTypeIcon(file.getName()));
                                 map.put(FILEINFO_KEY_NAMNE, getFileDescripe(file));
                                 map.put(FILEINFO_KEY_SUFFIX, getFileType(file) + " | ");
 
@@ -514,7 +486,7 @@ public class FileBrowserActivity extends Activity {
 
                                 long file_size = file.length();
                                 map.put(FILEINFO_KEY_SIZE_SORT, file_size);    //use for sorting
-                                map.put(FILEINFO_KEY_SIZE_DISPLAY, FileOp.getFileSizeStr(file_size));
+                                map.put(FILEINFO_KEY_SIZE_DISPLAY, FileInfo.getFileSizeStr(file_size));
                             }
                             if (!file.isHidden()) {
                                 list.add(map);

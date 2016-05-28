@@ -16,10 +16,7 @@ import java.util.Date;
 import java.util.List;
 
 import android.net.Uri;
-import android.os.Message;
 import android.text.TextUtils;
-
-import dttv.app.FileBrowserActivity;
 
 public class FileUtils
 {
@@ -876,21 +873,6 @@ public class FileUtils
         File[] files = filter == null ? srcDir.listFiles() : srcDir.listFiles(filter);
         if (files == null) {  // null if security restricted
             throw new IOException("Failed to list contents of " + srcDir);
-        }
-        for (int i = 0; i < files.length; i++) {
-            File copiedFile = new File(destDir, files[i].getName());
-            if (exclusionList == null || !exclusionList.contains(files[i].getCanonicalPath())) {
-                if (files[i].isDirectory()) {
-                    doCopyDirectory(files[i], copiedFile, filter, preserveFileDate, exclusionList);
-                } else {
-                    doCopyFile(files[i], copiedFile, preserveFileDate);
-
-                    if(cur_page.equals("list")){
-                        FileBrowserActivity.mProgressHandler.sendMessage(Message.obtain(
-                                FileBrowserActivity.mProgressHandler, 1, (i+1) * 100 / files.length, 0));
-                    }
-                }
-            }
         }
     }
 

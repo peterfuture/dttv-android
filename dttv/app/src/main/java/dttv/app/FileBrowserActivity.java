@@ -13,14 +13,12 @@ import java.util.Map;
 
 import android.os.Handler;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
 
-import android.os.storage.StorageManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -44,10 +42,9 @@ public class FileBrowserActivity extends Activity {
 
     public static final String TAG = "FileBrowser";
 
-    private static final String ROOT = "/storage";
+    private static final String ROOT = "/mnt";
 
     List<StorageUtils.StorageInfo> mRootDevices = null;
-    StorageManager mStorageManager = null;
     public static FileBrowserDatabase mDataBase;
     public static FileBrowserDatabase.FileMarkCursor mCursor;
     private ListView mListView;
@@ -59,13 +56,15 @@ public class FileBrowserActivity extends Activity {
     private boolean mLoadCancel = false;
     private boolean mIsSorted = false;
 
+    private static final int FILEBROWSER_MESSAGE_COPY = 9;
+    private static final int FILEBROWSER_MESSAGE_UPDATE_LIST = 10;
+
     private static final int FILEBROWSER_SORT_BY_NONE = 0;
     private static final int FILEBROWSER_SORT_BY_DATE = 1;
     private static final int FILEBROWSER_SORT_BY_SIZE = 2;
     private static final int FILEBROWSER_SORT_BY_NAME = 3;
-    private int mSortType = FILEBROWSER_SORT_BY_NONE;
+    private static int mSortType = FILEBROWSER_SORT_BY_NONE;
 
-    private static final String FILEINFO_KEY_FULL_NAMNE = "fileinfo_item_full_name";
     private static final String FILEINFO_KEY_NAMNE = "fileinfo_item_name";
     private static final String FILEINFO_KEY_PATH = "fileinfo_item_path";
     private static final String FILEINFO_KEY_SELECTED = "fileinfo_item_selected";
@@ -83,10 +82,10 @@ public class FileBrowserActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.file_browser);
-        mStorageManager = (StorageManager) getSystemService(Context.STORAGE_SERVICE);
 
         /* setup database */
         mDataBase = new FileBrowserDatabase(this);
+
 
         /* setup file list */
         mListView = (ListView) findViewById(R.id.filebrowser_listview);
@@ -105,7 +104,7 @@ public class FileBrowserActivity extends Activity {
         mListView.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
                 Map<String, Object> item = (Map<String, Object>) parent.getItemAtPosition(pos);
-                String mPath = (String) item.get(FILEINFO_KEY_FULL_NAMNE);
+                String mPath = (String) item.get(FILEINFO_KEY_PATH);
 
                 File mFile = new File(mPath);
                 if (!mFile.exists()) {
@@ -201,7 +200,7 @@ public class FileBrowserActivity extends Activity {
                 super.handleMessage(msg);
 
                 switch (msg.what) {
-                    case 9:        //file copy cancel
+                    case FILEBROWSER_MESSAGE_COPY://file copy cancel
                         if ((FileOp.copying_file != null) && (FileOp.copying_file.exists())) {
                             try {
                                 if (FileOp.copying_file.isDirectory())
@@ -215,12 +214,10 @@ public class FileBrowserActivity extends Activity {
 
                         FileOp.copy_cancel = false;
                         FileOp.copying_file = null;
-                        mDataBase.deleteAllFileMark();
                         mListView.setAdapter(getFileListAdapterSorted(mCurrentPath, mSortType));
                         FileOp.file_op_todo = FileOpTodo.TODO_NOTHING;
                         break;
-                    case 10:    //update list
-                        //((BaseAdapter) lv.getAdapter()).notifyDataSetChanged();
+                    case FILEBROWSER_MESSAGE_UPDATE_LIST:
                         if (mListLoaded == false) {
                             break;
                         }
@@ -229,7 +226,6 @@ public class FileBrowserActivity extends Activity {
                         break;
                     default:
                         break;
-
                 }
             }
         };
@@ -262,6 +258,7 @@ public class FileBrowserActivity extends Activity {
             mListLoaded = false;
         mDataBase.deleteAllFileMark();
         mDataBase.close();
+
     }
 
     /**
@@ -272,6 +269,7 @@ public class FileBrowserActivity extends Activity {
         super.onDestroy();
         mDataBase.deleteAllFileMark();
         mDataBase.close();
+
     }
 
     protected void openFile(File f) {
@@ -341,13 +339,16 @@ public class FileBrowserActivity extends Activity {
             StorageUtils.StorageInfo device = mRootDevices.get(i);
             map = new HashMap<String, Object>();
             map.put(FILEINFO_KEY_NAMNE, device.getDisplayName());
-            map.put(FILEINFO_KEY_FULL_NAMNE, device.path);
-            if (device.path.contains("sda"))
+            map.put(FILEINFO_KEY_PATH, device.path);
+            if (device.path.contains("sda")) {
                 map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_usb);
-            else
+                map.put(FILEINFO_KEY_SIZE_SORT, 1);
+            }
+            else {
                 map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_sdcard);
+                map.put(FILEINFO_KEY_SIZE_SORT, 0);
+            }
             map.put(FILEINFO_KEY_DATE_DISPLAY, 0);
-            map.put(FILEINFO_KEY_SIZE_SORT, 1);
             map.put(FILEINFO_KEY_SIZE_DISPLAY, null);
             map.put(FILEINFO_KEY_ACCESS, null);
             map.put(FILEINFO_KEY_SUFFIX, null);
@@ -403,7 +404,7 @@ public class FileBrowserActivity extends Activity {
                             FILEINFO_KEY_DATE_DISPLAY,
                             FILEINFO_KEY_ACCESS,
                             FILEINFO_KEY_SUFFIX,
-                            FILEINFO_KEY_FULL_NAMNE
+                            FILEINFO_KEY_PATH
                     },
                     new int[]{
                             R.id.filebrowser_file_type,
@@ -422,7 +423,6 @@ public class FileBrowserActivity extends Activity {
         updatePathShow(path);
         if (!mListLoaded) {
             mListLoaded = true;
-            //showDialog(LOAD_DIALOG_ID);
 
             final String ppath = path;
             final int ssort_type = sort_type;
@@ -431,7 +431,7 @@ public class FileBrowserActivity extends Activity {
                 public void run() {
                     mList = getFileListDataSortedAsync(ppath, ssort_type);
                     if (null != mProgressHandler) {
-                        mProgressHandler.sendMessage(Message.obtain(mProgressHandler, 10));
+                        mProgressHandler.sendMessage(Message.obtain(mProgressHandler, FILEBROWSER_MESSAGE_UPDATE_LIST));
                     }
                 }
             }.start();
@@ -457,7 +457,6 @@ public class FileBrowserActivity extends Activity {
                                 continue;
 
                             map.put(FILEINFO_KEY_NAMNE, file.getName());
-                            map.put(FILEINFO_KEY_FULL_NAMNE, file_abs_path);
                             map.put(FILEINFO_KEY_PATH, file_abs_path);
 
                             if (file.isDirectory()) {

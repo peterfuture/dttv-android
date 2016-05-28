@@ -15,7 +15,7 @@ public class FileBrowserDatabase extends SQLiteOpenHelper {
     /**
      * The name of the database file on the file system
      */
-    private static final String DATABASE_NAME = "FileBrower";
+    private static final String DATABASE_NAME = "FileBrowserDatabase";
     /**
      * The version of the database that this class understands.
      */

@@ -11,7 +11,7 @@
 
 #include "native_log.h"
 
-#define TAG "DTPLAYER-JNI"
+#define TAG "DTTV-JNI"
 
 #ifndef NELEM
 #define NELEM(x) ((int)(sizeof(x) / sizeof((x)[0])))
@@ -33,7 +33,6 @@ static fields_t fields;
 dt_lock_t mutex;
 static JavaVM *gvm = NULL;
 static const char *const kClassName = "dttv/app/DtPlayer";
-
 
 dtpListenner::dtpListenner(JNIEnv *env, jobject thiz, jobject weak_thiz) {
     jclass clazz = env->GetObjectClass(thiz);
@@ -307,19 +306,20 @@ int android_dttv_native_setInfo(JNIEnv *env, jobject thiz, int cmd, jlong arg) {
     return 0;
 }
 
-int android_dttv_native_onSurfaceCreated(JNIEnv *env, jobject thiz) {
+int jni_gl_surface_create(JNIEnv *env, jobject thiz) {
     yuv_dttv_init();
     yuv_reg_player((void *) getMediaPlayer(env, thiz));
     return 0;
 }
 
-int android_dttv_native_onSurfaceChanged(JNIEnv *env, jobject obj, int w, int h) {
+int jni_gl_surface_change(JNIEnv *env, jobject obj, int w, int h) {
     yuv_setupGraphics(w, h);
-    LOGV("onSurfaceChanged, w:%d h:%d \n", w, h);
+    LOGV("on surface changed, w:%d h:%d \n", w, h);
     return 0;
 }
 
-int android_dttv_native_onDrawFrame(JNIEnv *env, jobject thiz) {
+
+int jni_gl_draw_frame(JNIEnv *env, jobject thiz) {
     yuv_renderFrame();
     return 0;
 }
@@ -358,9 +358,9 @@ static JNINativeMethod g_Methods[] = {
         {"native_getInfo",            "(IJ)I",                 (void *) android_dttv_native_getInfo},
         {"native_setInfo",            "(IJ)I",                 (void *) android_dttv_native_setInfo},
 
-        {"native_onSurfaceCreated",   "()I",                   (void *) android_dttv_native_onSurfaceCreated},
-        {"native_onSurfaceChanged",   "(II)I",                 (void *) android_dttv_native_onSurfaceChanged},
-        {"native_onDrawFrame",        "()I",                   (void *) android_dttv_native_onDrawFrame},
+        {"native_surface_create",     "()I",                   (void *) jni_gl_surface_create},
+        {"native_surface_change",     "(II)I",                 (void *) jni_gl_surface_change},
+        {"native_draw_frame",         "()I",                   (void *) jni_gl_draw_frame},
 
         {"native_setAudioEffect",     "(I)I",                  (void *) android_dttv_native_setAudioEffect},
 };

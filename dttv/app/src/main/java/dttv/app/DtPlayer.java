@@ -73,11 +73,9 @@ public class DtPlayer {
     private static final int MEDIA_CACHING_UPDATE = 2000;
 
     static {
-        //System.loadLibrary("gnustl_shared");
         System.loadLibrary("dtp");
         //System.loadLibrary("dtap");
         System.loadLibrary("dttv_jni");
-
         native_init();
     }
 
@@ -667,17 +665,17 @@ public class DtPlayer {
     //----------------------------------
     //OPENGL-ESV2
     public int onSurfaceCreated() {
-        native_onSurfaceCreated();
+        native_surface_create();
         return 0;
     }
 
     public int onSurfaceChanged(int w, int h) {
-        native_onSurfaceChanged(w, h);
+        native_surface_change(w, h);
         return 0;
     }
 
     public int onDrawFrame() {
-        native_onDrawFrame();
+        native_draw_frame();
         return 0;
     }
 
@@ -746,11 +744,11 @@ public class DtPlayer {
     public native int native_setInfo(int cmd, long arg);
 
     //opengl esv2
-    public native int native_onSurfaceCreated();
+    public native int native_surface_create();
 
-    public native int native_onSurfaceChanged(int w, int h);
+    public native int native_surface_change(int w, int h);
 
-    public native int native_onDrawFrame();
+    public native int native_draw_frame();
 
     public native int native_setAudioEffect(int t);
 

@@ -17,7 +17,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ConfigurationInfo;
 import android.content.res.Configuration;
 import android.opengl.GLSurfaceView;
-import android.opengl.Matrix;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -59,12 +58,15 @@ import dttv.app.widget.OnTouchMoveListener;
  *
  * @author shihx1
  */
+
 public class VideoPlayerActivity extends Activity implements OnClickListener, OnTouchListener {
+
     private String TAG = "VideoPlayerActivity";
-    private DtPlayer dtPlayer;
+
+    /*global property*/
     private String mPath;
 
-
+    /*view*/
     private View mBarView;
     private RelativeLayout playerBarLay, playerRootviewLay;
     private RelativeLayout topBarLay;
@@ -73,23 +75,23 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private ImageButton preBtn, nextBtn, pauseBtn, ratioBtn;
     private Button effectBtn;
     private SeekBar playerProgressBar;
+    private ProgressBar brightProgressBar, volumeProgressBar;
     private GlVideoView glSurfaceView;
-    private int seek_flag = 0;
-    private boolean isDisableScale = false;
 
+    /*video player status definition*/
     private static final int PLAYER_IDLE = 0x0;
-    private static final int PLAYER_INITING = 0x1;
-    private static final int PLAYER_PREPARED = 0x2;
-    private static final int PLAYER_RUNNING = 0x3;
-    private static final int PLAYER_PAUSED = 0x4;
-    private static final int PLAYER_BUFFERING = 0x5;
-    private static final int PLAYER_SEEKING = 0x6;
-
+    private static final int PLAYER_INIT_START = 0x1;
+    private static final int PLAYER_INITED = 0x2;
+    private static final int PLAYER_PREPAR = 0x3;
+    private static final int PLAYER_PREPARED = 0x4;
+    private static final int PLAYER_RUNNING = 0x5;
+    private static final int PLAYER_PAUSED = 0x6;
+    private static final int PLAYER_BUFFERING_START = 0x7;
+    private static final int PLAYER_BUFFERING_END = 0x8;
+    private static final int PLAYER_SEEKING = 0x8;
     private static final int PLAYER_STOP = 0x100;
     private static final int PLAYER_EXIT = 0x101;
 
-
-    private int mState = PLAYER_IDLE;
 
     private final int SCREEN_ORIGINAL = 0;
     private final int SCREEN_169value = 1;
@@ -97,38 +99,43 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private final int SCREEN_43value = 3;
     private final int SCREEN_NORMALSCALE = 4;
 
+    /*video player property*/
+    private DtPlayer dtPlayer;
+    private int mState = PLAYER_IDLE;
+    private int mSeekFlag = 0;
+    private boolean mDisableScale = false;
+
+    /*window property*/
+    private int mScreenWidth;
+    private int mScreenHeight;
+    private int mCurrentLightness;
+    
 
     private int screenHeight, screenWidth;
-    private int surface_width = 320;
-    private int surface_height = 240;
-    private int currentPosition = -1;
+    private int mSurfaceWidth = 320;
+    private int mSurfaceHeight = 240;
+    private int mCurrentPosition = -1;
 
     private final int HANDLE_UP = 0x0110;
     private final int HANDLE_DOWN = HANDLE_UP + 1;
-    private ProgressBar brightProgressBar, volumeProgressBar;
-    private VolumeUtil volumeUtil;
-    private int mScreenWidth;
-    private int mScreenHeight;
-    private int currentLightness;
+    private VolumeUtil mVolumeUtil;
+    
 
-    @SuppressLint("ShowToast")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // TODO Auto-generated method stub
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.video_play);
-        Log.i(TAG, "enter onCreate");
 
-        if (OpenglES2Support() == 0) {
-            Toast.makeText(this, "opengl es2.0 not supported， Exit!", 1).show();
+        if (GLES2Support() == 0) {
             return;
         }
 
+        /*dtplayer need to init prior to glsurfaceview*/
         mState = PLAYER_IDLE;
         dtPlayer = new DtPlayer(this);
-        //opengl
-        glSurfaceView = (GlVideoView) findViewById(R.id.glvideo_view);
+        // GLSurfaceView
+        glSurfaceView = (GlVideoView) findViewById(R.id.videoplayer_glvideoview);
         glSurfaceView.setRenderer(new GLSurfaceViewRender());
         glSurfaceView.setTouchMoveListener(new GLMoveTouchListener());
         //glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
@@ -136,35 +143,13 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         //glSurfaceView.setOnTouchListener((OnTouchListener) this);
 
 
-        getWindow().setBackgroundDrawableResource(R.color.bg_black);
+                getWindow().setBackgroundDrawableResource(R.color.videoplayer_background);
 
         initView();
         initDisplay();
-        initExtraData();
+        setDataSource();
+        prepare();
         initListener();
-    }
-
-    private void initDisplay() {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        mScreenWidth = displayMetrics.widthPixels;
-        mScreenHeight = displayMetrics.heightPixels;
-        if (mScreenWidth == 0) {
-            Display display = getWindowManager().getDefaultDisplay();
-            mScreenWidth = display.getWidth();
-            mScreenHeight = display.getHeight();
-        }
-    }
-
-    private int OpenglES2Support() {
-        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
-
-        boolean supportsEs2 = configurationInfo.reqGlEsVersion >= 0x20000 || isProbablyEmulator();
-        if (supportsEs2)
-            return 1;
-        else
-            return 0;
     }
 
     private boolean isProbablyEmulator() {
@@ -176,61 +161,21 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 || Build.MODEL.contains("Android SDK built for x86"));
     }
 
-    @SuppressLint("ShowToast")
-    private void initExtraData() {
-        Intent intent = getIntent();
-        mPath = intent.getStringExtra(Constant.FILE_MSG);
-        String mediaName = intent.getStringExtra(Constant.MEIDA_NAME_STR);
-        media_name_txt.setText(mediaName);
+    private int GLES2Support() {
+        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
 
-        //----------------------add type--------------------------------------
-        int mType = intent.getIntExtra(Constant.FILE_TYPE, -1);
-        resolveTypeView(mType);
-        Toast.makeText(this, "mPath is:" + mPath, 1).show();
-        try {
-            mState = PLAYER_INITING;
-            if (dtPlayer.setDataSource(mPath) == -1) {
-                mState = PLAYER_IDLE;
-                return;
-            }
-            //here to set video size
-
-            int width = dtPlayer.getVideoWidth();
-            int height = dtPlayer.getVideoHeight();
-            Log.d(TAG, "--width:" + width + "  height:" + height);
-            if (width > 0 && height > 0 && width <= 1920 && height <= 1088) {
-                ViewGroup.LayoutParams layoutParams = glSurfaceView.getLayoutParams();
-                layoutParams.width = width;
-                layoutParams.height = height;
-                glSurfaceView.setLayoutParams(layoutParams);
-                //dtPlayer.setVideoSize(width,height);
-            }
-            dtPlayer.prepare();
-        } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        currentLightness = ControlLightness.getInstance().getLightness(this);
-        if (currentLightness >= 255) {
-            currentLightness = 255;
-        } else if (currentLightness <= 0) {
-            currentLightness = 0;
-        }
+        boolean supportsEs2 = configurationInfo.reqGlEsVersion >= 0x20000 || isProbablyEmulator();
+        if (supportsEs2)
+            return 1;
+        else
+            return 0;
     }
 
     private void initView() {
         mBarView = (View) findViewById(R.id.audio_player_bar_lay);
         playerBarLay = (RelativeLayout) mBarView.findViewById(R.id.audio_player_bar_lay);
-        playerRootviewLay = (RelativeLayout) findViewById(R.id.dt_player_rootview);
+        playerRootviewLay = (RelativeLayout) findViewById(R.id.videoplayer_layout_rootview);
         topBarLay = (RelativeLayout) findViewById(R.id.dt_top_play_bar_lay);
         media_name_txt = (TextView) findViewById(R.id.dt_media_name_txt);
         dt_decoder_btn = (TextView) findViewById(R.id.dt_decoder_btn);
@@ -250,15 +195,27 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
         ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_16_9);
 
-        brightProgressBar = (ProgressBar) findViewById(R.id.bright_progressbar);
-        volumeProgressBar = (ProgressBar) findViewById(R.id.volume_progress);
+        brightProgressBar = (ProgressBar) findViewById(R.id.videoplayer_bright_progressbar);
+        volumeProgressBar = (ProgressBar) findViewById(R.id.videoplayer_volume_progress);
 
-        volumeUtil = new VolumeUtil(this);
-        volumeProgressBar.setMax(volumeUtil.getMaxVolume());
-        volumeProgressBar.setProgress(volumeUtil.getCurrentVolume());
+        mVolumeUtil = new VolumeUtil(this);
+        volumeProgressBar.setMax(mVolumeUtil.getMaxVolume());
+        volumeProgressBar.setProgress(mVolumeUtil.getCurrentVolume());
     }
 
-    private void resolveTypeView(int type) {
+    private void initDisplay() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        mScreenWidth = displayMetrics.widthPixels;
+        mScreenHeight = displayMetrics.heightPixels;
+        if (mScreenWidth == 0) {
+            Display display = getWindowManager().getDefaultDisplay();
+            mScreenWidth = display.getWidth();
+            mScreenHeight = display.getHeight();
+        }
+    }
+
+    private void updateView(int type) {
         switch (type) {
             case Constant.LOCAL_VIDEO:
                 effectBtn.setVisibility(View.GONE);
@@ -271,11 +228,73 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         }
     }
 
+    @SuppressLint("ShowToast")
+    private void setDataSource() {
+        Intent intent = getIntent();
+        mPath = intent.getStringExtra(Constant.FILE_MSG);
+        String mediaName = intent.getStringExtra(Constant.MEIDA_NAME_STR);
+        media_name_txt.setText(mediaName);
+
+        //----------------------add type--------------------------------------
+        int mType = intent.getIntExtra(Constant.FILE_TYPE, -1);
+        updateView(mType);
+        Toast.makeText(this, "playing:" + mPath, 1).show();
+        try {
+            mState = PLAYER_INIT_START;
+            if (dtPlayer.setDataSource(mPath) == -1) {
+                mState = PLAYER_IDLE;
+                return;
+            }
+            mState = PLAYER_INITED;
+
+            //setup video size
+            int width = dtPlayer.getVideoWidth();
+            int height = dtPlayer.getVideoHeight();
+            Log.d(TAG, "--width:" + width + "  height:" + height);
+            if (width > 0 && height > 0 && width <= 1920 && height <= 1088) {
+                ViewGroup.LayoutParams layoutParams = glSurfaceView.getLayoutParams();
+                layoutParams.width = width;
+                layoutParams.height = height;
+                glSurfaceView.setLayoutParams(layoutParams);
+            }
+        } catch (IllegalArgumentException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IllegalStateException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        mCurrentLightness = ControlLightness.getInstance().getLightness(this);
+        if (mCurrentLightness >= 255) {
+            mCurrentLightness = 255;
+        } else if (mCurrentLightness <= 0) {
+            mCurrentLightness = 0;
+        }
+    }
+
+    private void prepare() {
+        try {
+            mState = PLAYER_PREPAR;
+            dtPlayer.prepare();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
     private void initListener() {
         dtPlayer.setOnPreparedListener(new PrePareListener());
         dtPlayer.setOnFreshVideo(new FreshVideo());
         dtPlayer.setOnCompletionListener(new OnCompleteListener());
+
         playerProgressBar.setOnSeekBarChangeListener(new OnSeekChangeListener());
+
         preBtn.setOnClickListener(this);
         nextBtn.setOnClickListener(this);
         pauseBtn.setOnClickListener(this);
@@ -311,10 +330,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     class FreshVideo implements OnFreshVideo {
         @Override
         public void onFresh(DtPlayer mp) {
-            // TODO Auto-generated method stub
-            //Log.i(Constant.LOGTAG, "fresh video");
             glSurfaceView.requestRender();
-
         }
     }
 
@@ -333,7 +349,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         public void onProgressChanged(SeekBar seekBar, int progress,
                                       boolean fromUser) {
             // TODO Auto-generated method stub
-            if (seek_flag == 1) {
+            if (mSeekFlag == 1) {
                 //int currentTime = seekBar.getProgress();
                 //dtPlayer.seekTo(currentTime);
             }
@@ -342,7 +358,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         @Override
         public void onStartTrackingTouch(SeekBar seekBar) {
             // TODO Auto-generated method stub
-            seek_flag = 1;
+            mSeekFlag = 1;
         }
 
         @Override
@@ -352,7 +368,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             int currentTime = seekBar.getProgress();
             dtPlayer.seekTo(currentTime);
             dtPlayer.start();
-            seek_flag = 0;
+            mSeekFlag = 0;
         }
 
     }
@@ -361,7 +377,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (dtPlayer != null) {
-            dtPlayer.seekTo(currentPosition);
+            dtPlayer.seekTo(mCurrentPosition);
             dtPlayer.start();
         }
     }
@@ -374,7 +390,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             switch (msgId) {
                 case Constant.REFRESH_TIME_MSG:
                     int currentTime = dtPlayer.getCurrentPosition();
-                    currentPosition = currentTime;
+                    mCurrentPosition = currentTime;
                     int duration = dtPlayer.getDuration();
                     if (currentTime < 0)
                         currentTime = 0;
@@ -440,7 +456,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         //glSurfaceView.onResume();
         Log.i(TAG, "enter onResume dtPlayer is:" + dtPlayer);
         if (dtPlayer != null) {
-            dtPlayer.seekTo(currentPosition);
+            dtPlayer.seekTo(mCurrentPosition);
             dtPlayer.start();
         }
     }
@@ -619,8 +635,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             lock.lock();
             Log.i(TAG, "gl surface change enter, width:" + width + " height:" + height);
             dtPlayer.onSurfaceChanged(width, height);
-            surface_width = width;
-            surface_height = height;
+            mSurfaceWidth = width;
+            mSurfaceHeight = height;
 
             lock.unlock();
         }
@@ -645,7 +661,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         flag = temp_flag % 3;
         Log.i(TAG, "setVideoScale flag is:" + flag);
         //LayoutParams lp = (LayoutParams) glSurfaceView.getLayoutParams();
-        LayoutParams lp = new LayoutParams(surface_width, surface_height);
+        LayoutParams lp = new LayoutParams(mSurfaceWidth, mSurfaceHeight);
         Log.i(TAG, "begin");
         switch (flag) {
             case SCREEN_169value:
@@ -684,13 +700,13 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 lp.height = screenHeight;
                 int temp_width = 0;
                 int temp_height = 0;
-                if (surface_width > 0) {
-                    if (lp.width / surface_width > lp.height / surface_height) {
-                        temp_width = (int) surface_width * lp.height / surface_height;
+                if (mSurfaceWidth > 0) {
+                    if (lp.width / mSurfaceWidth > lp.height / mSurfaceHeight) {
+                        temp_width = (int) mSurfaceWidth * lp.height / mSurfaceHeight;
                         temp_height = lp.height;
                     } else {
                         temp_width = lp.width;
-                        temp_height = surface_height * lp.width / surface_width;
+                        temp_height = mSurfaceHeight * lp.width / mSurfaceWidth;
                     }
                 } else {
 
@@ -730,34 +746,34 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private void handleAudioVolume(int type) {
         switch (type) {
             case HANDLE_UP:
-                volumeUtil.upVolume(0);
+                mVolumeUtil.upVolume(0);
                 break;
             case HANDLE_DOWN:
-                volumeUtil.downVolume(0);
+                mVolumeUtil.downVolume(0);
                 break;
         }
         volumeProgressBar.setVisibility(View.VISIBLE);
-        volumeProgressBar.setProgress(volumeUtil.getCurrentVolume());
+        volumeProgressBar.setProgress(mVolumeUtil.getCurrentVolume());
         doActionHandler.removeMessages(Constant.HIDE_PROGRESS_BAR_MSG);
         doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_PROGRESS_BAR_MSG, 5 * Constant.REFRESH_TIME);
     }
 
     private void handleLightless(int type) {
-        currentLightness = ControlLightness.getInstance().getLightness(this);
-        Log.i(TAG, "currentLightness is:" + currentLightness);
+        mCurrentLightness = ControlLightness.getInstance().getLightness(this);
+        Log.i(TAG, "mCurrentLightness is:" + mCurrentLightness);
         switch (type) {
             case HANDLE_UP:
-                currentLightness += 5;
-                currentLightness = currentLightness >= 255 ? 255 : currentLightness;
+                mCurrentLightness += 5;
+                mCurrentLightness = mCurrentLightness >= 255 ? 255 : mCurrentLightness;
                 break;
             case HANDLE_DOWN:
-                currentLightness -= 5;
-                currentLightness = currentLightness <= 0 ? 0 : currentLightness;
+                mCurrentLightness -= 5;
+                mCurrentLightness = mCurrentLightness <= 0 ? 0 : mCurrentLightness;
                 break;
         }
-        ControlLightness.getInstance().setBrightness(this, currentLightness);
+        ControlLightness.getInstance().setBrightness(this, mCurrentLightness);
         brightProgressBar.setVisibility(View.VISIBLE);
-        brightProgressBar.setProgress(currentLightness);
+        brightProgressBar.setProgress(mCurrentLightness);
         doActionHandler.removeMessages(Constant.HIDE_PROGRESS_BAR_MSG);
         doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_PROGRESS_BAR_MSG, 5 * Constant.REFRESH_TIME);
     }

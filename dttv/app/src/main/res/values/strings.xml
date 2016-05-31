@@ -58,4 +58,10 @@
     <string name="nfsip_default_str">8.8.8.8</string>
     <string name="nfsroute_default_str">/home/ae/nfs</string>
 
+    <!-- videoplayer -->
+    <string name="videoplayer_string_time_null">00:00:00</string>
+    <string name="videoplayer_string_decoder_soft">软解码</string>
+    <string name="videoplayer_string_decoder_hw">硬解码</string>
+    <string name="videoplayer_string_setting">播放器设置</string>
+
 </resources>

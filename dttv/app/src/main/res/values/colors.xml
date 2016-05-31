@@ -13,6 +13,9 @@
 
     <!--videoplayer -->
     <color name="videoplayer_background">#000000</color>
+    <color name="videoplayer_top_bar_color">#50000000</color>
+    <color name="videoplayer_control_panel_color">#50000000</color>
+    <color name="videoplayer_text_color">#ffffffff</color>
 
     <drawable name="vertical_diliver_color">#5B5B5B</drawable>
 </resources>

@@ -63,22 +63,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
     private String TAG = "VideoPlayerActivity";
 
-    /*global property*/
-    private String mPath;
-
-    /*view*/
-    private View mBarView;
-    private RelativeLayout playerBarLay, playerRootviewLay;
-    private RelativeLayout topBarLay;
-    private ImageButton rotateBtn;
-    private TextView currentTimeTxt, totalTimeTxt, media_name_txt, dt_decoder_btn;
-    private ImageButton preBtn, nextBtn, pauseBtn, ratioBtn;
-    private Button effectBtn;
-    private SeekBar playerProgressBar;
-    private ProgressBar brightProgressBar, volumeProgressBar;
-    private GlVideoView glSurfaceView;
-
-    /*video player status definition*/
+    /*MACRO*/
     private static final int PLAYER_IDLE = 0x0;
     private static final int PLAYER_INIT_START = 0x1;
     private static final int PLAYER_INITED = 0x2;
@@ -92,58 +77,84 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private static final int PLAYER_STOP = 0x100;
     private static final int PLAYER_EXIT = 0x101;
 
-
     private final int SCREEN_ORIGINAL = 0;
     private final int SCREEN_169value = 1;
     private final int SCREEN_FULLSCREEN = 2;
     private final int SCREEN_43value = 3;
     private final int SCREEN_NORMALSCALE = 4;
 
-    /*video player property*/
+    /*view*/
+
+    private RelativeLayout mRelativeLayoutControlPanel;
+    private RelativeLayout mRelativeLayoutRootView;
+    private RelativeLayout mRelativeLayoutTopBar;
+
+    private ImageButton mButtonPause;
+    private ImageButton mButtonBack;
+    private ImageButton mButtonSetting;
+    private ImageButton mButtonRotate;
+    private ImageButton mButtonPre;
+    private ImageButton mButtonNext;
+    private ImageButton mButtonRatio;
+
+    private Button mButtonAudioEffect;
+
+    private TextView mTextViewCurrentTime;
+    private TextView mTextViewDuration;
+    private TextView mTextViewUrl;
+    private TextView mTextViewDecoderType;
+
+    private SeekBar mSeekBarProgress;
+    private ProgressBar mProgressBarBright, mProgressBarVolume;
+    private GlVideoView mGLSurfaceView;
+
+    /*varibles*/
+
     private DtPlayer dtPlayer;
+    private String mPath;
     private int mState = PLAYER_IDLE;
     private int mSeekFlag = 0;
     private boolean mDisableScale = false;
 
-    /*window property*/
-    private int mScreenWidth;
-    private int mScreenHeight;
-    private int mCurrentLightness;
-    
-
-    private int screenHeight, screenWidth;
     private int mSurfaceWidth = 320;
     private int mSurfaceHeight = 240;
     private int mCurrentPosition = -1;
 
+    private int mScreenWidth;
+    private int mScreenHeight;
+    private int mCurrentLightness;
+
+    /*utils*/
+    private VolumeUtil mVolumeUtil;
+
+
     private final int HANDLE_UP = 0x0110;
     private final int HANDLE_DOWN = HANDLE_UP + 1;
-    private VolumeUtil mVolumeUtil;
-    
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.video_play);
+        setContentView(R.layout.videoplayer_layout);
 
         if (GLES2Support() == 0) {
             return;
         }
 
-        /*dtplayer need to init prior to glsurfaceview*/
+        /*dtplayer need to init prior to mGLSurfaceView*/
         mState = PLAYER_IDLE;
         dtPlayer = new DtPlayer(this);
-        // GLSurfaceView
-        glSurfaceView = (GlVideoView) findViewById(R.id.videoplayer_glvideoview);
-        glSurfaceView.setRenderer(new GLSurfaceViewRender());
-        glSurfaceView.setTouchMoveListener(new GLMoveTouchListener());
-        //glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        //glSurfaceView.setOnTouchListener((OnTouchListener) this);
+        // mGLSurfaceView
+        mGLSurfaceView = (GlVideoView) findViewById(R.id.videoplayer_glvideoview);
+        mGLSurfaceView.setRenderer(new MyGLSurfaceViewRender());
+        mGLSurfaceView.setTouchMoveListener(new GLMoveTouchListener());
+        //mGLSurfaceView.setRenderMode(mGLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        mGLSurfaceView.setRenderMode(mGLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        //mGLSurfaceView.setOnTouchListener((OnTouchListener) this);
 
-
-                getWindow().setBackgroundDrawableResource(R.color.videoplayer_background);
+        getWindow().setBackgroundDrawableResource(R.color.videoplayer_background);
 
         initView();
         initDisplay();
@@ -173,34 +184,46 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     }
 
     private void initView() {
+
+        mRelativeLayoutTopBar = (RelativeLayout)findViewById(R.id.videoplayer_top_bar);
+        mRelativeLayoutControlPanel = (RelativeLayout)findViewById(R.id.videoplayer_control_panel);
+        mRelativeLayoutRootView = (RelativeLayout)findViewById(R.id.videoplayer_layout_rootview);
+
+        mTextViewUrl = (TextView) mRelativeLayoutTopBar.findViewById(R.id.videoplayer_url);
+        mTextViewCurrentTime = (TextView) mRelativeLayoutControlPanel.findViewById(R.id.videoplayer_textview_current_time);
+        mTextViewDuration = (TextView) mRelativeLayoutControlPanel.findViewById(R.id.videoplayer_textview_duration);
+
+        mButtonBack = (ImageButton) mRelativeLayoutTopBar.findViewById(R.id.videoplayer_button_back);
+        mButtonBack = (ImageButton) mRelativeLayoutTopBar.findViewById(R.id.videoplayer_button_setting);
+        mButtonPause = (ImageButton) mRelativeLayoutControlPanel.findViewById(R.id.videoplayer_button_pause);
+
+        mSeekBarProgress = (SeekBar) mRelativeLayoutControlPanel.findViewById(R.id.videoplayer_seekbar_progress);
+
+/*
         mBarView = (View) findViewById(R.id.audio_player_bar_lay);
-        playerBarLay = (RelativeLayout) mBarView.findViewById(R.id.audio_player_bar_lay);
-        playerRootviewLay = (RelativeLayout) findViewById(R.id.videoplayer_layout_rootview);
-        topBarLay = (RelativeLayout) findViewById(R.id.dt_top_play_bar_lay);
-        media_name_txt = (TextView) findViewById(R.id.dt_media_name_txt);
-        dt_decoder_btn = (TextView) findViewById(R.id.dt_decoder_btn);
-        rotateBtn = (ImageButton) findViewById(R.id.dt_player_rotate_btn);
-        currentTimeTxt = (TextView) mBarView.findViewById(R.id.dt_play_current_time);
-        totalTimeTxt = (TextView) mBarView.findViewById(R.id.dt_play_total_time);
-        preBtn = (ImageButton) mBarView.findViewById(R.id.dt_play_prev_btn);
-        pauseBtn = (ImageButton) mBarView.findViewById(R.id.dt_play_pause_btn);
-        nextBtn = (ImageButton) mBarView.findViewById(R.id.dt_play_next_btn);
-        effectBtn = (Button) mBarView.findViewById(R.id.dt_play_effect_btn);
-        ratioBtn = (ImageButton) mBarView.findViewById(R.id.dt_play_ratio_btn);
-        playerProgressBar = (SeekBar) mBarView.findViewById(R.id.dt_play_progress_seekbar);
-        DisplayMetrics dm = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(dm);
-        screenHeight = dm.heightPixels;
-        screenWidth = dm.widthPixels;
+        mRelativeLayoutControlPanel = (RelativeLayout) mBarView.findViewById(R.id.audio_player_bar_lay);
+        mRelativeLayoutRootView = (RelativeLayout) findViewById(R.id.videoplayer_layout_rootview);
+        mRelativeLayoutTopBar = (RelativeLayout) findViewById(R.id.videoplayer_top_bar);
+        mTextViewUrl = (TextView) findViewById(R.id.videoplayer_url);
+        mTextViewDecoderType = (TextView) findViewById(R.id.mTextViewDecoderType);
+        mButtonRotate = (ImageButton) findViewById(R.id.dt_player_rotate_btn);
+        mTextViewCurrentTime = (TextView) mBarView.findViewById(R.id.dt_play_current_time);
+        mTextViewDuration = (TextView) mBarView.findViewById(R.id.dt_play_total_time);
+        mButtonPre = (ImageButton) mBarView.findViewById(R.id.dt_play_prev_btn);
+        mButtonPause = (ImageButton) mBarView.findViewById(R.id.dt_play_pause_btn);
+        mButtonNext = (ImageButton) mBarView.findViewById(R.id.dt_play_next_btn);
+        mButtonAudioEffect = (Button) mBarView.findViewById(R.id.dt_play_effect_btn);
+        mButtonRatio = (ImageButton) mBarView.findViewById(R.id.dt_play_ratio_btn);
+        mButtonRatio.setBackgroundResource(R.drawable.dt_player_control_ratio_16_9);
+        mSeekBarProgress = (SeekBar) mBarView.findViewById(R.id.dt_play_progress_seekbar);
+*/
 
-        ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_16_9);
-
-        brightProgressBar = (ProgressBar) findViewById(R.id.videoplayer_bright_progressbar);
-        volumeProgressBar = (ProgressBar) findViewById(R.id.videoplayer_volume_progress);
+        mProgressBarBright = (ProgressBar) findViewById(R.id.videoplayer_bright_progressbar);
+        mProgressBarVolume = (ProgressBar) findViewById(R.id.videoplayer_volume_progress);
 
         mVolumeUtil = new VolumeUtil(this);
-        volumeProgressBar.setMax(mVolumeUtil.getMaxVolume());
-        volumeProgressBar.setProgress(mVolumeUtil.getCurrentVolume());
+        mProgressBarVolume.setMax(mVolumeUtil.getMaxVolume());
+        mProgressBarVolume.setProgress(mVolumeUtil.getCurrentVolume());
     }
 
     private void initDisplay() {
@@ -215,17 +238,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         }
     }
 
-    private void updateView(int type) {
-        switch (type) {
-            case Constant.LOCAL_VIDEO:
-                effectBtn.setVisibility(View.GONE);
-                ratioBtn.setVisibility(View.VISIBLE);
-                break;
-            case Constant.LOCAL_AUDIO:
-                effectBtn.setVisibility(View.VISIBLE);
-                ratioBtn.setVisibility(View.GONE);
-                break;
-        }
+    private void updateSettingPanel(int hasaudio, int hasvideo, int hassub) {
+        return;
     }
 
     @SuppressLint("ShowToast")
@@ -233,11 +247,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         Intent intent = getIntent();
         mPath = intent.getStringExtra(Constant.FILE_MSG);
         String mediaName = intent.getStringExtra(Constant.MEIDA_NAME_STR);
-        media_name_txt.setText(mediaName);
+        mTextViewUrl.setText(mediaName);
 
         //----------------------add type--------------------------------------
-        int mType = intent.getIntExtra(Constant.FILE_TYPE, -1);
-        updateView(mType);
         Toast.makeText(this, "playing:" + mPath, 1).show();
         try {
             mState = PLAYER_INIT_START;
@@ -252,10 +264,10 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             int height = dtPlayer.getVideoHeight();
             Log.d(TAG, "--width:" + width + "  height:" + height);
             if (width > 0 && height > 0 && width <= 1920 && height <= 1088) {
-                ViewGroup.LayoutParams layoutParams = glSurfaceView.getLayoutParams();
+                ViewGroup.LayoutParams layoutParams = mGLSurfaceView.getLayoutParams();
                 layoutParams.width = width;
                 layoutParams.height = height;
-                glSurfaceView.setLayoutParams(layoutParams);
+                mGLSurfaceView.setLayoutParams(layoutParams);
             }
         } catch (IllegalArgumentException e) {
             // TODO Auto-generated catch block
@@ -293,20 +305,23 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         dtPlayer.setOnFreshVideo(new FreshVideo());
         dtPlayer.setOnCompletionListener(new OnCompleteListener());
 
-        playerProgressBar.setOnSeekBarChangeListener(new OnSeekChangeListener());
+        mSeekBarProgress.setOnSeekBarChangeListener(new OnSeekChangeListener());
+/*
+        mButtonPre.setOnClickListener(this);
+        mButtonNext.setOnClickListener(this);
+        mButtonRatio.setOnClickListener(this);
+        mButtonAudioEffect.setOnClickListener(this);
+        mButtonRatio.setOnClickListener(this);
+        mButtonRotate.setOnClickListener(this);
+        mButtonRotate.setOnTouchListener(this);
+*/
+        mButtonPause.setOnClickListener(this);
 
-        preBtn.setOnClickListener(this);
-        nextBtn.setOnClickListener(this);
-        pauseBtn.setOnClickListener(this);
-        ratioBtn.setOnClickListener(this);
-        effectBtn.setOnClickListener(this);
-        ratioBtn.setOnClickListener(this);
-        rotateBtn.setOnClickListener(this);
-        playerBarLay.setOnTouchListener(this);
-        topBarLay.setOnTouchListener(this);
-        rotateBtn.setOnTouchListener(this);
-        dt_decoder_btn.setOnClickListener(this);
-        playerRootviewLay.setOnTouchListener(this);
+        mRelativeLayoutControlPanel.setOnTouchListener(this);
+        mRelativeLayoutTopBar.setOnTouchListener(this);
+
+        //mTextViewDecoderType.setOnClickListener(this);
+        mRelativeLayoutRootView.setOnTouchListener(this);
     }
 
     class PrePareListener implements OnPreparedListener {
@@ -319,8 +334,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             mState = PLAYER_RUNNING;
             int duration = mp.getDuration();
             if (duration > 0) {
-                totalTimeTxt.setText(TimesUtil.getTime(duration));
-                playerProgressBar.setMax(duration);
+                mTextViewDuration.setText(TimesUtil.getTime(duration));
+                mSeekBarProgress.setMax(duration);
             }
             startTimerTask();
             //setVideoScale(1);
@@ -330,7 +345,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     class FreshVideo implements OnFreshVideo {
         @Override
         public void onFresh(DtPlayer mp) {
-            glSurfaceView.requestRender();
+            mGLSurfaceView.requestRender();
         }
     }
 
@@ -396,14 +411,14 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                         currentTime = 0;
                     if (currentTime > duration)
                         currentTime = duration;
-                    currentTimeTxt.setText(TimesUtil.getTime(currentTime));
-                    playerProgressBar.setProgress(currentTime);
+                    mTextViewCurrentTime.setText(TimesUtil.getTime(currentTime));
+                    mSeekBarProgress.setProgress(currentTime);
                     break;
                 case Constant.BEGIN_MEDIA_MSG:
                     //startTimerTask();
                     break;
                 case Constant.HIDE_OPREATE_BAR_MSG:
-                    //playerBarLay.setVisibility(View.GONE);
+                    //mRelativeLayoutControlPanel.setVisibility(View.GONE);
                     Log.i(TAG, "enter HIDE_OPREATE_BAR_MSG");
                     showToolsBar(false);
                     break;
@@ -440,7 +455,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     @Override
     public void onPause() {
         releaseTimerAndHandler();
-        glSurfaceView.onPause();
+        mGLSurfaceView.onPause();
         dtPlayer.pause();
         super.onPause();
         if (mState == PLAYER_PAUSED)
@@ -453,7 +468,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     @Override
     protected void onResume() {
         super.onResume();
-        //glSurfaceView.onResume();
+        //mGLSurfaceView.onResume();
         Log.i(TAG, "enter onResume dtPlayer is:" + dtPlayer);
         if (dtPlayer != null) {
             dtPlayer.seekTo(mCurrentPosition);
@@ -477,26 +492,26 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         // TODO Auto-generated method stub
         //showAudioEffect(false);
         switch (v.getId()) {
+            /*
             case R.id.dt_play_next_btn:
 
                 break;
             case R.id.dt_play_prev_btn:
-                break;
-            case R.id.dt_play_pause_btn:
+                break;*/
+            case R.id.videoplayer_button_pause:
                 handlePausePlay();
                 break;
-            case R.id.dt_play_ratio_btn:
+            case R.id.videoplayer_button_ratio:
                 //Fix
                 setVideoScale(temp_flag);
                 break;
-            case R.id.dt_player_rotate_btn:
+            case R.id.videoplayer_button_rotate:
                 changeConfigration();
                 break;
-            case R.id.dt_play_effect_btn://for audio effect
+            case R.id.videoplayer_button_audioeffect:
                 showAudioEffect(true);
                 break;
-            case R.id.dt_decoder_btn:
-
+            case R.id.videoplayer_button_decoder_type:
                 break;
         }
     }
@@ -507,7 +522,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
         if (audioCompnent == null)//
             audioCompnent = new PopWindowCompnent(this, this);
-        audioCompnent.show(effectBtn, isShowing);
+        audioCompnent.show(mButtonAudioEffect, isShowing);
         audioCompnent.setCallback(new ICallBack() {
             @Override
             public void doItemClickListener(AdapterView<?> parent, View v,
@@ -520,7 +535,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 //Toast.makeText(mActivity, "effectStr is:"+effectStr+"-0-0 effectStr2 is:"+effectStr2, Toast.LENGTH_LONG).show();
                 if (dtPlayer != null) {
                     dtPlayer.setAuxEffectSendLevel(position);
-                    effectBtn.setText(effectStr);
+                    mButtonAudioEffect.setText(effectStr);
                 }
             }
         });
@@ -538,24 +553,24 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     }
 
     private void showToolsBar(boolean isNeed) {
-        playerBarLay.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
-        topBarLay.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
-        rotateBtn.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
+        mRelativeLayoutControlPanel.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
+        mRelativeLayoutTopBar.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
+        mButtonRotate.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
     }
 
     private void showProgressBar(boolean isShow) {
-        brightProgressBar.setVisibility(isShow == true ? View.VISIBLE : View.GONE);
-        volumeProgressBar.setVisibility(isShow == true ? View.VISIBLE : View.GONE);
+        mProgressBarBright.setVisibility(isShow == true ? View.VISIBLE : View.GONE);
+        mProgressBarVolume.setVisibility(isShow == true ? View.VISIBLE : View.GONE);
     }
 
     private void handlePausePlay() {
         try {
             if (dtPlayer.isPlaying()) {
                 dtPlayer.pause();
-                pauseBtn.setBackgroundResource(R.drawable.btn_mu_pause);
+                mButtonPause.setBackgroundResource(R.drawable.btn_mu_pause);
             } else {
                 dtPlayer.start();
-                pauseBtn.setBackgroundResource(R.drawable.btn_mu_play);
+                mButtonPause.setBackgroundResource(R.drawable.btn_mu_play);
             }
         } catch (IllegalStateException e) {
             // TODO: handle exception
@@ -614,7 +629,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
     //---------------------------OPENGL------------------------------//
 
-    class GLSurfaceViewRender implements GLSurfaceView.Renderer {
+    class MyGLSurfaceViewRender implements GLSurfaceView.Renderer {
 
         private Lock lock = new ReentrantLock();
 
@@ -660,44 +675,44 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         temp_flag++;
         flag = temp_flag % 3;
         Log.i(TAG, "setVideoScale flag is:" + flag);
-        //LayoutParams lp = (LayoutParams) glSurfaceView.getLayoutParams();
+        //LayoutParams lp = (LayoutParams) mGLSurfaceView.getLayoutParams();
         LayoutParams lp = new LayoutParams(mSurfaceWidth, mSurfaceHeight);
         Log.i(TAG, "begin");
         switch (flag) {
             case SCREEN_169value:
-                if (screenWidth * 9 > screenHeight * 16) {
-                    lp.height = screenHeight;
-                    lp.width = screenHeight * 16 / 9;
+                if (mScreenWidth * 9 > mScreenHeight * 16) {
+                    lp.height = mScreenHeight;
+                    lp.width = mScreenHeight * 16 / 9;
                 } else {
-                    lp.height = screenWidth * 9 / 16;
-                    lp.width = screenWidth;
+                    lp.height = mScreenWidth * 9 / 16;
+                    lp.width = mScreenWidth;
                 }
-                ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_fullscreen);
+                mButtonRatio.setBackgroundResource(R.drawable.dt_player_control_ratio_fullscreen);
                 break;
             case SCREEN_43value:
-                if (screenWidth * 3 > screenHeight * 4) {
-                    lp.height = screenHeight;
-                    lp.width = screenHeight * 4 / 3;
+                if (mScreenWidth * 3 > mScreenHeight * 4) {
+                    lp.height = mScreenHeight;
+                    lp.width = mScreenHeight * 4 / 3;
                 } else {
-                    lp.height = screenWidth * 3 / 4;
-                    lp.width = screenWidth;
+                    lp.height = mScreenWidth * 3 / 4;
+                    lp.width = mScreenWidth;
                 }
-                ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_1_1);
+                mButtonRatio.setBackgroundResource(R.drawable.dt_player_control_ratio_1_1);
                 break;
             case SCREEN_ORIGINAL:
                 lp.width = dtPlayer.getVideoWidth();
                 lp.height = dtPlayer.getVideoHeight();
-                ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_16_9);
+                mButtonRatio.setBackgroundResource(R.drawable.dt_player_control_ratio_16_9);
                 break;
             case SCREEN_FULLSCREEN:
-                lp.width = screenWidth;
-                lp.height = screenHeight;
+                lp.width = mScreenWidth;
+                lp.height = mScreenHeight;
                 Log.i(TAG, "SCREEN_FULLSCREEN lp.width is:" + lp.width + "----lp.height is:" + lp.height);
-                ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_normal);
+                mButtonRatio.setBackgroundResource(R.drawable.dt_player_control_ratio_normal);
                 break;
             case SCREEN_NORMALSCALE:
-                lp.width = screenWidth;
-                lp.height = screenHeight;
+                lp.width = mScreenWidth;
+                lp.height = mScreenHeight;
                 int temp_width = 0;
                 int temp_height = 0;
                 if (mSurfaceWidth > 0) {
@@ -713,17 +728,17 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 }
                 lp.width = temp_width;
                 lp.height = temp_height;
-                ratioBtn.setBackgroundResource(R.drawable.dt_player_control_ratio_16_9);
+                mButtonRatio.setBackgroundResource(R.drawable.dt_player_control_ratio_16_9);
                 break;
         }
         Log.i(TAG, "lp.width is:" + lp.width + "----lp.height is:" + lp.height);
-        //glSurfaceView.setLayoutParams(lp);
+        //mGLSurfaceView.setLayoutParams(lp);
         Log.i(TAG, "before setVideoSize");
 
-        ViewGroup.LayoutParams layoutParams = glSurfaceView.getLayoutParams();
+        ViewGroup.LayoutParams layoutParams = mGLSurfaceView.getLayoutParams();
         layoutParams.width = lp.width;
         layoutParams.height = lp.height;
-        glSurfaceView.setLayoutParams(layoutParams);
+        mGLSurfaceView.setLayoutParams(layoutParams);
 
 //		dtPlayer.setVideoSize(lp.width, lp.height);
 //		Log.i(TAG, "after setVideoSize");
@@ -734,7 +749,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     public boolean onTouch(View v, MotionEvent event) {
         // TODO Auto-generated method stub
         Log.i(TAG, "enter onTouch");
-        if (v != effectBtn) {
+        if (v != mButtonAudioEffect) {
             showAudioEffect(false);
         }
         showToolsBar(true);
@@ -752,8 +767,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 mVolumeUtil.downVolume(0);
                 break;
         }
-        volumeProgressBar.setVisibility(View.VISIBLE);
-        volumeProgressBar.setProgress(mVolumeUtil.getCurrentVolume());
+        mProgressBarVolume.setVisibility(View.VISIBLE);
+        mProgressBarVolume.setProgress(mVolumeUtil.getCurrentVolume());
         doActionHandler.removeMessages(Constant.HIDE_PROGRESS_BAR_MSG);
         doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_PROGRESS_BAR_MSG, 5 * Constant.REFRESH_TIME);
     }
@@ -772,8 +787,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 break;
         }
         ControlLightness.getInstance().setBrightness(this, mCurrentLightness);
-        brightProgressBar.setVisibility(View.VISIBLE);
-        brightProgressBar.setProgress(mCurrentLightness);
+        mProgressBarBright.setVisibility(View.VISIBLE);
+        mProgressBarBright.setProgress(mCurrentLightness);
         doActionHandler.removeMessages(Constant.HIDE_PROGRESS_BAR_MSG);
         doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_PROGRESS_BAR_MSG, 5 * Constant.REFRESH_TIME);
     }

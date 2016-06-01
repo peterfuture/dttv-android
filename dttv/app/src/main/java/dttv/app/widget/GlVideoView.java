@@ -60,7 +60,6 @@ public class GlVideoView extends GLSurfaceView {
                 }
                 break;
             case MotionEvent.ACTION_UP:
-
                 break;
         }
         return true;
@@ -68,18 +67,7 @@ public class GlVideoView extends GLSurfaceView {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        // TODO Auto-generated method stub
         super.onDraw(canvas);
-        /*if(paint==null)
-			paint = new Paint();
-		paint.setColor(Color.GRAY);
-		
-		RectF rectF = new RectF(0, 0, getWidth()/2, 100);
-		canvas.drawRect(rectF, paint);
-		paint.setColor(Color.BLUE);
-		RectF rectF2 = new RectF(getWidth()/2, 0, getWidth(), getHeight());
-		canvas.drawRect(rectF2, paint);
-		canvas.drawLine(getWidth()/2, 0, getWidth()+2, getHeight(), paint);*/
     }
 
     @Override

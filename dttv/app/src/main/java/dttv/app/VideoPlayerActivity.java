@@ -558,7 +558,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private void showToolsBar(boolean isNeed) {
         mRelativeLayoutControlPanel.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
         mRelativeLayoutTopBar.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
-        mButtonRotate.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
+        //mButtonRotate.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
     }
 
     private void showProgressBar(boolean isShow) {

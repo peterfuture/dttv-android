@@ -10,7 +10,7 @@
 	    android:layout_height="match_parent"
 	    android:gravity="center" >
         <dttv.app.widget.GlVideoView
-            android:id="@+id/videoplayer_glvideoview"
+            android:id="@+id/videoplayer_glvideoview2"
             style="@style/AppTheme"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>

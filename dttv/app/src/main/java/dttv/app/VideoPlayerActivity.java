@@ -32,6 +32,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -88,6 +89,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private RelativeLayout mRelativeLayoutControlPanel;
     private RelativeLayout mRelativeLayoutRootView;
     private RelativeLayout mRelativeLayoutTopBar;
+    private RelativeLayout mRelativeLayoutSurface;
 
     private ImageButton mButtonPause;
     private ImageButton mButtonBack;
@@ -146,16 +148,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         /*dtplayer need to init prior to mGLSurfaceView*/
         mState = PLAYER_IDLE;
         dtPlayer = new DtPlayer(this);
-        // mGLSurfaceView
-        mGLSurfaceView = (GlVideoView) findViewById(R.id.videoplayer_glvideoview);
-        mGLSurfaceView.setRenderer(new MyGLSurfaceViewRender());
-        mGLSurfaceView.setTouchMoveListener(new GLMoveTouchListener());
-        //mGLSurfaceView.setRenderMode(mGLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        mGLSurfaceView.setRenderMode(mGLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        //mGLSurfaceView.setOnTouchListener((OnTouchListener) this);
 
         getWindow().setBackgroundDrawableResource(R.color.videoplayer_background);
-
         initView();
         initDisplay();
         setDataSource();
@@ -188,6 +182,15 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         mRelativeLayoutTopBar = (RelativeLayout)findViewById(R.id.videoplayer_top_bar);
         mRelativeLayoutControlPanel = (RelativeLayout)findViewById(R.id.videoplayer_control_panel);
         mRelativeLayoutRootView = (RelativeLayout)findViewById(R.id.videoplayer_layout_rootview);
+        mRelativeLayoutSurface = (RelativeLayout)findViewById(R.id.videoplayer_relativeout_surface);
+
+        // mGLSurfaceView
+        mGLSurfaceView = (GlVideoView) mRelativeLayoutSurface.findViewById(R.id.videoplayer_glvideoview);
+        mGLSurfaceView.setRenderer(new MyGLSurfaceViewRender());
+        mGLSurfaceView.setTouchMoveListener(new GLMoveTouchListener());
+        //mGLSurfaceView.setRenderMode(mGLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        mGLSurfaceView.setRenderMode(mGLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        //mGLSurfaceView.setOnTouchListener((OnTouchListener) this);
 
         mTextViewUrl = (TextView) mRelativeLayoutTopBar.findViewById(R.id.videoplayer_url);
         mTextViewCurrentTime = (TextView) mRelativeLayoutControlPanel.findViewById(R.id.videoplayer_textview_current_time);
@@ -621,6 +624,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         @Override
         public void onTouch(MotionEvent event) {
             // TODO Auto-generated method stub
+            Log.i(TAG, "Touched, show control panel");
             showToolsBar(true);
             doActionHandler.removeMessages(Constant.HIDE_OPREATE_BAR_MSG);
             doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_OPREATE_BAR_MSG, 5 * Constant.REFRESH_TIME);

@@ -6,7 +6,8 @@
     android:layout_gravity="center"
     android:orientation="vertical">
 
-    <LinearLayout
+    <RelativeLayout
+        android:id="@+id/videoplayer_relativeout_surface"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center">
@@ -15,9 +16,8 @@
             android:id="@+id/videoplayer_glvideoview"
             style="@style/AppTheme"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </LinearLayout>
+            android:layout_height="match_parent"/>
+    </RelativeLayout>
     <!-- top opration bar-->
     <RelativeLayout
         android:id="@+id/videoplayer_top_bar"

@@ -25,13 +25,10 @@ public class GlVideoView extends GLSurfaceView {
     public GlVideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setEGLContextClientVersion(2);
-        // TODO Auto-generated constructor stub
-        //paint = new Paint();
     }
 
     @Override
     public boolean onTrackballEvent(MotionEvent event) {
-        // TODO Auto-generated method stub
         return super.onTrackballEvent(event);
     }
 
@@ -39,10 +36,8 @@ public class GlVideoView extends GLSurfaceView {
         this.moveListener = onTouchMoveListener;
     }
 
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        // TODO Auto-generated method stub
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 moveListener.onTouch(event);

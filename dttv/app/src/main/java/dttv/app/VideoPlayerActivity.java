@@ -86,10 +86,12 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
     /*view*/
 
-    private RelativeLayout mRelativeLayoutControlPanel;
     private RelativeLayout mRelativeLayoutRootView;
-    private RelativeLayout mRelativeLayoutTopBar;
+
     private RelativeLayout mRelativeLayoutSurface;
+    
+    private LinearLayout mLinearLayoutControlPanel;
+    private LinearLayout mLinearLayoutTopBar;
 
     private ImageButton mButtonPause;
     private ImageButton mButtonBack;
@@ -179,8 +181,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
     private void initView() {
 
-        mRelativeLayoutTopBar = (RelativeLayout)findViewById(R.id.videoplayer_top_bar);
-        mRelativeLayoutControlPanel = (RelativeLayout)findViewById(R.id.videoplayer_control_panel);
+        mLinearLayoutTopBar = (LinearLayout) findViewById(R.id.videoplayer_top_bar);
+        mLinearLayoutControlPanel = (LinearLayout) findViewById(R.id.videoplayer_control_panel);
         mRelativeLayoutRootView = (RelativeLayout)findViewById(R.id.videoplayer_layout_rootview);
         mRelativeLayoutSurface = (RelativeLayout)findViewById(R.id.videoplayer_relativeout_surface);
 
@@ -192,21 +194,21 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         mGLSurfaceView.setRenderMode(mGLSurfaceView.RENDERMODE_WHEN_DIRTY);
         //mGLSurfaceView.setOnTouchListener((OnTouchListener) this);
 
-        mTextViewUrl = (TextView) mRelativeLayoutTopBar.findViewById(R.id.videoplayer_url);
-        mTextViewCurrentTime = (TextView) mRelativeLayoutControlPanel.findViewById(R.id.videoplayer_textview_current_time);
-        mTextViewDuration = (TextView) mRelativeLayoutControlPanel.findViewById(R.id.videoplayer_textview_duration);
+        mTextViewUrl = (TextView) mLinearLayoutTopBar.findViewById(R.id.videoplayer_url);
+        mTextViewCurrentTime = (TextView) mLinearLayoutControlPanel.findViewById(R.id.videoplayer_textview_current_time);
+        mTextViewDuration = (TextView) mLinearLayoutControlPanel.findViewById(R.id.videoplayer_textview_duration);
 
-        mButtonBack = (ImageButton) mRelativeLayoutTopBar.findViewById(R.id.videoplayer_button_back);
-        mButtonBack = (ImageButton) mRelativeLayoutTopBar.findViewById(R.id.videoplayer_button_setting);
-        mButtonPause = (ImageButton) mRelativeLayoutControlPanel.findViewById(R.id.videoplayer_button_pause);
+        mButtonBack = (ImageButton) mLinearLayoutTopBar.findViewById(R.id.videoplayer_button_back);
+        mButtonBack = (ImageButton) mLinearLayoutTopBar.findViewById(R.id.videoplayer_button_setting);
+        mButtonPause = (ImageButton) mLinearLayoutControlPanel.findViewById(R.id.videoplayer_button_pause);
 
-        mSeekBarProgress = (SeekBar) mRelativeLayoutControlPanel.findViewById(R.id.videoplayer_seekbar_progress);
+        mSeekBarProgress = (SeekBar) mLinearLayoutControlPanel.findViewById(R.id.videoplayer_seekbar_progress);
 
 /*
         mBarView = (View) findViewById(R.id.audio_player_bar_lay);
-        mRelativeLayoutControlPanel = (RelativeLayout) mBarView.findViewById(R.id.audio_player_bar_lay);
+        mLinearLayoutControlPanel = (RelativeLayout) mBarView.findViewById(R.id.audio_player_bar_lay);
         mRelativeLayoutRootView = (RelativeLayout) findViewById(R.id.videoplayer_layout_rootview);
-        mRelativeLayoutTopBar = (RelativeLayout) findViewById(R.id.videoplayer_top_bar);
+        mLinearLayoutTopBar = (RelativeLayout) findViewById(R.id.videoplayer_top_bar);
         mTextViewUrl = (TextView) findViewById(R.id.videoplayer_url);
         mTextViewDecoderType = (TextView) findViewById(R.id.mTextViewDecoderType);
         mButtonRotate = (ImageButton) findViewById(R.id.dt_player_rotate_btn);
@@ -320,8 +322,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 */
         mButtonPause.setOnClickListener(this);
 
-        mRelativeLayoutControlPanel.setOnTouchListener(this);
-        mRelativeLayoutTopBar.setOnTouchListener(this);
+        mLinearLayoutControlPanel.setOnTouchListener(this);
+        mLinearLayoutTopBar.setOnTouchListener(this);
 
         //mTextViewDecoderType.setOnClickListener(this);
         mRelativeLayoutRootView.setOnTouchListener(this);
@@ -421,7 +423,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                     //startTimerTask();
                     break;
                 case Constant.HIDE_OPREATE_BAR_MSG:
-                    //mRelativeLayoutControlPanel.setVisibility(View.GONE);
+                    //mLinearLayoutControlPanel.setVisibility(View.GONE);
                     Log.i(TAG, "enter HIDE_OPREATE_BAR_MSG");
                     showToolsBar(false);
                     break;
@@ -556,8 +558,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     }
 
     private void showToolsBar(boolean isNeed) {
-        mRelativeLayoutControlPanel.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
-        mRelativeLayoutTopBar.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
+        //mLinearLayoutControlPanel.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
+        mLinearLayoutTopBar.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
         //mButtonRotate.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
     }
 

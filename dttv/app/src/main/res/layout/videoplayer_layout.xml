@@ -33,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:src="@drawable/videoplayer_button_back">
+            android:background="@drawable/videoplayer_button_back">
         </ImageButton>
         <TextView
             android:id="@+id/videoplayer_url"
@@ -58,7 +58,7 @@
         android:id="@+id/videoplayer_setting_panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/videoplayer_control_panel_color"
+        android:background="@color/videoplayer_setting_panel_background_color"
         android:gravity="center_vertical"
         android:padding="10dp"
         android:visibility="gone">
@@ -109,22 +109,20 @@
         android:gravity="center_horizontal"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
+        android:layout_alignParentBottom="true"
         android:visibility="gone">
         <ImageButton
             android:id="@+id/videoplayer_button_pause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/videoplayer_button_background"
-            android:gravity="center"
-            android:src="@drawable/videoplayer_button_play">
+            android:background="@drawable/videoplayer_button_play"
+            android:gravity="center">
         </ImageButton>
         <TextView
             android:id="@+id/videoplayer_textview_current_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_weight="1"
             android:text="@string/videoplayer_string_time_null">
         </TextView>
         <SeekBar
@@ -141,7 +139,6 @@
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="15dp"
-            android:layout_weight="1"
             android:text="@string/videoplayer_string_time_null">
         </TextView>
     </LinearLayout>

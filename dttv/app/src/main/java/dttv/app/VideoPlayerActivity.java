@@ -558,7 +558,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     }
 
     private void showToolsBar(boolean isNeed) {
-        //mLinearLayoutControlPanel.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
+        mLinearLayoutControlPanel.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
         mLinearLayoutTopBar.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
         //mButtonRotate.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
     }
@@ -572,10 +572,10 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         try {
             if (dtPlayer.isPlaying()) {
                 dtPlayer.pause();
-                mButtonPause.setBackgroundResource(R.drawable.btn_mu_pause);
+                mButtonPause.setBackgroundResource(R.drawable.videoplayer_button_pause);
             } else {
                 dtPlayer.start();
-                mButtonPause.setBackgroundResource(R.drawable.btn_mu_play);
+                mButtonPause.setBackgroundResource(R.drawable.videoplayer_button_play);
             }
         } catch (IllegalStateException e) {
             // TODO: handle exception

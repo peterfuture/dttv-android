@@ -332,7 +332,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         @Override
         public void onPrepared(DtPlayer mp) {
             // TODO Auto-generated method stub
-            Log.i(Constant.LOGTAG, "enter onPrepared");
+            Log.i(TAG, "enter onPrepared");
             mState = PLAYER_PREPARED;
             dtPlayer.start();
             mState = PLAYER_RUNNING;

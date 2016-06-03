@@ -1,6 +1,7 @@
 package dttv.app;
 
 import android.content.ActivityNotFoundException;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,14 +47,10 @@ public class FileBrowserActivity extends Activity {
     private ListView mListView;
     private int mItemSelected, mItemFirst, mItemLast;
     private int mItemTop;
-    public static Handler mProgressHandler;
-    private List<Map<String, Object>> mList;
+
     private boolean mListLoaded = false;
     private boolean mLoadCancel = false;
     private boolean mIsSorted = false;
-
-    private static final int FILEBROWSER_MESSAGE_COPY = 9;
-    private static final int FILEBROWSER_MESSAGE_UPDATE_LIST = 10;
 
     private static final int FILEBROWSER_SORT_BY_NONE = 0;
     private static final int FILEBROWSER_SORT_BY_DATE = 1;
@@ -78,10 +75,10 @@ public class FileBrowserActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.file_browser);
+        Log.i(TAG, "Enter onCreate");
 
         /* setup file list */
         mListView = (ListView) findViewById(R.id.filebrowser_listview);
-        mList = new ArrayList<Map<String, Object>>();
 
         if (mCurrentPath != null) {
             File file = new File(mCurrentPath);
@@ -90,7 +87,6 @@ public class FileBrowserActivity extends Activity {
         } else {
             mCurrentPath = ROOT;
         }
-        mList = new ArrayList<Map<String, Object>>();
 
         /* ListView OnItemClickListener */
         mListView.setOnItemClickListener(new OnItemClickListener() {
@@ -183,44 +179,9 @@ public class FileBrowserActivity extends Activity {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-
-        mProgressHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-
-                switch (msg.what) {
-                    case FILEBROWSER_MESSAGE_UPDATE_LIST:
-                        if (mListLoaded == false) {
-                            break;
-                        }
-                        mListView.setAdapter(getFileListAdapterSorted(mCurrentPath, mSortType));
-                        mListLoaded = false;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        };
-
-        if (mListLoaded == true) {
-            mListLoaded = false;
-        }
-
-        if (mCurrentPath.equals(ROOT)) {
-            DeviceScan();
-        } else {
-            mListView.setAdapter(getFileListAdapterSorted(mCurrentPath, mSortType));
-        }
-        mListView.setSelectionFromTop(mItemSelected, mItemTop);
-    }
-
-    @Override
     public void onPause() {
         super.onPause();
-
+        Log.i(TAG, "Enter onPause");
         mLoadCancel = true;
         //update sharedPref
         SharedPreferences settings = getSharedPreferences("settings", Activity.MODE_PRIVATE);
@@ -230,6 +191,19 @@ public class FileBrowserActivity extends Activity {
 
         if (mListLoaded)
             mListLoaded = false;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mLoadCancel = false;
+        Log.i(TAG, "Enter onResume");
+        if (mCurrentPath.equals(ROOT)) {
+            mListView.setAdapter(getDeviceListAdapter());
+        } else {
+            mListView.setAdapter(getFileListAdapterSorted(mCurrentPath, mSortType));
+        }
+        mListView.setSelectionFromTop(mItemSelected, mItemTop);
     }
 
     /**
@@ -243,9 +217,9 @@ public class FileBrowserActivity extends Activity {
     protected void openFile(File f) {
         String type = "*/*";
         String uri = f.getPath();
-        type =  FileInfo.getFileType(f);
+        type = FileInfo.getFileType(f);
         String name = f.getPath();
-        if(type.contains("video") || type.contains("audio")) {
+        if (type.contains("video") || type.contains("audio")) {
             PlayerUtil.getInstance().beginToPlayer(this, uri, name, Constant.LOCAL_VIDEO);
             return;
         }
@@ -262,7 +236,7 @@ public class FileBrowserActivity extends Activity {
     }
 
     private boolean isDeviceFile(String path) {
-        if(mRootDevices.size() <= 0)
+        if (mRootDevices.size() <= 0)
             mRootDevices = StorageUtils.getStorageList();
         Boolean isDevice = false;
         for (int i = 0; i < mRootDevices.size(); i++) {
@@ -309,8 +283,7 @@ public class FileBrowserActivity extends Activity {
             if (device.path.contains("sda")) {
                 map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_usb);
                 map.put(FILEINFO_KEY_SIZE_SORT, 1);
-            }
-            else {
+            } else {
                 map.put(FILEINFO_KEY_TYPE, R.drawable.filebrowser_icon_sdcard);
                 map.put(FILEINFO_KEY_SIZE_SORT, 0);
             }
@@ -387,24 +360,7 @@ public class FileBrowserActivity extends Activity {
 
     private List<Map<String, Object>> getFileListDataSorted(String path, int sort_type) {
         updatePathShow(path);
-        if (!mListLoaded) {
-            mListLoaded = true;
-
-            final String ppath = path;
-            final int ssort_type = sort_type;
-            new Thread("getFileListDataSortedAsync") {
-                @Override
-                public void run() {
-                    mList = getFileListDataSortedAsync(ppath, ssort_type);
-                    if (null != mProgressHandler) {
-                        mProgressHandler.sendMessage(Message.obtain(mProgressHandler, FILEBROWSER_MESSAGE_UPDATE_LIST));
-                    }
-                }
-            }.start();
-            return new ArrayList<Map<String, Object>>();
-        } else {
-            return mList;
-        }
+        return getFileListDataSortedAsync(path, sort_type);
     }
 
     private List<Map<String, Object>> getFileListDataSortedAsync(String path, int sort_type) {
@@ -419,7 +375,7 @@ public class FileBrowserActivity extends Activity {
                             Map<String, Object> map = new HashMap<String, Object>();
                             String file_abs_path = file.getAbsolutePath();
 
-                            if(isDeviceFile(file_abs_path))
+                            if (isDeviceFile(file_abs_path))
                                 continue;
 
                             map.put(FILEINFO_KEY_NAMNE, file.getName());
@@ -449,9 +405,8 @@ public class FileBrowserActivity extends Activity {
                                 map.put(FILEINFO_KEY_SIZE_SORT, file_size);    //use for sorting
                                 map.put(FILEINFO_KEY_SIZE_DISPLAY, file_size);
                             } else {
-
                                 map.put(FILEINFO_KEY_SELECTED, R.drawable.filebrowser_file_unselected);
-                                map.put(FILEINFO_KEY_TYPE,FileInfo.getFileTypeIcon(file.getName()));
+                                map.put(FILEINFO_KEY_TYPE, FileInfo.getFileTypeIcon(file.getName()));
                                 map.put(FILEINFO_KEY_NAMNE, getFileDescripe(file));
                                 map.put(FILEINFO_KEY_SUFFIX, getFileType(file) + " | ");
 

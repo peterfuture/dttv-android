@@ -35,9 +35,15 @@ public class StorageUtils {
             if (!removable) {
                 res.append("Internal SD card");
             } else if (number > 1) {
-                res.append("SD card " + number);
+                if (path.contains("sda"))
+                    res.append("USB " + number);
+                else
+                    res.append("SD card " + number);
             } else {
-                res.append("SD card");
+                if (path.contains("sda"))
+                    res.append("USB");
+                else
+                    res.append("SD card");
             }
             if (readonly) {
                 res.append(" (Read only)");
@@ -103,7 +109,8 @@ public class StorageUtils {
             if (buf_reader != null) {
                 try {
                     buf_reader.close();
-                } catch (IOException ex) {}
+                } catch (IOException ex) {
+                }
             }
         }
         return list;

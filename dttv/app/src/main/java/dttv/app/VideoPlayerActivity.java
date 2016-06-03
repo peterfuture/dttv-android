@@ -89,7 +89,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private RelativeLayout mRelativeLayoutRootView;
 
     private RelativeLayout mRelativeLayoutSurface;
-    
+
     private LinearLayout mLinearLayoutControlPanel;
     private LinearLayout mLinearLayoutTopBar;
 
@@ -134,7 +134,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
     private final int HANDLE_UP = 0x0110;
     private final int HANDLE_DOWN = HANDLE_UP + 1;
-
 
 
     @Override
@@ -183,8 +182,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
         mLinearLayoutTopBar = (LinearLayout) findViewById(R.id.videoplayer_top_bar);
         mLinearLayoutControlPanel = (LinearLayout) findViewById(R.id.videoplayer_control_panel);
-        mRelativeLayoutRootView = (RelativeLayout)findViewById(R.id.videoplayer_layout_rootview);
-        mRelativeLayoutSurface = (RelativeLayout)findViewById(R.id.videoplayer_relativeout_surface);
+        mRelativeLayoutRootView = (RelativeLayout) findViewById(R.id.videoplayer_layout_rootview);
+        mRelativeLayoutSurface = (RelativeLayout) findViewById(R.id.videoplayer_relativeout_surface);
 
         // mGLSurfaceView
         mGLSurfaceView = (GlVideoView) mRelativeLayoutSurface.findViewById(R.id.videoplayer_glvideoview);

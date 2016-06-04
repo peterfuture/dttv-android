@@ -505,6 +505,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             case R.id.videoplayer_button_pause:
                 handlePausePlay();
                 break;
+            /*
             case R.id.videoplayer_button_ratio:
                 //Fix
                 setVideoScale(temp_flag);
@@ -517,6 +518,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 break;
             case R.id.videoplayer_button_decoder_type:
                 break;
+                */
         }
     }
 

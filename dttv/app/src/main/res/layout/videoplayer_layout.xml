@@ -54,53 +54,6 @@
         </ImageButton>
     </LinearLayout>
 
-    <RelativeLayout
-        android:id="@+id/videoplayer_setting_panel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/videoplayer_setting_panel_background_color"
-        android:gravity="center_vertical"
-        android:padding="10dp"
-        android:visibility="gone">
-        <Button
-            android:id="@+id/videoplayer_button_decoder_type"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textColor="@color/txt_color"
-            android:text="@string/videoplayer_string_decoder_soft" />
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:paddingTop="15dp"
-            android:paddingBottom="15dp"
-            android:layout_marginLeft="10dp"
-            android:background="@drawable/vertical_diliver_color" />
-        <ImageView
-            android:id="@+id/videoplayer_audio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="5dp"
-            android:background="@drawable/videoplayer_icon_audio" />
-        <ImageButton
-            android:id="@+id/videoplayer_button_rotate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/videoplayer_rotate"
-            android:visibility="gone" />
-        <ImageButton
-            android:id="@+id/videoplayer_button_ratio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/dt_player_control_ratio_normal" />
-        <ImageButton
-            android:id="@+id/videoplayer_button_audioeffect"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/videoplayer_rotate"
-            android:visibility="gone" />
-    </RelativeLayout>
-
     <LinearLayout
         android:id="@+id/videoplayer_control_panel"
         android:layout_width="match_parent"

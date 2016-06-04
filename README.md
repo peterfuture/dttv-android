@@ -33,7 +33,7 @@ More [details](https://github.com/peterfuture/dttv-android/wiki/2-%E7%BC%96%E8%A
 
 >
 Email: peter_future@outlook.com  shihuaxian001@126.com
-
+>
 QQ Group: 229224768
-
+>
 blog: http://blog.csdn.net/dtplayer

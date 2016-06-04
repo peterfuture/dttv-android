@@ -5,6 +5,7 @@ import dttv.app.utils.Constant;
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
@@ -18,7 +19,6 @@ import android.widget.Toast;
 public class SettingActivity extends PreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // TODO Auto-generated method stub
         super.onCreate(savedInstanceState);
         //addPreferencesFromResource(R.xml.setting_preference);
         getFragmentManager().beginTransaction().replace(android.R.id.content,
@@ -26,46 +26,53 @@ public class SettingActivity extends PreferenceActivity {
     }
 
     public static class MyPreferenceFragment extends PreferenceFragment implements OnPreferenceChangeListener, OnPreferenceClickListener {
-        ListPreference decode_list;
+        ListPreference list_decoder_type;
+        CheckBoxPreference list_display_mode;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
-            // TODO Auto-generated method stub
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.setting_preference);
-            decode_list = (ListPreference) findPreference("dt_setting_decode_list");
-            decode_list.setOnPreferenceChangeListener(this);
-            decode_list.setOnPreferenceClickListener(this);
+            list_decoder_type = (ListPreference) findPreference("key_setting_decoder_list");
+            list_decoder_type.setOnPreferenceChangeListener(this);
+            list_decoder_type.setOnPreferenceClickListener(this);
+
+            list_display_mode = (CheckBoxPreference) findPreference("key_setting_display_mode");
         }
 
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
-            // TODO Auto-generated method stub
-            if (Constant.DECODE_STYLE_KEY.equals(preference.getKey())) {
-
-                decode_list.setSummary(newValue.toString());
-                decode_list.setValue(newValue.toString());
-
+            if (Constant.KEY_SETTING_DECODER_TYPE.equals(preference.getKey())) {
+                list_decoder_type.setSummary(newValue.toString());
+                list_decoder_type.setValue(newValue.toString());
                 //取得属于整个应用程序的SharedPreferences
                 SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 SharedPreferences.Editor editor = settings.edit();
-                editor.putString(Constant.DECODE_STYLE_KEY, newValue.toString());
+                editor.putString(Constant.KEY_SETTING_DECODER_TYPE, newValue.toString());
                 editor.commit();
+                return true;
             }
+
+            if (Constant.KEY_SETTING_DISPLAY_MODE.equals(preference.getKey())) {
+                return true;
+            }
+
             return false;
         }
 
         @Override
         public boolean onPreferenceClick(Preference preference) {
-            // TODO Auto-generated method stub
-            if (Constant.DECODE_STYLE_KEY.equals(preference.getKey())) {
-                /*SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
-				String result = settings.getString(Constant.DECODE_STYLE_KEY, "11");*/
-                String nowValue = decode_list.getSummary().toString();
-                //decode_list.setDefaultValue(nowValue);
-                //Toast.makeText(getActivity(), nowValue, 1).show();
-                decode_list.setValue(nowValue);
+            if (Constant.KEY_SETTING_DECODER_TYPE.equals(preference.getKey())) {
+                String nowValue = list_decoder_type.getSummary().toString();
+                //list_decoder_type.setDefaultValue(nowValue);
+                list_decoder_type.setValue(nowValue);
+                return true;
             }
+
+            if (Constant.KEY_SETTING_DISPLAY_MODE.equals(preference.getKey())) {
+                return true;
+            }
+
             return false;
         }
     }

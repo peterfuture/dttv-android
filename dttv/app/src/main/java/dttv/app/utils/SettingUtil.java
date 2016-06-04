@@ -18,24 +18,28 @@ public class SettingUtil {
     SharedPreferences prefs;
 
     public SettingUtil(Activity activity) {
-        // TODO Auto-generated constructor stub
         this.mActivity = activity;
         prefs = PreferenceManager.getDefaultSharedPreferences(mActivity);
     }
 
     public boolean isFilterAudio() {
-        boolean result = prefs.getBoolean(Constant.FILTER_AUDIO_KEY, false);
+        boolean result = prefs.getBoolean(Constant.KEY_SETTING_FILTER_AUDIO_FILTER, false);
         return result;
     }
 
     public boolean isFilterVideo() {
-        boolean result = prefs.getBoolean(Constant.FILTER_VIDEO_KEY, false);
+        boolean result = prefs.getBoolean(Constant.KEY_SETTING_FILTER_VIDEO_FILTER, false);
         return result;
     }
 
-    public String getDecodeType() {
-        String type = prefs.getString(Constant.DECODE_STYLE_KEY,
-                mActivity.getString(R.string.dt_decode_type_soft));
+    public String getVideoPlayerDecodeType() {
+        String type = prefs.getString(Constant.KEY_SETTING_DECODER_TYPE,
+                mActivity.getString(R.string.setting_preference_video_decoder_soft));
         return type;
+    }
+
+    public boolean isVideoPlayerDisplayFullScreen() {
+        boolean result = prefs.getBoolean(Constant.KEY_SETTING_DISPLAY_MODE, true);
+        return result;
     }
 }

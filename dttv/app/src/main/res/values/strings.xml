@@ -16,6 +16,7 @@
         "DROP TABLE IF EXISTS file_mark_table
         DROP TABLE IF EXISTS file_thumbnails_table"
     </string>
+
     <string name="title_activity_display_message">MyMessage</string>
     <string name="show_text">here</string>
     <string name="player_start">start</string>
@@ -32,15 +33,6 @@
 	
 	<string name="nav_desc">nav_desc</string>
 	<string name="audio_effect_btn_str">Normal</string>
-	
-	<string name="dt_decode_type_soft">软解码</string>
-	<string name="dt_decode_type_hard">硬解码</string>
-	<string name="dt_setting_title">播放器设置</string>
-	
-	<string name="dt_decode_audio_filter_str">过滤时长小于60秒音频</string>
-	<string name="dt_decode_video_filter_str">过滤时长小于60秒视频</string>
-	<string name="dt_setting_yes">是</string>
-	<string name="dt_setting_no">否</string>
 
     <!--filebrowser -->
     <string name="device_list">Device List</string>
@@ -63,5 +55,23 @@
     <string name="videoplayer_string_decoder_soft">软解码</string>
     <string name="videoplayer_string_decoder_hw">硬解码</string>
     <string name="videoplayer_string_setting">播放器设置</string>
+
+    <!-- Setting -->
+    <string name="setting_preference_title">播放器设置</string>
+
+    <string name="setting_preference_yes">是</string>
+    <string name="setting_preference_no">否</string>
+
+    <string name="setting_preference_audio_filter">过滤时长小于60秒音频</string>
+    <string name="setting_preference_video_filter">过滤时长小于60秒视频</string>
+
+    <string name="setting_preference_video_decoder_soft">软解码</string>
+    <string name="setting_preference_video_decoder_hw">硬解码</string>
+
+    <string name="setting_preference_filebrowser_normal">全部显示</string>
+    <string name="setting_preference_filebrowser_audio_only">只显示音频</string>
+    <string name="setting_preference_filebrowser_video_only">只显示视频</string>
+
+    <string name="setting_preference_display_mode">强制全屏</string>
 
 </resources>

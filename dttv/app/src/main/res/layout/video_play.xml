@@ -46,7 +46,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
                 android:textColor="@color/txt_color"
-                android:text="@string/dt_decode_type_soft" />
+                android:text="@string/setting_preference_video_decoder_soft" />
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"

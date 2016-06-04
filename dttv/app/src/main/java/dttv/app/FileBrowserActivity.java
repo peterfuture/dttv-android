@@ -20,8 +20,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
 
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 
@@ -29,6 +33,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -176,6 +181,36 @@ public class FileBrowserActivity extends Activity {
             }
         });
 
+    }
+
+    protected void updateMenu(Menu menu) {
+        menu.clear();
+        menu.add("Setting").setShowAsAction(MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        updateMenu(menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    public void openSettingUI() {
+        startActivity(new Intent(this, SettingActivity.class));
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        String res = item.getTitleCondensed().toString();
+        if (!TextUtils.isEmpty(res) && res.equals("Setting")) {
+            openSettingUI();
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

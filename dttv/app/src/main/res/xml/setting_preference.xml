@@ -1,22 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
-    
-	<Preference
-	    android:title="@string/dt_setting_title"
-	    android:layout="@layout/text_setting" />
-	<CheckBoxPreference android:key="filter_audio"
-	    android:title="@string/dt_decode_audio_filter_str"
-	    android:summaryOn="@string/dt_setting_yes"
-	    android:summaryOff="@string/dt_setting_no" />
-	<CheckBoxPreference android:key="filter_video"
-	    android:title="@string/dt_decode_video_filter_str"
-	    android:summaryOn="@string/dt_setting_yes"
-	    android:summaryOff="@string/dt_setting_no" />
-	<ListPreference
-	    android:key="dt_setting_decode_list"
-	    android:title="解码格式"
-	    android:summary="软解码"
-	    android:defaultValue="@string/dt_decode_type_soft"
-	    android:entries="@array/dt_player_code_types"
-	    android:entryValues="@array/dt_player_code_types" />
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <PreferenceCategory android:title="文件浏览器设置">
+        <ListPreference
+            android:id="@+id/setting_filebrowser_display_filter"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:defaultValue="@array/id_listpreference_filebrowser_display"
+
+            android:dialogTitle="文件浏览设置"
+            android:entries="@array/listpreference_filebrowser_display"
+            android:entryValues="@array/id_listpreference_filebrowser_display"
+            android:key="key_listpreference_filebrowser_display"
+            android:orientation="vertical"
+            android:summary="全部显示"
+            android:title="浏览设置">
+        </ListPreference>
+        <CheckBoxPreference
+            android:key="key_setting_audio_filter"
+            android:summaryOff="@string/setting_preference_no"
+            android:summaryOn="@string/setting_preference_yes"
+            android:title="@string/setting_preference_audio_filter" />
+        <CheckBoxPreference
+            android:key="key_setting_video_filter"
+            android:summaryOff="@string/setting_preference_no"
+            android:summaryOn="@string/setting_preference_yes"
+            android:title="@string/setting_preference_video_filter" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/setting_preference_title">
+        <ListPreference
+            android:key="key_setting_decoder_list"
+            android:defaultValue="@string/setting_preference_video_decoder_soft"
+            android:entries="@array/listpreference_videoplayer_decoder_type"
+            android:entryValues="@array/listpreference_videoplayer_decoder_type_value"
+            android:summary="软解码"
+            android:title="解码类型" />
+        <CheckBoxPreference
+            android:key="key_setting_display_mode"
+            android:summaryOn="@string/setting_preference_yes"
+            android:summaryOff="@string/setting_preference_no"
+            android:defaultValue="@string/setting_preference_yes"
+            android:title="@string/setting_preference_display_mode" />
+    </PreferenceCategory>
+
 </PreferenceScreen>

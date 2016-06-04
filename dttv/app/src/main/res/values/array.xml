@@ -6,8 +6,23 @@
         <item>文件浏览</item>
     </string-array>
     
-    <string-array name="dt_player_code_types">
+    <string-array name="listpreference_videoplayer_decoder_type">
         <item>软解码</item>
         <item>硬解码</item>
+    </string-array>
+    <string-array name="listpreference_videoplayer_decoder_type_value">
+        <item>sw_decoder</item>
+        <item>hw_decoder</item>
+    </string-array>
+
+    <string-array name="listpreference_filebrowser_display">
+        <item>全部显示</item>
+        <item>只显示音频</item>
+        <item>只显示视频</item>
+    </string-array>
+    <string-array name="id_listpreference_filebrowser_display">
+        <item>normal</item>
+        <item>audio_only</item>
+        <item>video_only</item>
     </string-array>
 </resources>

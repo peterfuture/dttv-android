@@ -1,11 +1,13 @@
 package dttv.app.utils;
 
+import dttv.app.R;
+
 public class Constant {
 
     public final static String EXTRA_MESSAGE = "com.example.simpleplayer.MESSAGE";
     public final static String FILE_MSG = "dttp.app.media.URL";
     public final static String FILE_TYPE = "dttp.app.media.type";
-    public static final String LOGTAG = "DTTV-FileBrowser";
+    public static final String LOGTAG = "DTTV";
 
 
     public final static int REFRESH_TIME_MSG = 0x1000;
@@ -37,7 +39,13 @@ public class Constant {
     public static final int FILTER_SIZE = 1 * 1024 * 1024;// 1MB
     public static final int FILTER_DURATION = 1 * 60 * 1000;// 1分钟
 
-    public static final String FILTER_AUDIO_KEY = "filter_audio";
-    public static final String FILTER_VIDEO_KEY = "filter_video";
-    public static final String DECODE_STYLE_KEY = "dt_setting_decode_list";
+
+    // setting
+    public static final String KEY_SETTING_FILTER_AUDIO_FILTER = "key_setting_audio_filter";
+    public static final String KEY_SETTING_FILTER_VIDEO_FILTER = "key_setting_video_filter";
+    public static final String KEY_SETTING_DECODER_TYPE = "key_setting_decode_list";
+    public static final String KEY_SETTING_DECODER_TYPE_SOFT = "sw_decoder";
+    public static final String KEY_SETTING_DECODER_TYPE_HW = "hw_decoder";
+    public static final String KEY_SETTING_DISPLAY_MODE ="key_setting_display_mode";
+
 }

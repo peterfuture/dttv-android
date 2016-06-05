@@ -46,6 +46,7 @@ public class Constant {
     public static final String KEY_SETTING_DECODER_TYPE = "key_setting_decode_list";
     public static final String KEY_SETTING_DECODER_TYPE_SOFT = "sw_decoder";
     public static final String KEY_SETTING_DECODER_TYPE_HW = "hw_decoder";
+    public static final String KEY_SETTING_BROWSER_MODE ="setting_filebrowser_display_filter";
     public static final String KEY_SETTING_DISPLAY_MODE ="key_setting_display_mode";
 
 }

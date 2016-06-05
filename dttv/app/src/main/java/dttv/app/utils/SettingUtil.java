@@ -42,4 +42,9 @@ public class SettingUtil {
         boolean result = prefs.getBoolean(Constant.KEY_SETTING_DISPLAY_MODE, true);
         return result;
     }
+
+    public int getBrowserMode() {
+        String result = prefs.getString(Constant.KEY_SETTING_BROWSER_MODE, "normal");
+        return 0;
+    }
 }

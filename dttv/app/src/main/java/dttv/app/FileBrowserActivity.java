@@ -40,6 +40,7 @@ import android.widget.AdapterView.OnItemClickListener;
 
 import dttv.app.utils.Constant;
 import dttv.app.utils.PlayerUtil;
+import dttv.app.utils.SettingUtil;
 import dttv.app.utils.StorageUtils;
 
 public class FileBrowserActivity extends Activity {
@@ -76,6 +77,9 @@ public class FileBrowserActivity extends Activity {
 
     public static String mCurrentPath = ROOT;
 
+    SettingUtil mSettingUtil;
+    private int mBrowserMode = 0; // 0 normal  1 audio only 2 video only
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,6 +88,7 @@ public class FileBrowserActivity extends Activity {
 
         /* setup file list */
         mListView = (ListView) findViewById(R.id.filebrowser_listview);
+        mSettingUtil = new SettingUtil(this);
 
         if (mCurrentPath != null) {
             File file = new File(mCurrentPath);
@@ -232,6 +237,8 @@ public class FileBrowserActivity extends Activity {
     public void onResume() {
         super.onResume();
         mLoadCancel = false;
+        mBrowserMode = mSettingUtil.getBrowserMode();
+
         Log.i(TAG, "Enter onResume");
         if (mCurrentPath.equals(ROOT)) {
             mListView.setAdapter(getDeviceListAdapter());
@@ -440,6 +447,16 @@ public class FileBrowserActivity extends Activity {
                                 map.put(FILEINFO_KEY_SIZE_SORT, file_size);    //use for sorting
                                 map.put(FILEINFO_KEY_SIZE_DISPLAY, file_size);
                             } else {
+
+                                String strFileTypetype = FileInfo.getFileType(file);
+                                if(mBrowserMode == 1) { // audio only
+                                    if(strFileTypetype.contains("audio") == false)
+                                        continue;
+                                }
+                                if(mBrowserMode == 2) { // video only
+                                    if(strFileTypetype.contains("video") == false)
+                                        continue;
+                                }
                                 map.put(FILEINFO_KEY_SELECTED, R.drawable.filebrowser_file_unselected);
                                 map.put(FILEINFO_KEY_TYPE, FileInfo.getFileTypeIcon(file.getName()));
                                 map.put(FILEINFO_KEY_NAMNE, getFileDescripe(file));

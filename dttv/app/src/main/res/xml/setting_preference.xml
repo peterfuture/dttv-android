@@ -4,17 +4,15 @@
 
     <PreferenceCategory android:title="文件浏览器设置">
         <ListPreference
-            android:id="@+id/setting_filebrowser_display_filter"
+            android:key="key_listpreference_filebrowser_display"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:defaultValue="@array/id_listpreference_filebrowser_display"
-
             android:dialogTitle="文件浏览设置"
             android:entries="@array/listpreference_filebrowser_display"
             android:entryValues="@array/id_listpreference_filebrowser_display"
-            android:key="key_listpreference_filebrowser_display"
+            android:defaultValue="normal"
             android:orientation="vertical"
-            android:summary="全部显示"
+            android:summary="%s"
             android:title="浏览设置">
         </ListPreference>
         <CheckBoxPreference
@@ -31,18 +29,19 @@
 
     <PreferenceCategory android:title="@string/setting_preference_title">
         <ListPreference
-            android:key="key_setting_decoder_list"
-            android:defaultValue="@string/setting_preference_video_decoder_soft"
+            android:key="key_setting_decoder_type"
             android:entries="@array/listpreference_videoplayer_decoder_type"
             android:entryValues="@array/listpreference_videoplayer_decoder_type_value"
-            android:summary="软解码"
+            android:defaultValue="sw_decoder"
+            android:summary="%s"
             android:title="解码类型" />
-        <CheckBoxPreference
+        <ListPreference
             android:key="key_setting_display_mode"
-            android:summaryOn="@string/setting_preference_yes"
-            android:summaryOff="@string/setting_preference_no"
-            android:defaultValue="@string/setting_preference_yes"
-            android:title="@string/setting_preference_display_mode" />
+            android:entries="@array/listpreference_videoplayer_display_mode"
+            android:entryValues="@array/listpreference_videoplayer_display_mode_value"
+            android:defaultValue="fullscreen"
+            android:summary="%s"
+            android:title="显示模式" />
     </PreferenceCategory>
 
 </PreferenceScreen>

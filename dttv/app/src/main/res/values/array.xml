@@ -5,11 +5,12 @@
         <item>本地音乐</item>
         <item>文件浏览</item>
     </string-array>
-    
+
     <string-array name="listpreference_videoplayer_decoder_type">
         <item>软解码</item>
         <item>硬解码</item>
     </string-array>
+
     <string-array name="listpreference_videoplayer_decoder_type_value">
         <item>sw_decoder</item>
         <item>hw_decoder</item>
@@ -25,4 +26,15 @@
         <item>audio_only</item>
         <item>video_only</item>
     </string-array>
+
+
+    <string-array name="listpreference_videoplayer_display_mode">
+        <item>正常显示</item>
+        <item>全屏显示</item>
+    </string-array>
+    <string-array name="listpreference_videoplayer_display_mode_value">
+        <item>normal</item>
+        <item>fullscreen</item>
+    </string-array>
+
 </resources>

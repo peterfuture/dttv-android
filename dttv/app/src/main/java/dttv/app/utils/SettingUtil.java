@@ -45,6 +45,13 @@ public class SettingUtil {
 
     public int getBrowserMode() {
         String result = prefs.getString(Constant.KEY_SETTING_BROWSER_MODE, "normal");
+        if(result.contains("normal"))
+            return 0;
+        if(result.contains("audio_only"))
+            return 1;
+        if(result.contains("video_only"))
+            return 2;
+
         return 0;
     }
 }

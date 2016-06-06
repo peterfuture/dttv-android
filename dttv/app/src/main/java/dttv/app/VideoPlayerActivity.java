@@ -29,6 +29,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.webkit.WebIconDatabase;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -49,6 +50,7 @@ import dttv.app.impl.ICallBack;
 import dttv.app.utils.Constant;
 import dttv.app.utils.ControlLightness;
 import dttv.app.utils.Log;
+import dttv.app.utils.SettingUtil;
 import dttv.app.utils.TimesUtil;
 import dttv.app.utils.VolumeUtil;
 import dttv.app.widget.GlVideoView;
@@ -128,8 +130,13 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private int mScreenHeight;
     private int mCurrentLightness;
 
+    private final static int VIDEOPLAYER_DISPLAY_ORIGINAL = 0;
+    private final static int VIDEOPLAYER_DISPLAY_FULLSCREEN = 1;
+    private int mDisplayMode = VIDEOPLAYER_DISPLAY_ORIGINAL;
+
     /*utils*/
     private VolumeUtil mVolumeUtil;
+    private SettingUtil mSettingUtil;
 
 
     private final int HANDLE_UP = 0x0110;
@@ -149,6 +156,10 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         /*dtplayer need to init prior to mGLSurfaceView*/
         mState = PLAYER_IDLE;
         dtPlayer = new DtPlayer(this);
+
+        mSettingUtil = new SettingUtil(this);
+        mDisplayMode = mSettingUtil.getVideoPlayerDisplayMode();
+        Log.i(TAG, "getDisplaymode: " + mDisplayMode);
 
         getWindow().setBackgroundDrawableResource(R.color.videoplayer_background);
         initView();
@@ -266,6 +277,11 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             //setup video size
             int width = dtPlayer.getVideoWidth();
             int height = dtPlayer.getVideoHeight();
+            if (mDisplayMode == VIDEOPLAYER_DISPLAY_FULLSCREEN) {
+                width = mScreenWidth;
+                height = mScreenHeight;
+            }
+
             Log.d(TAG, "--width:" + width + "  height:" + height);
             if (width > 0 && height > 0 && width <= 1920 && height <= 1088) {
                 ViewGroup.LayoutParams layoutParams = mGLSurfaceView.getLayoutParams();
@@ -588,7 +604,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
     @Override
     protected void onDestroy() {
-        // TODO Auto-generated method stub
         Log.i(TAG, "enter onDestroy");
         dtPlayer.stop();
         dtPlayer.release();
@@ -746,10 +761,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         layoutParams.width = lp.width;
         layoutParams.height = lp.height;
         mGLSurfaceView.setLayoutParams(layoutParams);
-
-//		dtPlayer.setVideoSize(lp.width, lp.height);
-//		Log.i(TAG, "after setVideoSize");
-        //dtPlayer.onSurfaceChanged(lp.width, lp.height);
     }
 
     @Override

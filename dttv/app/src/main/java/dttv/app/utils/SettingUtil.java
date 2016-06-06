@@ -33,10 +33,16 @@ public class SettingUtil {
     }
 
     public String getVideoPlayerDecodeType() {
-        String type = prefs.getString(Constant.KEY_SETTING_DECODER_TYPE,
+        String result = prefs.getString(Constant.KEY_SETTING_DECODER_TYPE,
                 mActivity.getString(R.string.setting_preference_video_decoder_soft));
-        return type;
+        return result;
     }
+
+    public int getVideoPlayerDisplayMode() {
+        String result = prefs.getString(Constant.KEY_SETTING_DISPLAY_MODE, "0");
+        return Integer.parseInt(result);
+    }
+
 
     public boolean isVideoPlayerDisplayFullScreen() {
         boolean result = prefs.getBoolean(Constant.KEY_SETTING_DISPLAY_MODE, true);

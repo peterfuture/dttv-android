@@ -2,8 +2,6 @@
 // Created by dttv on 16-5-3.
 //
 
-
-
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #include <EGL/egl.h>
@@ -137,8 +135,6 @@ void setupTextures(uint8_t *data, GLsizei width, GLsizei height) {
                  GL_LUMINANCE, GL_UNSIGNED_BYTE, (const GLvoid *) vComponent);
     checkGlError("SetupTextures");
 
-    g_textureWidth = (GLuint) width;
-    g_textureHeight = (GLuint) height;
     LOGV("setupTextures ok");
 }
 
@@ -314,15 +310,15 @@ void yuv_renderFrame() {
 
     glUseProgram(gProgram);
     checkGlError("glUseProgram");
-    LOGV("TEXTREUE w:%d h:%d . [%d:%d] \n", (int) g_textureWidth, (int) g_textureHeight,
-         (int) g_windowWidth, (int) g_windowHeight);
     if (g_textureWidth != g_windowWidth ||
         g_textureHeight != g_windowHeight) {
         LOGV("TEXTREUE w:%d h:%d . [%d:%d] \n", (int) g_textureWidth, (int) g_textureHeight,
              (int) g_windowWidth, (int) g_windowHeight);
-        setupTextures(data, g_windowWidth, g_windowHeight);
+        setupTextures(data, width, height);
+        g_textureWidth = g_windowWidth;
+        g_textureHeight = g_windowHeight;
     } else {
-        UpdateTextures(data, g_windowWidth, g_windowHeight);
+        UpdateTextures(data, width, height);
     }
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, g_indices);

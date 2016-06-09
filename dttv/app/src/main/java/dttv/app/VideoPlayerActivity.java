@@ -209,8 +209,13 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         mTextViewDuration = (TextView) mLinearLayoutControlPanel.findViewById(R.id.videoplayer_textview_duration);
 
         mButtonBack = (ImageButton) mLinearLayoutTopBar.findViewById(R.id.videoplayer_button_back);
-        mButtonBack = (ImageButton) mLinearLayoutTopBar.findViewById(R.id.videoplayer_button_setting);
+        mButtonSetting = (ImageButton) mLinearLayoutTopBar.findViewById(R.id.videoplayer_button_setting);
         mButtonPause = (ImageButton) mLinearLayoutControlPanel.findViewById(R.id.videoplayer_button_pause);
+        mButtonRatio = (ImageButton) mLinearLayoutControlPanel.findViewById(R.id.videoplayer_button_ratio);
+        if (mDisplayMode == VIDEOPLAYER_DISPLAY_ORIGINAL)
+            mButtonRatio.setBackgroundResource(R.drawable.videoplayer_button_ratio_normal);
+        else
+            mButtonRatio.setBackgroundResource(R.drawable.videoplayer_button_ratio_fullscreen);
 
         mSeekBarProgress = (SeekBar) mLinearLayoutControlPanel.findViewById(R.id.videoplayer_seekbar_progress);
 
@@ -335,7 +340,10 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         mButtonRotate.setOnClickListener(this);
         mButtonRotate.setOnTouchListener(this);
 */
+        mButtonBack.setOnClickListener(this);
+        mButtonSetting.setOnClickListener(this);
         mButtonPause.setOnClickListener(this);
+        mButtonRatio.setOnClickListener(this);
 
         mLinearLayoutControlPanel.setOnTouchListener(this);
         mLinearLayoutTopBar.setOnTouchListener(this);
@@ -518,14 +526,19 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 break;
             case R.id.dt_play_prev_btn:
                 break;*/
+
+            case R.id.videoplayer_button_back:
+                handleBack();
+                break;
             case R.id.videoplayer_button_pause:
                 handlePausePlay();
                 break;
-            /*
+
             case R.id.videoplayer_button_ratio:
-                //Fix
-                setVideoScale(temp_flag);
+                //setVideoScale(temp_flag);
+                handleRatioChange();
                 break;
+            /*
             case R.id.videoplayer_button_rotate:
                 changeConfigration();
                 break;
@@ -585,6 +598,17 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         mProgressBarVolume.setVisibility(isShow == true ? View.VISIBLE : View.GONE);
     }
 
+    private void handleBack() {
+        try {
+            Log.i(TAG, "Quit videoplayer");
+            super.finish();
+        } catch (IllegalStateException e) {
+            // TODO: handle exception
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+    }
+
     private void handlePausePlay() {
         try {
             if (dtPlayer.isPlaying()) {
@@ -598,6 +622,28 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             // TODO: handle exception
         } catch (Exception e) {
             // TODO: handle exception
+        }
+    }
+
+    private void handleRatioChange() {
+        try {
+            ViewGroup.LayoutParams layoutParams = mGLSurfaceView.getLayoutParams();
+            if (mDisplayMode == VIDEOPLAYER_DISPLAY_ORIGINAL) {
+                mDisplayMode = VIDEOPLAYER_DISPLAY_FULLSCREEN;
+                mButtonRatio.setBackgroundResource(R.drawable.videoplayer_button_ratio_fullscreen);
+                layoutParams.width = mScreenWidth;
+                layoutParams.height = mSurfaceHeight;
+            } else {
+                mDisplayMode = VIDEOPLAYER_DISPLAY_ORIGINAL;
+                mButtonRatio.setBackgroundResource(R.drawable.videoplayer_button_ratio_normal);
+                layoutParams.width = dtPlayer.getVideoWidth();
+                layoutParams.height = dtPlayer.getVideoHeight();
+            }
+
+            mGLSurfaceView.setLayoutParams(layoutParams);
+
+        } catch (IllegalStateException e) {
+        } catch (Exception e) {
         }
     }
 

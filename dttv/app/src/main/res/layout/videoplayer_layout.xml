@@ -16,7 +16,7 @@
             android:id="@+id/videoplayer_glvideoview"
             style="@style/AppTheme"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
     </RelativeLayout>
     <!-- top opration bar-->
     <LinearLayout
@@ -32,9 +32,10 @@
             android:id="@+id/videoplayer_button_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:background="@drawable/videoplayer_button_back">
+            android:background="@drawable/videoplayer_button_back"
+            android:gravity="center">
         </ImageButton>
+
         <TextView
             android:id="@+id/videoplayer_url"
             android:layout_width="wrap_content"
@@ -43,6 +44,7 @@
             android:singleLine="true"
             android:textColor="@color/videoplayer_text_color"
             android:textSize="18sp" />
+
         <ImageButton
             android:id="@+id/videoplayer_button_setting"
             android:layout_width="wrap_content"
@@ -58,12 +60,13 @@
         android:id="@+id/videoplayer_control_panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:background="@color/videoplayer_control_panel_color"
         android:gravity="center_horizontal"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
-        android:layout_alignParentBottom="true"
         android:visibility="gone">
+
         <ImageButton
             android:id="@+id/videoplayer_button_pause"
             android:layout_width="wrap_content"
@@ -71,6 +74,7 @@
             android:background="@drawable/videoplayer_button_play"
             android:gravity="center">
         </ImageButton>
+
         <TextView
             android:id="@+id/videoplayer_textview_current_time"
             android:layout_width="wrap_content"
@@ -78,6 +82,7 @@
             android:layout_gravity="center_vertical"
             android:text="@string/videoplayer_string_time_null">
         </TextView>
+
         <SeekBar
             android:id="@+id/videoplayer_seekbar_progress"
             style="@android:style/Widget.Holo.SeekBar"
@@ -85,6 +90,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="25">
         </SeekBar>
+
         <TextView
             android:id="@+id/videoplayer_textview_duration"
             android:layout_width="wrap_content"
@@ -94,6 +100,12 @@
             android:layout_marginRight="15dp"
             android:text="@string/videoplayer_string_time_null">
         </TextView>
+        <ImageButton
+            android:id="@+id/videoplayer_button_ratio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/videoplayer_button_ratio_fullscreen">
+        </ImageButton>
     </LinearLayout>
 
     <ProgressBar

@@ -29,7 +29,6 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.webkit.WebIconDatabase;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -506,7 +505,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
     @Override
     protected void onStop() {
-        // TODO Auto-generated method stub
         Log.i(TAG, "enterStop");
         mState = PLAYER_STOP;
         //dtPlayer.release();
@@ -517,16 +515,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
     @Override
     public void onClick(View v) {
-        // TODO Auto-generated method stub
         //showAudioEffect(false);
         switch (v.getId()) {
-            /*
-            case R.id.dt_play_next_btn:
-
-                break;
-            case R.id.dt_play_prev_btn:
-                break;*/
-
             case R.id.videoplayer_button_back:
                 handleBack();
                 break;
@@ -538,16 +528,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 //setVideoScale(temp_flag);
                 handleRatioChange();
                 break;
-            /*
-            case R.id.videoplayer_button_rotate:
-                changeConfigration();
-                break;
-            case R.id.videoplayer_button_audioeffect:
-                showAudioEffect(true);
-                break;
-            case R.id.videoplayer_button_decoder_type:
-                break;
-                */
         }
     }
 
@@ -600,12 +580,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
     private void handleBack() {
         try {
-            Log.i(TAG, "Quit videoplayer");
             super.finish();
         } catch (IllegalStateException e) {
-            // TODO: handle exception
         } catch (Exception e) {
-            // TODO: handle exception
         }
     }
 
@@ -646,7 +623,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         } catch (Exception e) {
         }
     }
-
 
     @Override
     protected void onDestroy() {

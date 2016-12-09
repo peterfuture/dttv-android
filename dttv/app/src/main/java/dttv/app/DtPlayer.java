@@ -20,6 +20,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.widget.Toast;
 
 import dttv.app.utils.Constant;
 import dttv.app.utils.FileUtils;
@@ -76,7 +77,7 @@ public class DtPlayer {
         System.loadLibrary("dtp");
         //System.loadLibrary("dtap");
         System.loadLibrary("dttv_jni");
-        native_init();
+        native_init(); // default consider success
     }
 
     private long mNativeContext; // accessed by native methods
@@ -87,7 +88,11 @@ public class DtPlayer {
         /* Native setup requires a weak reference to our object.
           * It's easier to create it here than in C++.
           */
-        native_setup(new WeakReference<DtPlayer>(this));
+        int ret = native_setup(new WeakReference<DtPlayer>(this));
+        if(ret < 0) {
+            Log.d(Constant.LOGTAG, "Error: alloc player failed.");
+            return;
+        }
         native_hw_enable(0);
     }
 

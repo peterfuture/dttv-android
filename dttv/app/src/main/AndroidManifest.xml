@@ -30,6 +30,7 @@
         android:label="@string/app_name">
         <activity
             android:name="dttv.app.IndexActivity"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden">
             <!-- <intent-filter >
                 <action android:name="android.intent.action.MAIN" />
@@ -38,13 +39,16 @@
         </activity>
         <activity
             android:name="dttv.app.FileShowActivity"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden"></activity>
         <activity
             android:name="dttv.app.MainActivity"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/app_name"></activity>
         <activity
             android:name="dttv.app.FileBrowserActivity"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden"
             android:label="FileBrowser">
             <intent-filter>
@@ -60,14 +64,15 @@
         </activity>
         <activity
             android:name="dttv.app.SettingActivity"
+            android:screenOrientation="portrait"
             android:launchMode="singleTask">
         </activity>
         <activity
             android:name="dttv.app.VideoPlayerActivity"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/video_activity_play"
-            android:launchMode="singleInstance"
-            android:screenOrientation="landscape">
+            android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

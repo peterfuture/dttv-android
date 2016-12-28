@@ -34,6 +34,8 @@ dt_lock_t mutex;
 static JavaVM *gvm = NULL;
 static const char *const kClassName = "dttv/app/DtPlayer";
 
+extern "C" int av_jni_set_java_vm(void *vm, void *log_ctx);
+
 dtpListenner::dtpListenner(JNIEnv *env, jobject thiz, jobject weak_thiz) {
     jclass clazz = env->GetObjectClass(thiz);
     if (clazz == NULL) {
@@ -399,6 +401,8 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     /* success -- return valid version number */
     result = JNI_VERSION_1_4;
     dt_lock_init(&mutex, NULL);
+
+    av_jni_set_java_vm(vm, reserved);
     bail:
     return result;
 }

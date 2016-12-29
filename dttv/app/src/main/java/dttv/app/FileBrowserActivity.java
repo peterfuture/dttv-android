@@ -360,7 +360,7 @@ public class FileBrowserActivity extends Activity {
     private SimpleAdapter getFileListAdapterSorted(String path, int sort_type) {
 
         if (path.equals(ROOT)) {
-            return new SimpleAdapter(FileBrowserActivity.this, getDeviceListData(),
+            /*return new SimpleAdapter(FileBrowserActivity.this, getDeviceListData(),
                     R.layout.filebrowser_device_item,
                     new String[]{
                             FILEINFO_KEY_TYPE,
@@ -373,9 +373,19 @@ public class FileBrowserActivity extends Activity {
                             R.id.filebrowser_device_name,
                             R.id.filebrowser_device_access,
                             R.id.filebrowser_device_size
-                    });
+                    });*/
+            return new SimpleAdapter(FileBrowserActivity.this, getDeviceListData(),
+                R.layout.filebrowser_simple_device_item,
+                new String[]{
+                    FILEINFO_KEY_TYPE,
+                    FILEINFO_KEY_NAMNE,
+                },
+                new int[]{
+                    R.id.filebrowser_simple_device_type,
+                    R.id.filebrowser_simple_device_name
+                });
         } else {
-            return new SimpleAdapter(FileBrowserActivity.this, getFileListDataSorted(path, sort_type),
+            /*return new SimpleAdapter(FileBrowserActivity.this, getFileListDataSorted(path, sort_type),
                     R.layout.filebrowser_filelist_item,
                     new String[]{
                             FILEINFO_KEY_TYPE,
@@ -396,7 +406,17 @@ public class FileBrowserActivity extends Activity {
                             R.id.filebrowser_file_access,
                             R.id.filebrowser_file_suffix,
                             R.id.filebrowser_file_fullname
-                    });
+                    });*/
+            return new SimpleAdapter(FileBrowserActivity.this, getFileListDataSorted(path, sort_type),
+                R.layout.filebrowser_simple_filelist_item,
+                new String[]{
+                    FILEINFO_KEY_TYPE,
+                    FILEINFO_KEY_NAMNE
+                },
+                new int[]{
+                    R.id.filebrowser_simple_file_type,
+                    R.id.filebrowser_simple_file_name
+                });
         }
     }
 

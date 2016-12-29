@@ -34,6 +34,7 @@ typedef struct dt_setting {
     // HOST
     int host_drop;
     int host_drop_thres;
+    int host_drop_timeout;
     int host_sync_thres;
 } dt_setting_t;
 

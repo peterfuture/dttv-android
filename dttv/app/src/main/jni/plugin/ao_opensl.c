@@ -429,11 +429,12 @@ static void Stop(dtaudio_output_t *aout) {
     SetPlayState(sys->playerPlay, SL_PLAYSTATE_STOPPED);
     //Flush remaining buffers if any.
     Clear(sys->playerBufferQueue);
+    Destroy(sys->playerObject);
+    Destroy(sys->outputMixObject);
+    Destroy(sys->engineObject);
+    dlclose(sys->p_so_handle);
 
     free(sys->buf);
-
-    Destroy(sys->playerObject);
-    sys->playerObject = NULL;
     free(sys);
     sys = NULL;
 }
@@ -441,22 +442,13 @@ static void Stop(dtaudio_output_t *aout) {
 /*****************************************************************************
  *
  *****************************************************************************/
-static void Close(dtaudio_output_t *aout) {
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
-
-    Destroy(sys->outputMixObject);
-    Destroy(sys->engineObject);
-    dlclose(sys->p_so_handle);
-    //vlc_mutex_destroy(&sys->lock);
-    free(sys);
-}
 
 static int Open(dtaudio_output_t *aout) {
-    aout_sys_t *sys;
-    SLresult result;
 
     dtaudio_para_t *para = &aout->para;
-    sys = (aout_sys_t *) malloc(sizeof(*sys));
+    SLresult result;
+
+    aout_sys_t *sys = (aout_sys_t *) malloc(sizeof(*sys));
     if (unlikely(sys == NULL))
         return -1;
 

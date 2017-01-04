@@ -41,12 +41,12 @@ public class Constant {
 
 
     // setting
-    public static final String KEY_SETTING_FILTER_AUDIO_FILTER = "key_setting_audio_filter";
-    public static final String KEY_SETTING_FILTER_VIDEO_FILTER = "key_setting_video_filter";
-    public static final String KEY_SETTING_DECODER_TYPE = "key_setting_decoder_type";
-    public static final String KEY_SETTING_DECODER_TYPE_SOFT = "sw_decoder";
-    public static final String KEY_SETTING_DECODER_TYPE_HW = "hw_decoder";
+    public static final String KEY_SETTING_FILTER_AUDIO_FILTER = "key_checkbox_setting_audio_filter";
+    public static final String KEY_SETTING_FILTER_VIDEO_FILTER = "key_checkbox_setting_video_filter";
+    public static final String KEY_SETTING_DECODER_TYPE = "key_listpreference_setting_decoder_type";
+    public static final String KEY_SETTING_DECODER_TYPE_SOFT = "0";
+    public static final String KEY_SETTING_DECODER_TYPE_HW = "1";
     public static final String KEY_SETTING_BROWSER_MODE ="key_listpreference_filebrowser_display";
-    public static final String KEY_SETTING_DISPLAY_MODE ="key_setting_display_mode";
+    public static final String KEY_SETTING_DISPLAY_MODE ="key_listpreference_setting_display_mode";
 
 }

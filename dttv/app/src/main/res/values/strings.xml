@@ -65,8 +65,8 @@
     <string name="setting_preference_audio_filter">过滤时长小于60秒音频</string>
     <string name="setting_preference_video_filter">过滤时长小于60秒视频</string>
 
-    <string name="setting_preference_video_decoder_soft">软解码</string>
-    <string name="setting_preference_video_decoder_hw">硬解码</string>
+    <string name="setting_preference_video_decoder_soft">sw_decoder</string>
+    <string name="setting_preference_video_decoder_hw">hw_decoder</string>
 
     <string name="setting_preference_filebrowser_normal">全部显示</string>
     <string name="setting_preference_filebrowser_audio_only">只显示音频</string>

@@ -9,19 +9,19 @@
             android:layout_height="wrap_content"
             android:dialogTitle="文件浏览设置"
             android:entries="@array/listpreference_filebrowser_display"
-            android:entryValues="@array/id_listpreference_filebrowser_display"
-            android:defaultValue="normal"
+            android:entryValues="@array/listpreference_filebrowser_display_value"
+            android:defaultValue="0"
             android:orientation="vertical"
             android:summary="%s"
             android:title="浏览设置">
         </ListPreference>
         <CheckBoxPreference
-            android:key="key_setting_audio_filter"
+            android:key="key_checkboxpreference_setting_audio_filter"
             android:summaryOff="@string/setting_preference_no"
             android:summaryOn="@string/setting_preference_yes"
             android:title="@string/setting_preference_audio_filter" />
         <CheckBoxPreference
-            android:key="key_setting_video_filter"
+            android:key="key_checkboxpreference_setting_video_filter"
             android:summaryOff="@string/setting_preference_no"
             android:summaryOn="@string/setting_preference_yes"
             android:title="@string/setting_preference_video_filter" />
@@ -29,17 +29,17 @@
 
     <PreferenceCategory android:title="@string/setting_preference_title">
         <ListPreference
-            android:key="key_setting_decoder_type"
+            android:key="key_listpreference_setting_decoder_type"
             android:entries="@array/listpreference_videoplayer_decoder_type"
             android:entryValues="@array/listpreference_videoplayer_decoder_type_value"
-            android:defaultValue="sw_decoder"
+            android:defaultValue="1"
             android:summary="%s"
             android:title="解码类型" />
         <ListPreference
-            android:key="key_setting_display_mode"
+            android:key="key_listpreference_setting_display_mode"
             android:entries="@array/listpreference_videoplayer_display_mode"
             android:entryValues="@array/listpreference_videoplayer_display_mode_value"
-            android:defaultValue="fullscreen"
+            android:defaultValue="1"
             android:summary="%s"
             android:title="显示模式" />
     </PreferenceCategory>

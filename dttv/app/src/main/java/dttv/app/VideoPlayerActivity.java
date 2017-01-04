@@ -133,6 +133,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private final static int VIDEOPLAYER_DISPLAY_FULLSCREEN = 1;
     private int mDisplayMode = VIDEOPLAYER_DISPLAY_ORIGINAL;
 
+    private int mHWCodecEnable = 1;
+
     /*utils*/
     private VolumeUtil mVolumeUtil;
     private SettingUtil mSettingUtil;
@@ -154,11 +156,13 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
         /*dtplayer need to init prior to mGLSurfaceView*/
         mState = PLAYER_IDLE;
-        dtPlayer = new DtPlayer(this);
 
         mSettingUtil = new SettingUtil(this);
         mDisplayMode = mSettingUtil.getVideoPlayerDisplayMode();
-        Log.i(TAG, "getDisplaymode: " + mDisplayMode);
+        mHWCodecEnable = mSettingUtil.isHWCodecEnable();
+        Log.i(TAG, "getDisplaymode: " + mDisplayMode + " HWCodec Enable:" + mHWCodecEnable);
+
+        dtPlayer = new DtPlayer(this, mHWCodecEnable!=0);
 
         getWindow().setBackgroundDrawableResource(R.color.videoplayer_background);
         initView();

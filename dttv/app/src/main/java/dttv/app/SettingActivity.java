@@ -85,6 +85,7 @@ public class SettingActivity extends PreferenceActivity {
     }
 
     public static class MyPreferenceFragment extends PreferenceFragment implements OnPreferenceChangeListener, OnPreferenceClickListener {
+
         ListPreference list_decoder_type;
         ListPreference list_browser_mode;
         ListPreference list_display_mode;

@@ -15,7 +15,7 @@ import android.preference.PreferenceManager;
 public class SettingUtil {
 
     private Activity mActivity;
-    SharedPreferences prefs;
+    private SharedPreferences prefs;
 
     public SettingUtil(Activity activity) {
         this.mActivity = activity;
@@ -33,13 +33,17 @@ public class SettingUtil {
     }
 
     public String getVideoPlayerDecodeType() {
-        String result = prefs.getString(Constant.KEY_SETTING_DECODER_TYPE,
-                mActivity.getString(R.string.setting_preference_video_decoder_soft));
+        String result = prefs.getString(Constant.KEY_SETTING_DECODER_TYPE, "1");
         return result;
     }
 
+    public int isHWCodecEnable() {
+        String result = prefs.getString(Constant.KEY_SETTING_DECODER_TYPE, "1");
+        return Integer.parseInt(result);
+    }
+
     public int getVideoPlayerDisplayMode() {
-        String result = prefs.getString(Constant.KEY_SETTING_DISPLAY_MODE, "0");
+        String result = prefs.getString(Constant.KEY_SETTING_DISPLAY_MODE, "1");
         return Integer.parseInt(result);
     }
 
@@ -50,14 +54,7 @@ public class SettingUtil {
     }
 
     public int getBrowserMode() {
-        String result = prefs.getString(Constant.KEY_SETTING_BROWSER_MODE, "normal");
-        if(result.contains("normal"))
-            return 0;
-        if(result.contains("audio_only"))
-            return 1;
-        if(result.contains("video_only"))
-            return 2;
-
-        return 0;
+        String result = prefs.getString(Constant.KEY_SETTING_BROWSER_MODE, "0");
+        return Integer.parseInt(result);
     }
 }

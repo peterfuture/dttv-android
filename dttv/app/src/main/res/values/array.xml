@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string-array name="dt_nav_tab_menu">
         <item>本地视频</item>
         <item>本地音乐</item>
@@ -10,10 +11,9 @@
         <item>软解码</item>
         <item>硬解码</item>
     </string-array>
-
     <string-array name="listpreference_videoplayer_decoder_type_value">
-        <item>sw_decoder</item>
-        <item>hw_decoder</item>
+        <item>0</item>
+        <item>1</item>
     </string-array>
 
     <string-array name="listpreference_filebrowser_display">
@@ -21,12 +21,11 @@
         <item>只显示音频</item>
         <item>只显示视频</item>
     </string-array>
-    <string-array name="id_listpreference_filebrowser_display">
-        <item>normal</item>
-        <item>audio_only</item>
-        <item>video_only</item>
+    <string-array name="listpreference_filebrowser_display_value">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
     </string-array>
-
 
     <string-array name="listpreference_videoplayer_display_mode">
         <item>正常显示</item>

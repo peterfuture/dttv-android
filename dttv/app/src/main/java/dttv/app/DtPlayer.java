@@ -12,6 +12,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
+import android.graphics.Interpolator;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -85,15 +86,7 @@ public class DtPlayer {
     public DtPlayer(Context ctx) {
         // TODO Auto-generated constructor stub
         this(ctx, false);
-        /* Native setup requires a weak reference to our object.
-          * It's easier to create it here than in C++.
-          */
-        int ret = native_setup(new WeakReference<DtPlayer>(this));
-        if(ret < 0) {
-            Log.d(Constant.LOGTAG, "Error: alloc player failed.");
-            return;
-        }
-        native_hw_enable(0);
+
     }
 
     public DtPlayer(Context ctx, boolean isHardWare) {
@@ -111,7 +104,16 @@ public class DtPlayer {
             mEventHandler = new EventHandler(this, looper);
         else
             mEventHandler = null;
-        //native_init();
+
+        /* Native setup requires a weak reference to our object.
+          * It's easier to create it here than in C++.
+          */
+        int ret = native_setup(new WeakReference<DtPlayer>(this));
+        if(ret < 0) {
+            Log.d(Constant.LOGTAG, "Error: alloc player failed.");
+            return;
+        }
+        native_hw_enable(isHardWare?1:0);
     }
 
     public void setDisplay(SurfaceHolder surfaceHolder) {

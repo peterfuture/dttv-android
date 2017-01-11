@@ -1,15 +1,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-
-#include "dt_utils.h"
+#include <unistd.h>
 
 #include "native_log.h"
 #include "android_dtplayer.h"
 #include "android_jni.h"
 #include "gl_yuv.h"
+#include "jni_utils.h"
 
 #include "native_log.h"
+
+
 
 #define TAG "DTTV-JNI"
 
@@ -30,7 +32,7 @@ struct fields_t {
     jmethodID proxyConfigGetExclusionList;
 };
 static fields_t fields;
-dt_lock_t mutex;
+lock_t mutex;
 static JavaVM *gvm = NULL;
 static const char *const kClassName = "dttv/app/DtPlayer";
 
@@ -81,17 +83,17 @@ int dtpListenner::notify(int msg, int ext1, int ext2) {
 }
 
 static DTPlayer *setMediaPlayer(JNIEnv *env, jobject thiz, DTPlayer *player) {
-    dt_lock(&mutex);
+    lock(&mutex);
     DTPlayer *old = (DTPlayer *) env->GetLongField(thiz, fields.context);
     env->SetLongField(thiz, fields.context, (jlong) player);
-    dt_unlock(&mutex);
+    unlock(&mutex);
     return old;
 }
 
 static DTPlayer *getMediaPlayer(JNIEnv *env, jobject thiz) {
-    dt_lock(&mutex);
+    lock(&mutex);
     DTPlayer *dtp = (DTPlayer *) env->GetLongField(thiz, fields.context);
-    dt_unlock(&mutex);
+    unlock(&mutex);
     return dtp;
 }
 
@@ -400,7 +402,7 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
 
     /* success -- return valid version number */
     result = JNI_VERSION_1_4;
-    dt_lock_init(&mutex, NULL);
+    lock_init(&mutex, NULL);
 
     av_jni_set_java_vm(vm, reserved);
     bail:

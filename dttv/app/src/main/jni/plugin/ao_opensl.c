@@ -1,33 +1,25 @@
-/*****************************************************************************
- * opensles_android.c : audio output for android native code
- *****************************************************************************/
-/*****************************************************************************
- * Porting From vlc
- *****************************************************************************/
-
-#include "../dtaudio_android.h"
-#include "dt_buffer.h"
-#include "dt_lock.h"
-
+#include <unistd.h>
 #include <assert.h>
 #include <dlfcn.h>
-#include <math.h>
-#include <stdbool.h>
 #include <android/log.h>
 
-// For native audio
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 
+#include "../dtaudio_android.h"
+#include "../jni_utils.h"
+
+
 #define OPENSLES_BUFFERS 255 /* maximum number of buffers */
 #define OPENSLES_BUFLEN  10   /* ms */
+
 /*
  * 10ms of precision when mesasuring latency should be enough,
  * with 255 buffers we can buffer 2.55s of audio.
  */
 
 #define CHECK_OPENSL_ERROR(msg)                \
-    if (unlikely(result != SL_RESULT_SUCCESS)) \
+    if ((result != SL_RESULT_SUCCESS)) \
     {                                          \
         goto error;                            \
     }
@@ -65,6 +57,7 @@ typedef SLresult (*slCreateEngine_t)(
 /*****************************************************************************
  *
  *****************************************************************************/
+
 typedef struct aout_sys_t {
     /* OpenSL objects */
     SLObjectItf engineObject;
@@ -95,7 +88,7 @@ typedef struct aout_sys_t {
     int started;
     int samples;
     dt_buffer_t dbt;
-    dt_lock_t lock;
+    lock_t lock;
 } aout_sys_t;
 
 
@@ -108,7 +101,7 @@ typedef struct aout_sys_t {
 #include "dtap_api.h"
 typedef struct{
     dtap_context_t ap;
-    dt_lock_t lock;
+    lock_t lock;
 }audio_effect_t;
 
 #endif
@@ -121,7 +114,7 @@ typedef struct{
  *
  *****************************************************************************/
 
-static inline int bytesPerSample(dtaudio_output_t *aout) {
+static inline int bytesPerSample(ao_wrapper_t *aout) {
     dtaudio_para_t *para = &aout->para;
     return para->dst_channels * para->data_width / 8;
     //return 2 /* S16 */ * 2 /* stereo */;
@@ -129,19 +122,19 @@ static inline int bytesPerSample(dtaudio_output_t *aout) {
 
 // get us delay
 //
-static int TimeGet(dtaudio_output_t *aout, int64_t *drift) {
+static int TimeGet(ao_wrapper_t *aout, int64_t *drift) {
     aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
 
     SLAndroidSimpleBufferQueueState st;
     SLresult res = GetState(sys->playerBufferQueue, &st);
-    if (unlikely(res != SL_RESULT_SUCCESS)) {
+    if ((res != SL_RESULT_SUCCESS)) {
         LOGV("Could not query buffer queue state in TimeGet (%lu)", (unsigned long) res);
         return -1;
     }
 
-    dt_lock(&sys->lock);
+    lock(&sys->lock);
     bool started = sys->started;
-    dt_unlock(&sys->lock);
+    unlock(&sys->lock);
 
     if (!started)
         return -1;
@@ -154,7 +147,7 @@ static int TimeGet(dtaudio_output_t *aout, int64_t *drift) {
     return 0;
 }
 
-static void Flush(dtaudio_output_t *aout, bool drain) {
+static void Flush(ao_wrapper_t *aout, bool drain) {
     aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
 
     if (drain) {
@@ -171,44 +164,13 @@ static void Flush(dtaudio_output_t *aout, bool drain) {
     }
 }
 
-#if 0
-static int VolumeSet(dtaudio_output_t *aout, float vol)
-{
-    aout_sys_t *sys = (aout_sys_t)aout->ao_priv;
-    if (!sys->volumeItf)
-        return -1;
-
-    /* Convert UI volume to linear factor (cube) */
-    vol = vol * vol * vol;
-
-    /* millibels from linear amplification */
-    int mb = lroundf(2000.f * log10f(vol));
-    if (mb < SL_MILLIBEL_MIN)
-        mb = SL_MILLIBEL_MIN;
-    else if (mb > 0)
-        mb = 0; /* maximum supported level could be higher: GetMaxVolumeLevel */
-
-    SLresult r = SetVolumeLevel(aout->sys->volumeItf, mb);
-    return (r == SL_RESULT_SUCCESS) ? 0 : -1;
-}
-
-static int MuteSet(audio_output_t *aout, bool mute)
-{
-    if (!aout->sys->volumeItf)
-        return -1;
-
-    SLresult r = SetMute(aout->sys->volumeItf, mute);
-    return (r == SL_RESULT_SUCCESS) ? 0 : -1;
-}
-#endif
-
-static void Pause(dtaudio_output_t *aout, bool pause) {
+static void Pause(ao_wrapper_t *aout, bool pause) {
     aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
     SetPlayState(sys->playerPlay,
                  pause ? SL_PLAYSTATE_PAUSED : SL_PLAYSTATE_PLAYING);
 }
 
-static int WriteBuffer(dtaudio_output_t *aout) {
+static int WriteBuffer(ao_wrapper_t *aout) {
     aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
     const int unit_size = sys->samples_per_buf * bytesPerSample(aout);
 
@@ -219,7 +181,7 @@ static int WriteBuffer(dtaudio_output_t *aout) {
 
     SLAndroidSimpleBufferQueueState st;
     SLresult res = GetState(sys->playerBufferQueue, &st);
-    if (unlikely(res != SL_RESULT_SUCCESS)) {
+    if ((res != SL_RESULT_SUCCESS)) {
         return false;
     }
 
@@ -259,7 +221,7 @@ static int WriteBuffer(dtaudio_output_t *aout) {
 /*****************************************************************************
  * Play: play a sound
  *****************************************************************************/
-static int Play(dtaudio_output_t *aout, uint8_t *buf, int size) {
+static int Play(ao_wrapper_t *aout, uint8_t *buf, int size) {
     aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
     int ret = 0;
     //__android_log_print(ANDROID_LOG_DEBUG,TAG, "space:%d level:%d  size:%d  \n",buf_space(&sys->dbt), buf_level(&sys->dbt), size);
@@ -276,7 +238,7 @@ static int Play(dtaudio_output_t *aout, uint8_t *buf, int size) {
 
 static void PlayedCallback(SLAndroidSimpleBufferQueueItf caller, void *pContext) {
     (void) caller;
-    dtaudio_output_t *aout = pContext;
+    ao_wrapper_t *aout = pContext;
     aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
 
     assert (caller == sys->playerBufferQueue);
@@ -321,7 +283,7 @@ static SLuint32 convertSampleRate(SLuint32 sr) {
     return -1;
 }
 
-static int Start(dtaudio_output_t *aout) {
+static int Start(ao_wrapper_t *aout) {
     SLresult result;
 
     aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
@@ -366,7 +328,7 @@ static int Start(dtaudio_output_t *aout) {
     result = CreateAudioPlayer(sys->engineEngine, &sys->playerObject, &audioSrc,
                                &audioSnk, sizeof(ids2) / sizeof(*ids2),
                                ids2, req2);
-    if (unlikely(result != SL_RESULT_SUCCESS)) { // error
+    if ((result != SL_RESULT_SUCCESS)) { // error
         return -1;
         /* Try again with a more sensible samplerate */
 #if 0
@@ -423,7 +385,7 @@ static int Start(dtaudio_output_t *aout) {
     return -1;
 }
 
-static void Stop(dtaudio_output_t *aout) {
+static void Stop(ao_wrapper_t *aout) {
     aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
 
     SetPlayState(sys->playerPlay, SL_PLAYSTATE_STOPPED);
@@ -443,13 +405,13 @@ static void Stop(dtaudio_output_t *aout) {
  *
  *****************************************************************************/
 
-static int Open(dtaudio_output_t *aout) {
+static int Open(ao_wrapper_t *aout) {
 
     dtaudio_para_t *para = &aout->para;
     SLresult result;
 
     aout_sys_t *sys = (aout_sys_t *) malloc(sizeof(*sys));
-    if (unlikely(sys == NULL))
+    if (sys == NULL)
         return -1;
 
     sys->p_so_handle = dlopen("libOpenSLES.so", RTLD_NOW);
@@ -458,14 +420,14 @@ static int Open(dtaudio_output_t *aout) {
     }
 
     sys->slCreateEnginePtr = dlsym(sys->p_so_handle, "slCreateEngine");
-    if (unlikely(sys->slCreateEnginePtr == NULL)) {
+    if (sys->slCreateEnginePtr == NULL) {
         goto error;
     }
 
 #define OPENSL_DLSYM(dest, name)                       \
     do {                                                       \
         const SLInterfaceID *sym = dlsym(sys->p_so_handle, "SL_IID_"name);        \
-        if (unlikely(sym == NULL))                             \
+        if ((sym == NULL))                             \
         {                                                      \
             goto error;                                        \
         }                                                      \
@@ -500,7 +462,7 @@ static int Open(dtaudio_output_t *aout) {
     result = Realize(sys->outputMixObject, SL_BOOLEAN_FALSE);
     CHECK_OPENSL_ERROR("Failed to realize output mix");
 
-    dt_lock_init(&sys->lock, NULL);
+    lock_init(&sys->lock, NULL);
 
     if (buf_init(&sys->dbt, para->dst_samplerate * 4 / 10) < 0) // 100ms
         return -1;
@@ -523,7 +485,7 @@ int dtap_change_effect(ao_wrapper_t *wrapper, int id)
 {
     audio_effect_t *ae = (audio_effect_t *)wrapper->ao_priv;
     __android_log_print(ANDROID_LOG_INFO, TAG, "change audio effect from: %d to %d \n", ae->ap.para.item, id);
-    dt_lock(&ae->lock);
+    lock(&ae->lock);
     ae->ap.para.item = id;
     dtap_update(&ae->ap);
     dtap_init(&ae->ap);
@@ -532,7 +494,7 @@ int dtap_change_effect(ao_wrapper_t *wrapper, int id)
 }
 #endif
 
-static int ao_opensl_init(dtaudio_output_t *aout, dtaudio_para_t *para) {
+static int ao_opensl_init(ao_wrapper_t *aout) {
     if (Open(aout) == -1)
         return -1;
     Start(aout);
@@ -547,19 +509,18 @@ static int ao_opensl_init(dtaudio_output_t *aout, dtaudio_para_t *para) {
     ae->ap.para.type = DTAP_EFFECT_EQ;
     ae->ap.para.item = EQ_EFFECT_NORMAL;
     dtap_init(&ae->ap);
-    dt_lock_init(&ae->lock, NULL);
+    lock_init(&ae->lock, NULL);
 #endif
     return 0;
 }
 
-static int ao_opensl_write(dtaudio_output_t *aout, uint8_t *buf, int size) {
+static int ao_opensl_write(ao_wrapper_t *aout, uint8_t *buf, int size) {
     aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
-    ao_wrapper_t *wrapper = aout->wrapper;
     int ret = 0;
 
 #ifdef ENABLE_DTAP
     audio_effect_t *ae = (audio_effect_t *)wrapper->ao_priv;
-    dt_lock(&ae->lock);
+    lock(&ae->lock);
     dtap_frame_t frame;
     frame.in = buf;
     frame.in_size = size;
@@ -570,48 +531,48 @@ static int ao_opensl_write(dtaudio_output_t *aout, uint8_t *buf, int size) {
     dt_unlock(&ae->lock);
 #endif
 
-    dt_lock(&sys->lock);
+    lock(&sys->lock);
     ret = Play(aout, buf, size);
-    dt_unlock(&sys->lock);
+    unlock(&sys->lock);
     return ret;
 }
 
-static int ao_opensl_pause(dtaudio_output_t *aout) {
+static int ao_opensl_pause(ao_wrapper_t *aout) {
     aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
-    dt_lock(&sys->lock);
+    lock(&sys->lock);
     Pause(aout, 1);
-    dt_unlock(&sys->lock);
+    unlock(&sys->lock);
     return 0;
 }
 
-static int ao_opensl_resume(dtaudio_output_t *aout) {
+static int ao_opensl_resume(ao_wrapper_t *aout) {
     aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
-    dt_lock(&sys->lock);
+    lock(&sys->lock);
     Pause(aout, 0);
-    dt_unlock(&sys->lock);
+    unlock(&sys->lock);
     return 0;
 }
 
-static int ao_opensl_level(dtaudio_output_t *aout) {
+static int ao_opensl_level(ao_wrapper_t *aout) {
     aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
-    dt_lock(&sys->lock);
+    lock(&sys->lock);
     int level = sys->samples * bytesPerSample(aout);
     const int unit_size = sys->samples_per_buf * bytesPerSample(aout);
     SLAndroidSimpleBufferQueueState st;
     if (!sys->started)
         goto END;
     SLresult res = GetState(sys->playerBufferQueue, &st);
-    if (unlikely(res != SL_RESULT_SUCCESS)) {
+    if ((res != SL_RESULT_SUCCESS)) {
         goto END;
     }
     level += st.count * unit_size;
     //__android_log_print(ANDROID_LOG_DEBUG,TAG, "opensl level:%d  st.count:%d sample:%d:%d \n",level, (int)st.count, sys->samples);
     END:
-    dt_unlock(&sys->lock);
+    unlock(&sys->lock);
     return level;
 }
 
-static int64_t ao_opensl_get_latency(dtaudio_output_t *aout) {
+static int64_t ao_opensl_get_latency(ao_wrapper_t *aout) {
     int64_t latency;
     int ret = 0;
     int level = 0;
@@ -635,20 +596,19 @@ static int64_t ao_opensl_get_latency(dtaudio_output_t *aout) {
     return latency;
 }
 
-static int ao_opensl_stop(dtaudio_output_t *aout) {
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
-    ao_wrapper_t *wrapper = aout->wrapper;
+static int ao_opensl_stop(ao_wrapper_t *ao) {
+    aout_sys_t *sys = (aout_sys_t *) ao->ao_priv;
 #ifdef ENABLE_DTAP
     audio_effect_t *ae = (audio_effect_t *)wrapper->ao_priv;
-    dt_lock(&ae->lock);
+    lock(&ae->lock);
     memset(&ae->ap, 0 , sizeof(dtap_context_t));
     dtap_release(&ae->ap);    
     dt_unlock(&ae->lock);
 #endif
 
-    dt_lock(&sys->lock);
-    Stop(aout);
-    dt_unlock(&sys->lock);
+    lock(&sys->lock);
+    Stop(ao);
+    unlock(&sys->lock);
     return 0;
 }
 
@@ -661,32 +621,58 @@ static int ao_opensl_set_volume(ao_wrapper_t *ao, int value) {
     return 0;
 }
 
+static int ao_opensl_set_parameter(ao_wrapper_t *ao, int cmd, unsigned long arg)
+{
+    switch (cmd) {
+        case DTP_AO_CMD_SET_VOLUME:
+            ao_opensl_set_volume(ao, (int)arg);
+            break;
+    }
+    return 0;
+}
+
+static int ao_opensl_get_parameter(ao_wrapper_t *ao, int cmd, unsigned long arg)
+{
+    switch (cmd) {
+        case DTP_AO_CMD_GET_LATENCY:
+            *(int *)(arg) = ao_opensl_get_latency(ao);
+            break;
+        case DTP_AO_CMD_GET_LEVEL:
+            *(int *)(arg) = ao_opensl_level(ao);
+            break;
+        case DTP_AO_CMD_GET_VOLUME:
+            *(int *)(arg) = ao_opensl_get_volume(ao);
+            break;
+    }
+    return 0;
+}
+
+
+
 const char *ao_opensl_name = "OPENSL AO";
 
 void ao_opensl_setup(ao_wrapper_t *ao) {
     if (!ao) return;
     ao->id = AO_ID_OPENSL;
     ao->name = ao_opensl_name;
-    ao->ao_init = ao_opensl_init;
-    ao->ao_pause = ao_opensl_pause;
-    ao->ao_resume = ao_opensl_resume;
-    ao->ao_stop = ao_opensl_stop;
-    ao->ao_write = ao_opensl_write;
-    ao->ao_level = ao_opensl_level;
-    ao->ao_latency = ao_opensl_get_latency;
-    ao->ao_get_volume = ao_opensl_get_volume;
-    ao->ao_set_volume = ao_opensl_set_volume;
+    ao->init = ao_opensl_init;
+    ao->pause = ao_opensl_pause;
+    ao->resume = ao_opensl_resume;
+    ao->stop = ao_opensl_stop;
+    ao->write = ao_opensl_write;
+    ao->get_parameter = ao_opensl_get_parameter;
+    ao->set_parameter = ao_opensl_set_parameter;
     return;
 }
 
 ao_wrapper_t ao_opensl_ops = {
         .id = AO_ID_OPENSL,
         .name = "opensl es",
-        .ao_init = ao_opensl_init,
-        .ao_pause = ao_opensl_pause,
-        .ao_resume = ao_opensl_resume,
-        .ao_stop = ao_opensl_stop,
-        .ao_write = ao_opensl_write,
-        .ao_level = ao_opensl_level,
-        .ao_latency = ao_opensl_get_latency,
+        .init = ao_opensl_init,
+        .pause = ao_opensl_pause,
+        .resume = ao_opensl_resume,
+        .stop = ao_opensl_stop,
+        .write = ao_opensl_write,
+        .get_parameter = ao_opensl_get_parameter,
+        .set_parameter = ao_opensl_set_parameter,
 };

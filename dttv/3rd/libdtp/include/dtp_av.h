@@ -1,64 +1,75 @@
-#ifndef DT_AV_H
-#define DT_AV_H
+#ifndef DTP_AV_H
+#define DTP_AV_H
 
-#include "dt_sync.h"
-#include "dt_type.h"
-#include "dt_error.h"
-#include "dt_macro.h"
-#include "dt_state.h"
-#include "dt_utils.h"
+#ifdef  __cplusplus
+extern "C" {
+#endif
 
-#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-//
-// AUDIO VIDEO MEDIA SUB DEFINITIONS
-//
+/*************************************
+** MACRO
+*************************************/
+#define FILE_NAME_MAX_LENGTH   1024
 
-// =================================================
-// MEDIA
-// Equal to ffmpeg
-typedef enum DT_AVMediaType {
-    DT_TYPE_UNKNOWN = -1,
-    DT_TYPE_VIDEO,
-    DT_TYPE_AUDIO,
-    DT_TYPE_DATA,
-    DT_TYPE_SUBTITLE,
-    DT_TYPE_ATTACHMENT,
-    DT_TYPE_NB
-} dt_media_type_t;
+#define DT_PTS_FREQ            90000
+#define DT_PTS_FREQ_MS         90
+#define DT_SYNC_DISCONTINUE_THRESHOLD      DT_PTS_FREQ_MS*1000*60
+#define DT_SYNC_CORRECT_THRESHOLD          DT_PTS_FREQ_MS*150
+//EQUAL TO AV_NOPTS_VALUE IN FFMPEG
+#define DT_NOPTS_VALUE         ((int64_t)UINT64_C(0x8000000000000000))
+
+#define PTS_INVALID(x) ((x == -1) || ((int64_t)x == DT_NOPTS_VALUE))
+#define PTS_VALID(x) ((x != -1) && (x != DT_NOPTS_VALUE))
+
+#define AVSYNC_THRESHOLD       100     //ms
+#define AVSYNC_THRESHOLD_MAX   5*1000  //ms
+#define AVSYNC_DROP_THRESHOLD  30*1000 //ms
+
+#define VIDEO_EXTRADATA_SIZE   4096
 
 typedef enum {
-    DT_MEDIA_FORMAT_INVALID = -1,
-    DT_MEDIA_FORMAT_MPEGTS,
-    DT_MEDIA_FORMAT_MPEGPS,
-    DT_MEDIA_FORMAT_RM,
-    DT_MEDIA_FORMAT_AVI,
-    DT_MEDIA_FORMAT_MKV,
-    DT_MEDIA_FORMAT_MOV,
-    DT_MEDIA_FORMAT_MP4,
-    DT_MEDIA_FORMAT_FLV,
-    DT_MEDIA_FORMAT_AAC,
-    DT_MEDIA_FORMAT_AC3,
-    DT_MEDIA_FORMAT_MP3,
-    DT_MEDIA_FORMAT_WAV,
-    DT_MEDIA_FORMAT_DTS,
-    DT_MEDIA_FORMAT_FLAC,
-    DT_MEDIA_FORMAT_H264,
-    DT_MEDIA_FORMAT_AVS,
-    DT_MEDIA_FORMAT_M2V,
-    DT_MEDIA_FORMAT_P2P,
-    DT_MEDIA_FORMAT_ASF,
-    DT_MEDIA_FORMAT_RTSP,
-    DT_MEDIA_FORMAT_APE,
-    DT_MEDIA_FORMAT_AMR,
-    DT_MEDIA_FORMAT_UNKOWN,
-} dtmedia_format_t;
+    DTP_MEDIA_TYPE_UNKNOWN = -1,
+    DTP_MEDIA_TYPE_VIDEO,
+    DTP_MEDIA_TYPE_AUDIO,
+    DTP_MEDIA_TYPE_DATA,
+    DTP_MEDIA_TYPE_SUBTITLE,
+    DTP_MEDIA_TYPE_ATTACHMENT,
+    DTP_MEDIA_TYPE_NB
+} dtp_media_type_t;
 
-// =================================================
-// STRUCTURE
-// original packet
+typedef enum {
+    DTP_MEDIA_FORMAT_INVALID = -1,
+    DTP_MEDIA_FORMAT_MPEGTS,
+    DTP_MEDIA_FORMAT_MPEGPS,
+    DTP_MEDIA_FORMAT_RM,
+    DTP_MEDIA_FORMAT_AVI,
+    DTP_MEDIA_FORMAT_MKV,
+    DTP_MEDIA_FORMAT_MOV,
+    DTP_MEDIA_FORMAT_MP4,
+    DTP_MEDIA_FORMAT_FLV,
+    DTP_MEDIA_FORMAT_AAC,
+    DTP_MEDIA_FORMAT_AC3,
+    DTP_MEDIA_FORMAT_MP3,
+    DTP_MEDIA_FORMAT_WAV,
+    DTP_MEDIA_FORMAT_DTS,
+    DTP_MEDIA_FORMAT_FLAC,
+    DTP_MEDIA_FORMAT_H264,
+    DTP_MEDIA_FORMAT_AVS,
+    DTP_MEDIA_FORMAT_M2V,
+    DTP_MEDIA_FORMAT_P2P,
+    DTP_MEDIA_FORMAT_ASF,
+    DTP_MEDIA_FORMAT_RTSP,
+    DTP_MEDIA_FORMAT_APE,
+    DTP_MEDIA_FORMAT_AMR,
+    DTP_MEDIA_FORMAT_UNKOWN,
+} dtp_media_format_t;
+
+/* av packet to be decoded */
 typedef struct dt_av_pkt {
     uint8_t *data;
     int size;
@@ -66,25 +77,24 @@ typedef struct dt_av_pkt {
     int64_t dts;
     int duration;
     int key_frame;
-    dt_media_type_t type;
+    dtp_media_type_t type;
 } dt_av_pkt_t;
 
+/* av frame after decode */
 typedef struct {
-    // Equal to ffmpeg
+    /* frame members need to equal to ffmpeg AVFrame*/
     uint8_t *data[8];
     int linesize[8];
 
-    // For video pp
+    /* property */
     int width;
     int height;
     int pixfmt;
 
-    // For avsync
     int64_t pts;
     int64_t dts;
     int duration;
 } dt_av_frame_t;
-
 
 
 // =================================================
@@ -276,7 +286,7 @@ typedef enum DT_AVPixelFormat {
     DTAV_PIX_FMT_GBRP14LE,      ///< planar GBR 4:4:4 42bpp, little-endian
     DTAV_PIX_FMT_NB,            ///< number of pixel formats, DO NOT USE THIS if you want to link with shared libav* because the number of formats might differ between versions
 
-} dt_pixfmt_t;
+} dtp_pixfmt_t;
 
 enum {
     DT_SCREEN_MODE_NORMAL,
@@ -284,6 +294,19 @@ enum {
     DT_SCREEN_MODE_4_3,
     DT_SCREEN_MODE_16_9
 };
+
+typedef enum {
+    VO_ID_NULL = 0,
+    VO_ID_EX,            // ex vo need set to 0 default
+    VO_ID_SDL,
+    VO_ID_X11,
+    VO_ID_FB,
+    VO_ID_GL,
+    VO_ID_DIRECTX,
+    VO_ID_SDL2,
+    VO_ID_ANDROID = 0x100,
+    VO_ID_IOS = 0x200,
+} dtp_vo_t;
 
 // =================================================
 // AUDIO
@@ -372,17 +395,8 @@ typedef struct dtav_subtitle {
     int64_t pts;    ///< Same as packet pts, in AV_TIME_BASE
 } dtav_sub_frame_t;
 
+#ifdef  __cplusplus
+}
+#endif
 
-dt_av_frame_t *dtav_new_frame();
-int dtav_unref_frame(dt_av_frame_t *frame);
-int dtav_free_frame(dt_av_frame_t *frame);
-void dtav_clear_frame(void *frame);
-
-void *dt_malloc(size_t size);
-void dt_free(void *ptr);
-
-const char *dt_mediafmt2str(dtmedia_format_t format);
-const char *dt_afmt2str(dtaudio_format_t format);
-const char *dt_vfmt2str(dtvideo_format_t format);
-const char *dt_sfmt2str(dtsub_format_t format);
 #endif

@@ -1,16 +1,15 @@
 // dtp_api.cpp
 // TOP-LEVEL API provided for DtPlayer.java
 
+#include <dtp_state.h>
 #include "android_dtplayer.h"
-#include "android_jni.h"
-#include "../../../../3rd/libdtp/include/vo_wrapper.h"
 #include "gl_yuv.h"
 
 extern "C" {
 
 #include <android/log.h>
 #include <stdlib.h>
-#include "dt_lock.h"
+#include "jni_utils.h"
 
 #include "native_log.h"
 
@@ -25,7 +24,7 @@ extern "C" void ao_opensl_setup(ao_wrapper_t *ao);
 extern "C" void vd_stagefright_setup(vd_wrapper_t *vd);
 #endif
 
-void vo_android_setup(vo_wrapper_t **vo);
+void vo_android_setup(vo_wrapper_t *vo);
 
 namespace android {
 
@@ -39,8 +38,8 @@ namespace android {
               mDuration(-1),
               mDisplayHeight(0),
               mDisplayWidth(0) {
-        memset(&media_info, 0, sizeof(dt_media_info_t));
-        dt_lock_init(&dtp_mutex, NULL);
+        memset(&media_info, 0, sizeof(dtp_media_info_t));
+        lock_init(&dtp_mutex, NULL);
         LOGV("dtplayer constructor ok \n");
     }
 
@@ -53,8 +52,8 @@ namespace android {
               mDuration(-1),
               mDisplayHeight(0),
               mDisplayWidth(0) {
-        memset(&media_info, 0, sizeof(dt_media_info_t));
-        dt_lock_init(&dtp_mutex, NULL);
+        memset(&media_info, 0, sizeof(dtp_media_info_t));
+        lock_init(&dtp_mutex, NULL);
         mListenner = listenner;
         LOGV("dtplayer constructor ok \n");
     }
@@ -82,7 +81,7 @@ namespace android {
 
     int DTPlayer::setDataSource(const char *file_name) {
         int ret = 0;
-        dt_media_info_t info;
+        dtp_media_info_t info;
         dtplayer_para_t para;
         memset(&para, 0, sizeof(dtplayer_para_t));
         para.disable_audio = para.disable_video = para.disable_sub = -1;
@@ -116,7 +115,7 @@ namespace android {
         DTPlayer::status = 0;
         DTPlayer::mCurrentPosition = -1;
         DTPlayer::mSeekPosition = -1;
-        memset(&dtp_state, 0, sizeof(player_state_t));
+        memset(&dtp_state, 0, sizeof(dtp_state_t));
 
         handle = dtplayer_init(&para);
         if (!handle) {
@@ -131,7 +130,7 @@ namespace android {
         }
         //update dtPlayer info with mediainfo
 
-        memcpy(&media_info, &info, sizeof(dt_media_info_t));
+        memcpy(&media_info, &info, sizeof(dtp_media_info_t));
         mDuration = info.duration;
         mDtpHandle = handle;
         LOGV("Get Media Info Ok,filesize:%lld fulltime:%lld S \n", info.file_size, info.duration);
@@ -143,7 +142,7 @@ namespace android {
          * */
 #ifdef ENABLE_OPENSL
         ao_opensl_setup(&ao);
-        dtplayer_register_ext_ao(&ao);
+        dtplayer_register_plugin(DTP_PLUGIN_TYPE_AO, &ao);
 #endif
 
 #ifdef ENABLE_ANDROID_OMX
@@ -152,7 +151,7 @@ namespace android {
 #endif
 
         vo_android_setup(&vo);
-        dtplayer_register_ext_vo(vo);
+        dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo);
 
         status = PLAYER_INITED;
         return 0;
@@ -217,9 +216,9 @@ namespace android {
 
     int DTPlayer::pause() {
         void *handle = mDtpHandle;
-        dt_lock(&dtp_mutex);
+        lock(&dtp_mutex);
         if (!handle) {
-            dt_unlock(&dtp_mutex);
+            unlock(&dtp_mutex);
             return -1;
         }
         if (status == PLAYER_RUNNING) {
@@ -230,7 +229,7 @@ namespace android {
             status = PLAYER_RUNNING;
         }
 
-        dt_unlock(&dtp_mutex);
+        unlock(&dtp_mutex);
         return 0;
     }
 
@@ -240,7 +239,7 @@ namespace android {
         int ret = 0;
 
         LOGV("seekto %d s \n", pos);
-        dt_lock(&dtp_mutex);
+        lock(&dtp_mutex);
         if (!handle) {
             ret = -1;
             goto END;
@@ -268,7 +267,7 @@ namespace android {
         }
 
         END:
-        dt_unlock(&dtp_mutex);
+        unlock(&dtp_mutex);
         return 0;
     }
 
@@ -307,7 +306,7 @@ namespace android {
             return -1;
         }
 
-        vstream = media_info.vstreams[0];
+        vstream = media_info.tracks.vstreams[0];
 
         int orig_width = vstream->width;
         int orig_height = vstream->height;
@@ -335,7 +334,7 @@ namespace android {
                 return 0;
         }
 
-        dtplayer_set_video_size(handle, dw, dh);
+        //dtplayer_set_video_size(handle, dw, dh);
         return 0;
     }
 
@@ -344,7 +343,7 @@ namespace android {
         if (!handle) {
             return -1;
         }
-        dtplayer_set_video_size(handle, w, h);
+        //dtplayer_set_video_size(handle, w, h);
         return 0;
     }
 
@@ -354,10 +353,10 @@ namespace android {
         if (!handle) {
             return -1;
         }
-        if (media_info.vst_num == 0) {
+        if (media_info.tracks.vst_num == 0) {
             return -1;
         }
-        vstream = media_info.vstreams[0];
+        vstream = media_info.tracks.vstreams[0];
         return vstream->width;
     }
 
@@ -367,45 +366,45 @@ namespace android {
         if (!handle) {
             return -1;
         }
-        if (media_info.vst_num == 0) {
+        if (media_info.tracks.vst_num == 0) {
             return -1;
         }
-        vstream = media_info.vstreams[0];
+        vstream = media_info.tracks.vstreams[0];
         return vstream->height;
     }
 
     int DTPlayer::isPlaying() {
         void *handle = mDtpHandle;
         int isPlaying = 1;
-        dt_lock(&dtp_mutex);
+        lock(&dtp_mutex);
         if (!handle) {
-            dt_unlock(&dtp_mutex);
+            unlock(&dtp_mutex);
             return -1;
         }
         isPlaying = (status == PLAYER_RUNNING);
-        dt_unlock(&dtp_mutex);
+        unlock(&dtp_mutex);
         return isPlaying;
     }
 
     int DTPlayer::isQuitOK() {
         void *handle = mDtpHandle;
         int isQuitOK = 0;
-        dt_lock(&dtp_mutex);
+        lock(&dtp_mutex);
         if (!handle) {
-            dt_unlock(&dtp_mutex);
+            unlock(&dtp_mutex);
             return 1;
         }
         isQuitOK = (status == PLAYER_EXIT);
-        dt_unlock(&dtp_mutex);
+        unlock(&dtp_mutex);
         return isQuitOK;
     }
 
     int DTPlayer::getCurrentPosition() {
         void *handle = mDtpHandle;
         int cur_pos = -1;
-        dt_lock(&dtp_mutex);
+        lock(&dtp_mutex);
         if (!handle) {
-            dt_unlock(&dtp_mutex);
+            unlock(&dtp_mutex);
             return 0;
         }
         if (status == PLAYER_RUNNING) {
@@ -414,33 +413,33 @@ namespace android {
 
         cur_pos = mCurrentPosition;
         LOGV("getCurrentPos:%d status:%d \n", mCurrentPosition, status);
-        dt_unlock(&dtp_mutex);
+        unlock(&dtp_mutex);
         return cur_pos;
     }
 
     int DTPlayer::getDuration() {
         void *handle = mDtpHandle;
-        dt_lock(&dtp_mutex);
+        lock(&dtp_mutex);
         if (!handle) {
-            dt_unlock(&dtp_mutex);
+            unlock(&dtp_mutex);
             return 0;
         }
-        dt_unlock(&dtp_mutex);
+        unlock(&dtp_mutex);
         return mDuration;
 
     }
 
     int DTPlayer::setAudioEffect(int id) {
         void *handle = mDtpHandle;
-        dt_lock(&dtp_mutex);
+        lock(&dtp_mutex);
         if (!handle) {
-            dt_unlock(&dtp_mutex);
+            unlock(&dtp_mutex);
             return 0;
         }
 #ifdef ENABLE_DTAP
             dtap_change_effect(&ao, id);
 #endif
-        dt_unlock(&dtp_mutex);
+        unlock(&dtp_mutex);
         return 0;
     }
 
@@ -454,16 +453,16 @@ namespace android {
         return 0;
     }
 
-    int DTPlayer::notify(void *cookie, player_state_t *state) {
+    int DTPlayer::notify(void *cookie, dtp_state_t *state) {
         DTPlayer *dtp = (DTPlayer *) cookie;
-        dt_lock(&dtp->dtp_mutex);
+        lock(&dtp->dtp_mutex);
         int ret = 0;
         void *handle = dtp->mDtpHandle;
         if (dtp->status == PLAYER_STOPPED) {
             ret = -1;
             goto END;
         }
-        memcpy(&dtp->dtp_state, state, sizeof(player_state_t));
+        memcpy(&dtp->dtp_state, state, sizeof(dtp_state_t));
         if (state->cur_status == PLAYER_STATUS_EXIT) {
             LOGV("PLAYER EXIT OK\n");
             dtp->mListenner->notify(MEDIA_PLAYBACK_COMPLETE);
@@ -497,7 +496,7 @@ namespace android {
         LOGV("UPDATECB CURSTATUS:%x status:%d \n", state->cur_status, dtp->status);
         LOGV("CUR TIME %lld S  FULL TIME:%lld  \n", state->cur_time, state->full_time);
         END:
-        dt_unlock(&dtp->dtp_mutex);
+        unlock(&dtp->dtp_mutex);
         return ret;
     }
 

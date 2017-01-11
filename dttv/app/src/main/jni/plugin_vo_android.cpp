@@ -5,35 +5,29 @@
 #include <jni.h>
 #include <string.h>
 #include <android/log.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <vf_wrapper.h>
-#include <dt_av.h>
-#include <dtvideo_para.h>
 
-#include "dtvideo_android.h"
-extern  "C" {
-    #include "../../../../3rd/libdtp/include/vo_wrapper.h"
-    #include "../../../../3rd/libdtp/include/dtvideo_filter.h"
-    #include "dt_lock.h"
-};
+#include "dtp_av.h"
+#include "dtp_plugin.h"
+#include "dtp_vf.h"
+
 #include "gl_yuv.h"
+#include "jni_utils.h"
 
-static int vo_android_init(dtvideo_output_t *vout);
-static int vo_android_render(dtvideo_output_t *vout, dt_av_frame_t *frame);
-static int vo_android_stop(dtvideo_output_t *vout);
+static int vo_android_init(vo_wrapper_t *vout);
+static int vo_android_render(vo_wrapper_t *vout, dt_av_frame_t *frame);
+static int vo_android_stop(vo_wrapper_t *vout);
 
 struct vo_info {
     int dx, dy, dw, dh;
-    dt_lock_t mutex;
+    lock_t mutex;
 };
 
 vo_wrapper_t vo_android = {
         .id = 0x100,//VO_ID_ANDROID,
         .name = "vo android",
-        .vo_init = vo_android_init,
-        .vo_stop = vo_android_stop,
-        .vo_render = vo_android_render,
+        .init = vo_android_init,
+        .stop = vo_android_stop,
+        .render = vo_android_render,
 };
 
 static dtvideo_filter_t glvf;
@@ -58,21 +52,21 @@ static void dump_frame(dt_av_frame_t *pFrame, int width, int height, int iFrame)
     fclose(pFile);
 }
 
-static int vo_android_init(dtvideo_output_t *vout) {
+static int vo_android_init(vo_wrapper_t *vout) {
     struct vo_info *info = (struct vo_info *) malloc(sizeof(struct vo_info));
     vo_android.handle = info;
     info->dx = 0;
     info->dy = 0;
-    info->dw = vout->para->d_width;
-    info->dh = vout->para->d_height;
+    info->dw = vout->para.d_width;
+    info->dh = vout->para.d_height;
     memset(&glvf, 0, sizeof(dtvideo_filter_t));
-    memcpy(&glvf.para, vout->para, sizeof(dtvideo_para_t));
-    dt_lock_init(&info->mutex, NULL);
+    memcpy(&glvf.para, &vout->para, sizeof(dtvideo_para_t));
+    lock_init(&info->mutex, NULL);
     LOGV("android vo init OK, w:%d h:%d\n", info->dw, info->dh);
     return 0;
 }
 
-static int vo_android_render(dtvideo_output_t *vout, dt_av_frame_t *frame) {
+static int vo_android_render(vo_wrapper_t *vout, dt_av_frame_t *frame) {
     struct vo_info *info = (struct vo_info *) vo_android.handle;
 
     // reset vf and window size
@@ -90,14 +84,14 @@ static int vo_android_render(dtvideo_output_t *vout, dt_av_frame_t *frame) {
 
     video_filter_process(vf, frame);
     int size = info->dw * info->dh * 3 / 2; // yuv 420 size
-    dt_lock(&info->mutex);
+    lock(&info->mutex);
     yuv_update_frame(frame);
     frame->data[0] = NULL;
-    dt_unlock(&info->mutex);
+    unlock(&info->mutex);
     return 0;
 }
 
-static int vo_android_stop(dtvideo_output_t *vout) {
+static int vo_android_stop(vo_wrapper_t *vout) {
     struct vo_info *info = (struct vo_info *) vo_android.handle;
     free(info);
     vo_android.handle = NULL;
@@ -106,7 +100,7 @@ static int vo_android_stop(dtvideo_output_t *vout) {
     return 0;
 }
 
-void vo_android_setup(vo_wrapper_t **vo) {
-    *vo = &vo_android;
+void vo_android_setup(vo_wrapper_t *vo) {
+    *vo = vo_android;
     return;
 }

@@ -5,7 +5,7 @@
 #ifndef GLES2JNI_GL_YUV_H
 #define GLES2JNI_GL_YUV_H
 
-#include "../../../../3rd/libdtp/include/dt_av.h"
+#include "../../../../3rd/libdtp/include/dtp_av.h"
 
 void yuv_dttv_init();
 

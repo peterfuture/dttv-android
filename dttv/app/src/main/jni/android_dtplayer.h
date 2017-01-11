@@ -2,12 +2,15 @@
 #define ANDROID_DTPLAYER_H
 
 #include "android_jni.h"
+#include "jni_utils.h"
 
 extern "C" {
-#include "dtplayer_api.h"
+#include "dtp.h"
+#include "dtp_plugin.h"
 #include "dtaudio_android.h"
 #include "dtvideo_android.h"
 }
+
 namespace android {
 
     const static int MEDIA_PREPARED = 1;
@@ -76,7 +79,7 @@ namespace android {
 
         int Notify(int msg);
 
-        static int notify(void *cookie, player_state_t *state);
+        static int notify(void *cookie, dtp_state_t *state);
 
     private:
 
@@ -92,7 +95,7 @@ namespace android {
             PLAYER_EOS = 0x200,
         };
 
-        dt_media_info_t media_info;
+        dtp_media_info_t media_info;
 
         int status;
         void *mDtpHandle;
@@ -104,13 +107,12 @@ namespace android {
         int mDuration;
         void *mGLContext;
         dtpListenner *mListenner;
-        dt_lock_t dtp_mutex;
-        player_state_t dtp_state;
+        lock_t dtp_mutex;
+        dtp_state_t dtp_state;
         int mHWEnable;
         int volume;
         ao_wrapper_t ao;
-        vo_wrapper_t *vo;
-        vd_wrapper_t vd;
+        vo_wrapper_t vo;
         int audio_pp_id;   // audio effect id
     };
 

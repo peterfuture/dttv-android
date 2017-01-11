@@ -21,8 +21,9 @@
 
 #include "gl_util.h"
 #include "gl_yuv.h"
-#include "../../../../3rd/libdtp/include/dt_av.h"
+#include "../../../../3rd/libdtp/include/dtp_av.h"
 #include "android_dtplayer.h"
+#include "jni_utils.h"
 
 using namespace android;
 
@@ -246,13 +247,13 @@ bool yuv_setupGraphics(int w, int h) {
 }
 
 static dt_av_frame_t g_frame;
-static dt_lock_t mutex;
+static lock_t mutex;
 static int frame_valid = 0;
 static int g_inited = 0;
 static android::DTPlayer *g_dtp;
 
 void yuv_dttv_init() {
-    dt_lock_init(&mutex, NULL);
+    lock_init(&mutex, NULL);
     memset(&g_frame, 0, sizeof(dt_av_frame_t));
     frame_valid = 0;
     g_inited = 1;
@@ -280,14 +281,14 @@ int yuv_update_frame(dt_av_frame_t *frame) {
         return 0;
     }
 
-    dt_lock(&mutex);
+    lock(&mutex);
     // check frame not displayed
     if (frame_valid == 1 && g_frame.data) {
         free(g_frame.data[0]);
     }
     memcpy(&g_frame, frame, sizeof(dt_av_frame_t));
     frame_valid = 1;
-    dt_unlock(&mutex);
+    unlock(&mutex);
 
     if (!g_dtp) {
         LOGV("mp null \n");
@@ -303,7 +304,7 @@ void yuv_renderFrame() {
     if (frame_valid != 1) {
         return;
     }
-    dt_lock(&mutex);
+    lock(&mutex);
     uint8_t *data = (uint8_t *) (g_frame.data[0]);
     int width = g_frame.width;
     int height = g_frame.height;
@@ -326,6 +327,6 @@ void yuv_renderFrame() {
     free(data);
     frame_valid = 0;
     memset(&g_frame, 0, sizeof(dt_av_frame_t));
-    dt_unlock(&mutex);
+    unlock(&mutex);
     LOGV("Draw one frame");
 }

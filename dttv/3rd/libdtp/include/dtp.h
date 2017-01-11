@@ -1,33 +1,49 @@
-#ifndef DTPLAYER_API_H
-#define DTPLAYER_API_H
+#ifndef DTP_H
+#define DTP_H
 
-#include "dtplayer_para.h"
-#include "stream_wrapper.h"
-#include "demuxer_wrapper.h"
-#include "ad_wrapper.h"
-#include "ao_wrapper.h"
-#include "vd_wrapper.h"
-#include "vo_wrapper.h"
-#include "vf_wrapper.h"
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
+#include "dtp_av.h"
+#include "dtp_state.h"
+#include "dtp_plugin.h"
+
+typedef int (*dtp_update_cb)(void *cookie, dtp_state_t * sta);
+
+typedef struct dtplayer_para {
+    char *file_name;
+    int video_index;
+    int audio_index;
+    int sub_index;
+
+    int loop_mode;
+    int disable_audio;
+    int disable_video;
+    int disable_sub;
+    int disable_avsync;
+    int disable_hw_acodec;
+    int disable_hw_vcodec;
+    int disable_hw_scodec;
+    int video_pixel_format;
+
+    int width;
+    int height;
+
+    dtp_update_cb update_cb;
+    void *cookie;
+} dtplayer_para_t;
+
 /*
- * DTPLAYER API DEFINITION
+ * DTP - API
  *
  * */
 
 /*
- * register external module
- * including ao vo ad vd stream demuxer
- * supporting third-party develop
+ * register external plugin to dtplayer
  *
  * */
-
-void dtplayer_register_ext_stream(stream_wrapper_t *wrapper);
-void dtplayer_register_ext_demuxer(demuxer_wrapper_t *wrapper);
-void dtplayer_register_ext_ao(ao_wrapper_t *wrapper);
-void dtplayer_register_ext_ad(ad_wrapper_t *wrapper);
-void dtplayer_register_ext_vo(vo_wrapper_t *wrapper);
-void dtplayer_register_ext_vd(vd_wrapper_t *wrapper);
-void dtplayer_register_ext_vf(vf_wrapper_t *wrapper);
+void dtplayer_register_plugin(dtp_plugin_type_t type, void *plugin);
 
 /*
  * do global initialization of dtplayer.
@@ -49,19 +65,29 @@ void *dtplayer_init(dtplayer_para_t * para);
  * @return ret - 0 success , negtive failed
  *
  * */
-int dtplayer_get_mediainfo(void *handle, dt_media_info_t *info);
+int dtplayer_get_mediainfo(void *handle, dtp_media_info_t *info);
 
 /*
- * Note: will be removed soon
- * set Video Size:
+ * query dtplayer information:
  *
  * @param handle - dtplayer handle
- * @param width  - dst width
- * @param height - dst height
+ * @param cmd - query info type
+ * @param reply - reply from dtp
  * @return ret - 0 success , negtive failed
  *
  * */
-int dtplayer_set_video_size(void *handle, int w, int h);
+int dtplayer_get_parameter(void *handle, int cmd, unsigned long reply);
+
+/*
+ * affect dtplayer with request:
+ *
+ * @param handle - dtplayer handle
+ * @param cmd - query info type
+ * @param request - parameter from user
+ * @return ret - 0 success , negtive failed
+ *
+ * */
+int dtplayer_set_parameter(void *handle, int cmd, unsigned long request);
 
 /*
  * start playing:
@@ -105,17 +131,6 @@ int dtplayer_resume(void *handle);
 int dtplayer_stop(void *handle);
 
 /*
- * seek:
- * seek to (cur_time + step), not recommended, will remove later
- *
- * @param handle - dtplayer handle
- * @param step - step
- * @return ret - 0 success , negtive failed
- *
- * */
-int dtplayer_seek(void *handle, int step);
-
-/*
  * seekto:
  * seek to dest_pos, recommended API
  *
@@ -128,13 +143,17 @@ int dtplayer_seekto(void *handle, int dest_pos);
 
 /*
  * dtplayer states update:
- * called by user, get dtplayer states, for more details refer to player_state_t definition
+ * called by user, get dtplayer states, for more details refer to dtp_state_t definition
  *
  * @param handle - dtplayer handle
  * @param state
  * @return ret - 0 success , negtive failed
  *
  * */
-int dtplayer_get_states(void *handle, player_state_t * state);
+int dtplayer_get_states(void *handle, dtp_state_t * state);
+
+#ifdef  __cplusplus
+}
+#endif
 
 #endif

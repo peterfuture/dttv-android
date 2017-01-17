@@ -32,9 +32,9 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import dttv.app.DtPlayer;
-import dttv.app.DtPlayer.OnCompletionListener;
-import dttv.app.DtPlayer.OnPreparedListener;
+import dttv.app.MediaPlayer;
+import dttv.app.MediaPlayer.OnCompletionListener;
+import dttv.app.MediaPlayer.OnPreparedListener;
 import dttv.app.R;
 import dttv.app.impl.I_OnMyKey;
 import dttv.app.utils.Constant;
@@ -90,8 +90,8 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey, OnClickListe
     @Override
     public void onResume() {
         // TODO Auto-generated method stub
-        /*if(dtPlayer!=null)
-			dtPlayer.start();*/
+        /*if(MediaPlayer!=null)
+			MediaPlayer.start();*/
         super.onResume();
     }
 
@@ -209,7 +209,7 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey, OnClickListe
 	}*/
 	
 	/*private void playSong(int index){
-		dtPlayer.stop();
+		MediaPlayer.stop();
 		String uri = playList.get(index);
 		Log.i(TAG, "setDataSource uri is:"+uri);
 		if(uri==null){
@@ -219,11 +219,11 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey, OnClickListe
 			//Toast.makeText(getActivity(), uri, 1).show();
 		}
 		try {
-			//dtPlayer.release();
-			dtPlayer.reset();		
-			if(dtPlayer.setDataSource(uri) == -1)
+			//MediaPlayer.release();
+			MediaPlayer.reset();		
+			if(MediaPlayer.setDataSource(uri) == -1)
 				return;
-			dtPlayer.prepare();
+			MediaPlayer.prepare();
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -250,11 +250,11 @@ public class AudioUIFragment extends Fragment implements I_OnMyKey, OnClickListe
 	
 	/*private void handlePausePlay(){
 		try {
-			if(dtPlayer.isPlaying()){
-				dtPlayer.pause();
+			if(MediaPlayer.isPlaying()){
+				MediaPlayer.pause();
 				pauseBtn.setBackgroundResource(R.drawable.btn_mu_pause);
 			}else{
-				dtPlayer.pause();
+				MediaPlayer.pause();
 				pauseBtn.setBackgroundResource(R.drawable.btn_mu_play);
 			}
 		} catch (IllegalStateException e) {

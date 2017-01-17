@@ -34,7 +34,12 @@ struct fields_t {
 static fields_t fields;
 lock_t mutex;
 static JavaVM *gvm = NULL;
-static const char *const kClassName = "dttv/app/DtPlayer";
+static const char *const kClassName = "dttv/app/MediaPlayer";
+
+enum {
+    KEY_PARAMETER_USEHWCODEC = 0x0,
+    KEY_PARAMETER_MAX
+};
 
 extern "C" int av_jni_set_java_vm(void *vm, void *log_ctx);
 
@@ -98,7 +103,7 @@ static DTPlayer *getMediaPlayer(JNIEnv *env, jobject thiz) {
 }
 
 
-static void android_dttv_native_init(JNIEnv *env) {
+static void jni_dttv_init(JNIEnv *env) {
     jclass clazz;
 
     clazz = env->FindClass(kClassName);
@@ -119,7 +124,7 @@ static void android_dttv_native_init(JNIEnv *env) {
 
 }
 
-static int android_dttv_native_setup(JNIEnv *env, jobject obj, jobject weak_thiz) {
+static int jni_dttv_setup(JNIEnv *env, jobject obj, jobject weak_thiz) {
 
     dtpListenner *listenner = new dtpListenner(env, obj, weak_thiz);
 
@@ -135,7 +140,7 @@ static int android_dttv_native_setup(JNIEnv *env, jobject obj, jobject weak_thiz
     return 0;
 }
 
-static int android_dttv_native_hw_enable(JNIEnv *env, jobject thiz, jint enable) {
+static int jni_dttv_hw_enable(JNIEnv *env, jobject thiz, jint enable) {
     LOGV("Enter hw codec enable set, enable:%d ", enable);
 
     DTPlayer *mp = getMediaPlayer(env, thiz);
@@ -147,7 +152,7 @@ static int android_dttv_native_hw_enable(JNIEnv *env, jobject thiz, jint enable)
     return mp->setHWEnable(enable);
 }
 
-static int android_dttv_native_release(JNIEnv *env, jobject thiz) {
+static int jni_dttv_release(JNIEnv *env, jobject thiz) {
     DTPlayer *mp = setMediaPlayer(env, thiz, 0);
     if (mp) {
         delete mp;
@@ -155,7 +160,7 @@ static int android_dttv_native_release(JNIEnv *env, jobject thiz) {
     return 0;
 }
 
-int android_dttv_native_setDataSource(JNIEnv *env, jobject thiz, jstring url) {
+void jni_dttv_set_datasource(JNIEnv *env, jobject thiz, jstring url) {
     int ret = 0;
     jboolean isCopy;
     const char *file_name = env->GetStringUTFChars(url, &isCopy);
@@ -164,17 +169,17 @@ int android_dttv_native_setDataSource(JNIEnv *env, jobject thiz, jstring url) {
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
         LOGV("setDataSource, failed, mp == null ");
-        return -1;
+        return;
     }
 
     ret = mp->setDataSource(file_name);
     if (ret < 0) {
         LOGV("setDataSource, failed, ret:%d ", ret);
     }
-    return ret;
+    return;
 }
 
-int android_dttv_native_prePare(JNIEnv *env, jobject thiz) {
+int jni_dttv_prePare(JNIEnv *env, jobject thiz) {
     LOGV("Enter prePare");
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
@@ -185,7 +190,7 @@ int android_dttv_native_prePare(JNIEnv *env, jobject thiz) {
     return 0;
 }
 
-int android_dttv_native_prepareAsync(JNIEnv *env, jobject thiz) {
+int jni_dttv_prepareAsync(JNIEnv *env, jobject thiz) {
     LOGV("Enter prePareAsync");
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
@@ -195,7 +200,7 @@ int android_dttv_native_prepareAsync(JNIEnv *env, jobject thiz) {
     return 0;
 }
 
-int android_dttv_native_start(JNIEnv *env, jobject thiz) {
+int jni_dttv_start(JNIEnv *env, jobject thiz) {
     LOGV("Enter start");
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
@@ -204,7 +209,7 @@ int android_dttv_native_start(JNIEnv *env, jobject thiz) {
     return mp->start();
 }
 
-int android_dttv_native_pause(JNIEnv *env, jobject thiz) {
+int jni_dttv_pause(JNIEnv *env, jobject thiz) {
     LOGV("Enter pause");
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
@@ -213,7 +218,7 @@ int android_dttv_native_pause(JNIEnv *env, jobject thiz) {
     return mp->pause();
 }
 
-int android_dttv_native_seekTo(JNIEnv *env, jobject thiz, jint pos) {
+int jni_dttv_seekTo(JNIEnv *env, jobject thiz, jint pos) {
     LOGV("Enter seekTo pos:%d s", pos);
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
@@ -222,7 +227,7 @@ int android_dttv_native_seekTo(JNIEnv *env, jobject thiz, jint pos) {
     return mp->seekTo(pos);
 }
 
-int android_dttv_native_stop(JNIEnv *env, jobject thiz) {
+int jni_dttv_stop(JNIEnv *env, jobject thiz) {
     LOGV("Enter stop ");
     int ret = 0;
     DTPlayer *mp = getMediaPlayer(env, thiz);
@@ -242,7 +247,7 @@ int android_dttv_native_stop(JNIEnv *env, jobject thiz) {
     return 0;
 }
 
-int android_dttv_native_reset(JNIEnv *env, jobject thiz) {
+int jni_dttv_reset(JNIEnv *env, jobject thiz) {
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
         return -1;
@@ -250,19 +255,15 @@ int android_dttv_native_reset(JNIEnv *env, jobject thiz) {
     return mp->reset();
 }
 
-void android_dttv_native_releaseSurface(JNIEnv *env, jobject thiz) {
+void jni_dttv_releaseSurface(JNIEnv *env, jobject thiz) {
 
 }
 
-int android_dttv_native_setVideoSize(JNIEnv *env, jobject obj, int w, int h) {
+int jni_dttv_setVideoSize(JNIEnv *env, jobject obj, int w, int h) {
     return 0;
 }
 
-int android_dttv_native_setVideoMode(JNIEnv *env, jobject obj, int mode) {
-    return 0;
-}
-
-int android_dttv_native_getVideoWidth(JNIEnv *env, jobject thiz) {
+int jni_dttv_get_video_width(JNIEnv *env, jobject thiz) {
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
         return -1;
@@ -270,7 +271,7 @@ int android_dttv_native_getVideoWidth(JNIEnv *env, jobject thiz) {
     return mp->getVideoWidth();
 }
 
-int android_dttv_native_getVideoHeight(JNIEnv *env, jobject thiz) {
+int jni_dttv_get_video_height(JNIEnv *env, jobject thiz) {
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
         return -1;
@@ -278,7 +279,7 @@ int android_dttv_native_getVideoHeight(JNIEnv *env, jobject thiz) {
     return mp->getVideoHeight();
 }
 
-int android_dttv_native_isPlaying(JNIEnv *env, jobject thiz) {
+int jni_dttv_is_playing(JNIEnv *env, jobject thiz) {
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
         return -1;
@@ -286,7 +287,7 @@ int android_dttv_native_isPlaying(JNIEnv *env, jobject thiz) {
     return mp->isPlaying();
 }
 
-int android_dttv_native_getCurrentPosition(JNIEnv *env, jobject thiz) {
+int jni_dttv_get_current_position(JNIEnv *env, jobject thiz) {
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
         return -1;
@@ -294,7 +295,7 @@ int android_dttv_native_getCurrentPosition(JNIEnv *env, jobject thiz) {
     return mp->getCurrentPosition();
 }
 
-int android_dttv_native_getDuration(JNIEnv *env, jobject thiz) {
+int jni_dttv_get_duration(JNIEnv *env, jobject thiz) {
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
         return -1;
@@ -302,11 +303,20 @@ int android_dttv_native_getDuration(JNIEnv *env, jobject thiz) {
     return mp->getDuration();
 }
 
-int android_dttv_native_getInfo(JNIEnv *env, jobject thiz, int cmd, jlong arg) {
-    return 0;
-}
+int jni_dttv_set_parameter(JNIEnv *env, jobject thiz, int cmd, jlong arg1, jlong arg2) {
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if (mp == NULL) {
+        LOGV("set parameter failed.mp == null.");
+        return -1;
+    }
 
-int android_dttv_native_setInfo(JNIEnv *env, jobject thiz, int cmd, jlong arg) {
+    switch (cmd) {
+        case KEY_PARAMETER_USEHWCODEC:
+            mp->setHWEnable(arg1);
+            break;
+        default:
+            break;
+    }
     return 0;
 }
 
@@ -328,7 +338,7 @@ int jni_gl_draw_frame(JNIEnv *env, jobject thiz) {
     return 0;
 }
 
-static int android_dttv_native_setAudioEffect(JNIEnv *env, jobject thiz, jint id) {
+static int jni_dttv_set_audio_effect(JNIEnv *env, jobject thiz, jint id) {
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
         LOGV("setDataSource, failed, mp == null ");
@@ -339,34 +349,30 @@ static int android_dttv_native_setAudioEffect(JNIEnv *env, jobject thiz, jint id
 }
 
 static JNINativeMethod g_Methods[] = {
-        {"native_init",               "()V",                   (void *) android_dttv_native_init},
-        {"native_setup",              "(Ljava/lang/Object;)I", (void *) android_dttv_native_setup},
-        {"native_hw_enable",          "(I)I",                  (void *) android_dttv_native_hw_enable},
-        {"native_release",            "()I",                   (void *) android_dttv_native_release},
-        {"native_setDataSource",      "(Ljava/lang/String;)I", (void *) android_dttv_native_setDataSource},
-        {"native_prePare",            "()I",                   (void *) android_dttv_native_prePare},
-        {"native_prePareAsync",       "()I",                   (void *) android_dttv_native_prepareAsync},
-        {"native_start",              "()I",                   (void *) android_dttv_native_start},
-        {"native_pause",              "()I",                   (void *) android_dttv_native_pause},
-        {"native_seekTo",             "(I)I",                  (void *) android_dttv_native_seekTo},
-        {"native_stop",               "()I",                   (void *) android_dttv_native_stop},
-        {"native_reset",              "()I",                   (void *) android_dttv_native_reset},
-        {"native_setVideoMode",       "(I)I",                  (void *) android_dttv_native_setVideoMode},
-        {"native_setVideoSize",       "(II)I",                 (void *) android_dttv_native_setVideoSize},
-        {"native_getVideoWidth",      "()I",                   (void *) android_dttv_native_getVideoWidth},
-        {"native_getVideoHeight",     "()I",                   (void *) android_dttv_native_getVideoHeight},
-        {"native_isPlaying",          "()I",                   (void *) android_dttv_native_isPlaying},
-        {"native_getCurrentPosition", "()I",                   (void *) android_dttv_native_getCurrentPosition},
-        {"native_getDuration",        "()I",                   (void *) android_dttv_native_getDuration},
+        {"native_init",                 "()V",                   (void *) jni_dttv_init},
+        {"native_setup",                "(Ljava/lang/Object;)I", (void *) jni_dttv_setup},
+        {"native_release",              "()I",                   (void *) jni_dttv_release},
+        {"native_set_datasource",       "(Ljava/lang/String;)V", (void *) jni_dttv_set_datasource},
+        {"native_prepare",              "()I",                   (void *) jni_dttv_prePare},
+        {"native_prepare_async",        "()I",                   (void *) jni_dttv_prepareAsync},
+        {"native_start",                "()I",                   (void *) jni_dttv_start},
+        {"native_pause",                "()I",                   (void *) jni_dttv_pause},
+        {"native_seekTo",               "(I)I",                  (void *) jni_dttv_seekTo},
+        {"native_stop",                 "()I",                   (void *) jni_dttv_stop},
+        {"native_reset",                "()I",                   (void *) jni_dttv_reset},
+        {"native_get_video_width",      "()I",                   (void *) jni_dttv_get_video_width},
+        {"native_get_video_height",     "()I",                   (void *) jni_dttv_get_video_height},
+        {"native_is_playing",           "()I",                   (void *) jni_dttv_is_playing},
+        {"native_get_current_position", "()I",                   (void *) jni_dttv_get_current_position},
+        {"native_get_duration",         "()I",                   (void *) jni_dttv_get_duration},
 
-        {"native_getInfo",            "(IJ)I",                 (void *) android_dttv_native_getInfo},
-        {"native_setInfo",            "(IJ)I",                 (void *) android_dttv_native_setInfo},
+        {"native_set_parameter",        "(IJJ)I",                (void *) jni_dttv_set_parameter},
 
-        {"native_surface_create",     "()I",                   (void *) jni_gl_surface_create},
-        {"native_surface_change",     "(II)I",                 (void *) jni_gl_surface_change},
-        {"native_draw_frame",         "()I",                   (void *) jni_gl_draw_frame},
+        {"native_surface_create",       "()I",                   (void *) jni_gl_surface_create},
+        {"native_surface_change",       "(II)I",                 (void *) jni_gl_surface_change},
+        {"native_draw_frame",           "()I",                   (void *) jni_gl_draw_frame},
 
-        {"native_setAudioEffect",     "(I)I",                  (void *) android_dttv_native_setAudioEffect},
+        {"native_set_audio_effect",     "(I)I",                  (void *) jni_dttv_set_audio_effect},
 };
 
 static int register_natives(JNIEnv *env) {

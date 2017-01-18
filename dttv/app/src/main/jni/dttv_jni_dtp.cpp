@@ -2,26 +2,15 @@
 // TOP-LEVEL API provided for DtPlayer.java
 
 #include <dtp_state.h>
-#include "android_dtplayer.h"
-#include "gl_yuv.h"
+#include <dtp_audio_plugin.h>
+#include <dtp_video_plugin.h>
+#include <plugin/gl_yuv.h>
+#include "dttv_jni_dtp.h"
 
-extern "C" {
-
-#include <android/log.h>
-#include <stdlib.h>
-#include "jni_utils.h"
-
-#include "native_log.h"
-
-}
 #define TAG "NATIVE-DTP"
 
-extern "C" int dtap_change_effect(ao_wrapper_t *wrapper, int id);
 #ifdef ENABLE_OPENSL
 extern "C" void ao_opensl_setup(ao_wrapper_t *ao);
-#endif
-#ifdef ENABLE_ANDROID_OMX
-extern "C" void vd_stagefright_setup(vd_wrapper_t *vd);
 #endif
 
 void vo_android_setup(vo_wrapper_t *vo);
@@ -43,7 +32,7 @@ namespace android {
         LOGV("dtplayer constructor ok \n");
     }
 
-    DTPlayer::DTPlayer(dtpListenner *listenner)
+    DTPlayer::DTPlayer(dttvListenner *listenner)
             : status(0),
               mHWEnable(1),
               mDtpHandle(NULL),
@@ -74,7 +63,7 @@ namespace android {
         return 0;
     }
 
-    int DTPlayer::setListenner(dtpListenner *listenner) {
+    int DTPlayer::setListenner(dttvListenner *listenner) {
         LOGV("[%d:%p] [%d:%p]", sizeof(mListenner), this->mListenner, sizeof(listenner), listenner);
         this->mListenner = listenner;
     }
@@ -143,11 +132,6 @@ namespace android {
 #ifdef ENABLE_OPENSL
         ao_opensl_setup(&ao);
         dtplayer_register_plugin(DTP_PLUGIN_TYPE_AO, &ao);
-#endif
-
-#ifdef ENABLE_ANDROID_OMX
-        vd_stagefright_setup(&vd);
-        dtplayer_register_ext_vd(&vd);
 #endif
 
         vo_android_setup(&vo);

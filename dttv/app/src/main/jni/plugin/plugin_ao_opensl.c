@@ -5,10 +5,10 @@
 
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
-
-#include "../dtaudio_android.h"
-#include "../jni_utils.h"
-
+#include <dtp_audio_plugin.h>
+#include <dtp_av.h>
+#include "../dttv_jni_utils.h"
+#include "../dttv_jni_log.h"
 
 #define OPENSLES_BUFFERS 255 /* maximum number of buffers */
 #define OPENSLES_BUFLEN  10   /* ms */
@@ -105,8 +105,6 @@ typedef struct{
 }audio_effect_t;
 
 #endif
-
-#include "../native_log.h"
 
 #define TAG "AO-OPENSL"
 
@@ -238,7 +236,7 @@ static int Play(ao_wrapper_t *aout, uint8_t *buf, int size) {
 
 static void PlayedCallback(SLAndroidSimpleBufferQueueItf caller, void *pContext) {
     (void) caller;
-    ao_wrapper_t *aout = pContext;
+    ao_wrapper_t *aout = (ao_wrapper_t *)pContext;
     aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
 
     assert (caller == sys->playerBufferQueue);
@@ -365,7 +363,7 @@ static int Start(ao_wrapper_t *aout) {
     /* XXX: rounding shouldn't affect us at normal sampling rate */
     sys->rate = para->dst_samplerate;
     sys->samples_per_buf = OPENSLES_BUFLEN * para->dst_samplerate / 1000;
-    sys->buf = malloc(OPENSLES_BUFFERS * sys->samples_per_buf * bytesPerSample(aout));
+    sys->buf = (uint8_t *)malloc(OPENSLES_BUFFERS * sys->samples_per_buf * bytesPerSample(aout));
     if (!sys->buf)
         goto error;
 
@@ -419,14 +417,14 @@ static int Open(ao_wrapper_t *aout) {
         goto error;
     }
 
-    sys->slCreateEnginePtr = dlsym(sys->p_so_handle, "slCreateEngine");
+    sys->slCreateEnginePtr = (slCreateEngine_t)dlsym(sys->p_so_handle, "slCreateEngine");
     if (sys->slCreateEnginePtr == NULL) {
         goto error;
     }
 
 #define OPENSL_DLSYM(dest, name)                       \
     do {                                                       \
-        const SLInterfaceID *sym = dlsym(sys->p_so_handle, "SL_IID_"name);        \
+        const SLInterfaceID *sym = (SLInterfaceID *)dlsym(sys->p_so_handle, "SL_IID_" name);        \
         if ((sym == NULL))                             \
         {                                                      \
             goto error;                                        \
@@ -559,9 +557,10 @@ static int ao_opensl_level(ao_wrapper_t *aout) {
     int level = sys->samples * bytesPerSample(aout);
     const int unit_size = sys->samples_per_buf * bytesPerSample(aout);
     SLAndroidSimpleBufferQueueState st;
+    SLresult res;
     if (!sys->started)
         goto END;
-    SLresult res = GetState(sys->playerBufferQueue, &st);
+    res = GetState(sys->playerBufferQueue, &st);
     if ((res != SL_RESULT_SUCCESS)) {
         goto END;
     }

@@ -3,47 +3,32 @@
 #include <assert.h>
 #include <unistd.h>
 
-#include "native_log.h"
-#include "android_dtplayer.h"
-#include "android_jni.h"
-#include "gl_yuv.h"
-#include "jni_utils.h"
-
-#include "native_log.h"
-
-
+#include <plugin/gl_yuv.h>
+#include "dttv_jni_dtp.h"
 
 #define TAG "DTTV-JNI"
 
-#ifndef NELEM
-#define NELEM(x) ((int)(sizeof(x) / sizeof((x)[0])))
-#endif
-
 using namespace android;
-
-struct fields_t {
-    jfieldID context;
-    jfieldID surface_texture;
-
-    jmethodID post_event;
-
-    jmethodID proxyConfigGetHost;
-    jmethodID proxyConfigGetPort;
-    jmethodID proxyConfigGetExclusionList;
-};
-static fields_t fields;
-lock_t mutex;
-static JavaVM *gvm = NULL;
-static const char *const kClassName = "dttv/app/MediaPlayer";
 
 enum {
     KEY_PARAMETER_USEHWCODEC = 0x0,
     KEY_PARAMETER_MAX
 };
 
-extern "C" int av_jni_set_java_vm(void *vm, void *log_ctx);
+struct fields_t {
+    jfieldID context;
+    jfieldID surface_texture;
+    jmethodID post_event;
+};
 
-dtpListenner::dtpListenner(JNIEnv *env, jobject thiz, jobject weak_thiz) {
+static fields_t fields;
+static lock_t mutex;
+static JavaVM *gvm = NULL;
+
+// ------------------------------------------------------
+// CallBack Listenner Impl
+
+dttvListenner::dttvListenner(JNIEnv *env, jobject thiz, jobject weak_thiz) {
     jclass clazz = env->GetObjectClass(thiz);
     if (clazz == NULL) {
         LOGV("can not find DtPlayer \n ");
@@ -51,16 +36,30 @@ dtpListenner::dtpListenner(JNIEnv *env, jobject thiz, jobject weak_thiz) {
     }
     mClass = (jclass) env->NewGlobalRef(clazz);
     mObject = env->NewGlobalRef(weak_thiz);
-    LOGV("dttv listenner construct ok");
+    LOGV("dttv listenner construct.");
 }
 
-dtpListenner::~dtpListenner() {
-    //    JNIEnv *env = AndroidRuntime::getJNIEnv();
-    //    env->DeleteGlobalRef(mObject);
-    //    env->DeleteGlobalRef(mClass);
+dttvListenner::~dttvListenner() {
+    int isAttached = 0;
+    JNIEnv *env = NULL;
+    if (gvm->GetEnv((void **) &env, JNI_VERSION_1_4) != JNI_OK) {
+        LOGV("jvm getenv failed use AttachCurrentThread \n ");
+        if (gvm->AttachCurrentThread(&env, NULL) != JNI_OK) {
+            LOGV("jvm AttachCurrentThread failed \n ");
+            return;
+        }
+        isAttached = 1;
+    }
+
+    if (isAttached < 0)
+        return;
+
+    env->DeleteGlobalRef(mObject);
+    env->DeleteGlobalRef(mClass);
+    LOGV("dttv listenner destruct.");
 }
 
-int dtpListenner::notify(int msg, int ext1, int ext2) {
+int dttvListenner::notify(int msg, int ext1, int ext2) {
     JNIEnv *env = NULL;
     int isAttached = 0;
     if (gvm->GetEnv((void **) &env, JNI_VERSION_1_4) != JNI_OK) {
@@ -87,26 +86,29 @@ int dtpListenner::notify(int msg, int ext1, int ext2) {
     return 0;
 }
 
+// ------------------------------------------------------
+
 static DTPlayer *setMediaPlayer(JNIEnv *env, jobject thiz, DTPlayer *player) {
+    DTPlayer *old = NULL;
     lock(&mutex);
-    DTPlayer *old = (DTPlayer *) env->GetLongField(thiz, fields.context);
+    old = (DTPlayer *) env->GetLongField(thiz, fields.context);
     env->SetLongField(thiz, fields.context, (jlong) player);
     unlock(&mutex);
     return old;
 }
 
 static DTPlayer *getMediaPlayer(JNIEnv *env, jobject thiz) {
+    DTPlayer *dtp = NULL;
     lock(&mutex);
-    DTPlayer *dtp = (DTPlayer *) env->GetLongField(thiz, fields.context);
+    dtp = (DTPlayer *) env->GetLongField(thiz, fields.context);
     unlock(&mutex);
     return dtp;
 }
 
-
 static void jni_dttv_init(JNIEnv *env) {
     jclass clazz;
 
-    clazz = env->FindClass(kClassName);
+    clazz = env->FindClass("dttv/app/MediaPlayer");
     if (clazz == NULL) {
         return;
     }
@@ -126,30 +128,18 @@ static void jni_dttv_init(JNIEnv *env) {
 
 static int jni_dttv_setup(JNIEnv *env, jobject obj, jobject weak_thiz) {
 
-    dtpListenner *listenner = new dtpListenner(env, obj, weak_thiz);
-
+    dttvListenner *listenner = new dttvListenner(env, obj, weak_thiz);
     DTPlayer *mp = new DTPlayer(listenner);
     if (mp == NULL) {
         //jniThrowExcption(env, "java/lang/RuntimeException", "Out of memory");
-        LOGV("Error: dtplayer create failed");
+        LOGV("Error: dtplayer create failed.");
+        delete listenner;
         return -1;
     }
     //mp->setListenner(listenner);
     setMediaPlayer(env, obj, mp);
     LOGV("native dttv setup ok");
     return 0;
-}
-
-static int jni_dttv_hw_enable(JNIEnv *env, jobject thiz, jint enable) {
-    LOGV("Enter hw codec enable set, enable:%d ", enable);
-
-    DTPlayer *mp = getMediaPlayer(env, thiz);
-    if (mp == NULL) {
-        LOGV("set hw enable failed, mp == null ");
-        return -1;
-    }
-
-    return mp->setHWEnable(enable);
 }
 
 static int jni_dttv_release(JNIEnv *env, jobject thiz) {
@@ -179,7 +169,7 @@ void jni_dttv_set_datasource(JNIEnv *env, jobject thiz, jstring url) {
     return;
 }
 
-int jni_dttv_prePare(JNIEnv *env, jobject thiz) {
+int jni_dttv_prepare(JNIEnv *env, jobject thiz) {
     LOGV("Enter prePare");
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
@@ -190,7 +180,7 @@ int jni_dttv_prePare(JNIEnv *env, jobject thiz) {
     return 0;
 }
 
-int jni_dttv_prepareAsync(JNIEnv *env, jobject thiz) {
+int jni_dttv_prepareasync(JNIEnv *env, jobject thiz) {
     LOGV("Enter prePareAsync");
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
@@ -253,14 +243,6 @@ int jni_dttv_reset(JNIEnv *env, jobject thiz) {
         return -1;
     }
     return mp->reset();
-}
-
-void jni_dttv_releaseSurface(JNIEnv *env, jobject thiz) {
-
-}
-
-int jni_dttv_setVideoSize(JNIEnv *env, jobject obj, int w, int h) {
-    return 0;
 }
 
 int jni_dttv_get_video_width(JNIEnv *env, jobject thiz) {
@@ -353,8 +335,8 @@ static JNINativeMethod g_Methods[] = {
         {"native_setup",                "(Ljava/lang/Object;)I", (void *) jni_dttv_setup},
         {"native_release",              "()I",                   (void *) jni_dttv_release},
         {"native_set_datasource",       "(Ljava/lang/String;)V", (void *) jni_dttv_set_datasource},
-        {"native_prepare",              "()I",                   (void *) jni_dttv_prePare},
-        {"native_prepare_async",        "()I",                   (void *) jni_dttv_prepareAsync},
+        {"native_prepare",              "()I",                   (void *) jni_dttv_prepare},
+        {"native_prepare_async",        "()I",                   (void *) jni_dttv_prepareasync},
         {"native_start",                "()I",                   (void *) jni_dttv_start},
         {"native_pause",                "()I",                   (void *) jni_dttv_pause},
         {"native_seekTo",               "(I)I",                  (void *) jni_dttv_seekTo},
@@ -375,15 +357,20 @@ static JNINativeMethod g_Methods[] = {
         {"native_set_audio_effect",     "(I)I",                  (void *) jni_dttv_set_audio_effect},
 };
 
+#define NELEM(x) ((int)(sizeof(x) / sizeof((x)[0])))
+extern "C" int av_jni_set_java_vm(void *vm, void *log_ctx);
+
 static int register_natives(JNIEnv *env) {
     jclass clazz;
-    clazz = env->FindClass(kClassName);
+    clazz = env->FindClass("dttv/app/MediaPlayer");
     if (clazz == NULL) {
-        fprintf(stderr, "Native registration unable to find class '%s'\n", kClassName);
+        LOGV("Native registration unable to find MediaPlayer class.\n");
         return JNI_FALSE;
     }
+
+
     if (env->RegisterNatives(clazz, g_Methods, NELEM(g_Methods)) < 0) {
-        fprintf(stderr, "RegisterNatives failed for '%s'\n", kClassName);
+        LOGV("RegisterNatives failed.\n");
         return JNI_FALSE;
     }
 
@@ -406,13 +393,9 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
         goto bail;
     }
 
-    /* success -- return valid version number */
     result = JNI_VERSION_1_4;
     lock_init(&mutex, NULL);
-
     av_jni_set_java_vm(vm, reserved);
     bail:
     return result;
 }
-
-

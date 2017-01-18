@@ -1,15 +1,12 @@
-#ifndef ANDROID_DTPLAYER_H
-#define ANDROID_DTPLAYER_H
+#ifndef DTTV_JNI_DTP_H
+#define DTTV_JNI_DTP_H
 
-#include "android_jni.h"
-#include "jni_utils.h"
-
-extern "C" {
 #include "dtp.h"
 #include "dtp_plugin.h"
-#include "dtaudio_android.h"
-#include "dtvideo_android.h"
-}
+
+#include "dttv_jni_log.h"
+#include "dttv_jni.h"
+#include "dttv_jni_utils.h"
 
 namespace android {
 
@@ -31,13 +28,13 @@ namespace android {
     public:
         DTPlayer();
 
-        DTPlayer(dtpListenner *listenner);
+        DTPlayer(dttvListenner *listenner);
 
         ~DTPlayer();
 
         int setGLContext(void *pgl);
 
-        int setListenner(dtpListenner *listenner);
+        int setListenner(dttvListenner *listenner);
 
         int setDataSource(const char *uri);
 
@@ -106,7 +103,7 @@ namespace android {
         int mSeekPosition;
         int mDuration;
         void *mGLContext;
-        dtpListenner *mListenner;
+        dttvListenner *mListenner;
         lock_t dtp_mutex;
         dtp_state_t dtp_state;
         int mHWEnable;

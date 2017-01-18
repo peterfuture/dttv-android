@@ -1,17 +1,15 @@
-#include "native_log.h"
-
 #define TAG "VO-ANDROID"
 
-#include <jni.h>
 #include <string.h>
 #include <android/log.h>
 
 #include "dtp_av.h"
 #include "dtp_plugin.h"
 #include "dtp_vf.h"
-
 #include "gl_yuv.h"
-#include "jni_utils.h"
+#include "../dttv_jni_utils.h"
+#include "../dttv_jni_log.h"
+
 
 static int vo_android_init(vo_wrapper_t *vout);
 static int vo_android_render(vo_wrapper_t *vout, dt_av_frame_t *frame);

@@ -632,7 +632,6 @@ public class MediaPlayer {
 
     public native int native_set_parameter(int cmd, long arg1, long arg2);
 
-
     //opengl esv2
     public native int native_surface_create();
 

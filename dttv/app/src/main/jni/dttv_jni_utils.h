@@ -1,5 +1,5 @@
-#ifndef ANDROID_UTILS_H
-#define ANDROID_UTILS_H
+#ifndef DTTV_JNI_UTILS_H
+#define DTTV_JNI_UTILS_H
 
 #ifdef  __cplusplus
 extern "C" {

@@ -1,5 +1,5 @@
 #include "stdlib.h"
-#include "jni_utils.h"
+#include "dttv_jni_utils.h"
 
 #define MIN(x,y)    ((x)<(y)?(x):(y))
 #define MAX(x,y)    ((x)>(y)?(x):(y))

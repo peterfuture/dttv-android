@@ -108,7 +108,7 @@ static DTPlayer *getMediaPlayer(JNIEnv *env, jobject thiz) {
 static void jni_dttv_init(JNIEnv *env) {
     jclass clazz;
 
-    clazz = env->FindClass("dttv/app/MediaPlayer");
+    clazz = env->FindClass("app/dttv/dttvlib/MediaPlayer");
     if (clazz == NULL) {
         return;
     }
@@ -362,7 +362,7 @@ extern "C" int av_jni_set_java_vm(void *vm, void *log_ctx);
 
 static int register_natives(JNIEnv *env) {
     jclass clazz;
-    clazz = env->FindClass("dttv/app/MediaPlayer");
+    clazz = env->FindClass("app/dttv/dttvlib/MediaPlayer");
     if (clazz == NULL) {
         LOGV("Native registration unable to find MediaPlayer class.\n");
         return JNI_FALSE;

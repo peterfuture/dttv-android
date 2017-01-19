@@ -41,9 +41,12 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import dttv.app.MediaPlayer.OnCompletionListener;
-import dttv.app.MediaPlayer.OnFreshVideo;
-import dttv.app.MediaPlayer.OnPreparedListener;
+
+import app.dttv.dttvlib.MediaPlayer;
+import app.dttv.dttvlib.MediaPlayer.OnCompletionListener;
+import app.dttv.dttvlib.MediaPlayer.OnPreparedListener;
+import app.dttv.dttvlib.MediaPlayer.OnFreshVideo;
+
 import dttv.app.compnent.PopWindowCompnent;
 import dttv.app.impl.ICallBack;
 import dttv.app.utils.Constant;
@@ -517,18 +520,16 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     @Override
     public void onClick(View v) {
         //showAudioEffect(false);
-        switch (v.getId()) {
-            case R.id.videoplayer_button_back:
-                handleBack();
-                break;
-            case R.id.videoplayer_button_pause:
-                handlePausePlay();
-                break;
+        int i = v.getId();
+        if (i == R.id.videoplayer_button_back) {
+            handleBack();
 
-            case R.id.videoplayer_button_ratio:
-                //setVideoScale(temp_flag);
-                handleRatioChange();
-                break;
+        } else if (i == R.id.videoplayer_button_pause) {
+            handlePausePlay();
+
+        } else if (i == R.id.videoplayer_button_ratio) {//setVideoScale(temp_flag);
+            handleRatioChange();
+
         }
     }
 

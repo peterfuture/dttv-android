@@ -9,10 +9,7 @@
 
 #define TAG "NATIVE-DTP"
 
-#ifdef ENABLE_OPENSL
 extern "C" void ao_opensl_setup(ao_wrapper_t *ao);
-#endif
-
 void vo_android_setup(vo_wrapper_t *vo);
 
 namespace android {
@@ -129,10 +126,8 @@ namespace android {
          *  register plugin - [AO AD AF - VO VD VF]
          *
          * */
-#ifdef ENABLE_OPENSL
         ao_opensl_setup(&ao);
         dtplayer_register_plugin(DTP_PLUGIN_TYPE_AO, &ao);
-#endif
 
         vo_android_setup(&vo);
         dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo);

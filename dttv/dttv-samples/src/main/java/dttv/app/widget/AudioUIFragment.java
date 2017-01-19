@@ -1,21 +1,15 @@
 package dttv.app.widget;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Audio.Media;
 import android.support.v4.app.Fragment;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,25 +17,17 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import dttv.app.MediaPlayer;
-import dttv.app.MediaPlayer.OnCompletionListener;
-import dttv.app.MediaPlayer.OnPreparedListener;
 import dttv.app.R;
 import dttv.app.impl.I_OnMyKey;
 import dttv.app.utils.Constant;
 import dttv.app.utils.MusicUtils;
 import dttv.app.utils.PlayerUtil;
 import dttv.app.utils.SettingUtil;
-import dttv.app.utils.TimesUtil;
 
 
 @SuppressLint("NewApi")

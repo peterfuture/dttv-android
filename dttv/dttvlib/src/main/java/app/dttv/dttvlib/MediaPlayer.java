@@ -1,5 +1,6 @@
-package dttv.app;
+package app.dttv.dttvlib;
 
+import android.os.PowerManager;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -11,28 +12,17 @@ import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
-import android.graphics.Bitmap;
-import android.graphics.Interpolator;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.PowerManager;
 import android.view.Surface;
 import android.view.SurfaceHolder;
-import android.widget.Toast;
 
-import dttv.app.utils.Constant;
-import dttv.app.utils.FileUtils;
-import dttv.app.utils.Log;
+import app.dttv.dttvlib.utils.Log;
+import app.dttv.dttvlib.utils.FileUtils;
 
-/**
- * @author shihx1
- * @email
- * @date 2014-7-17
- * @purpose making up a standard class likes android
- */
 public class MediaPlayer {
 
     private final static String TAG = "MediaPlayer";
@@ -83,8 +73,6 @@ public class MediaPlayer {
     private Surface mSurface;
 
     static {
-        System.loadLibrary("dtp");
-        //System.loadLibrary("dtap");
         System.loadLibrary("dttv_jni");
         native_init();
     }
@@ -582,7 +570,7 @@ public class MediaPlayer {
      * @return
      */
     public int setAuxEffectSendLevel(int type) {
-        Log.d(Constant.LOGTAG, "setaudio effect:" + type);
+        Log.d(TAG, "setaudio effect:" + type);
         return native_set_audio_effect(type);
     }
 

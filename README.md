@@ -21,7 +21,7 @@ developed with  [dtplayer](https://github.com/peterfuture/dtplayer_c).
 >
 * build [ffmpeg](https://github.com/peterfuture/ffmpeg_android)
 * build [dtplayer](https://github.com/peterfuture/dtplayer_c)
-* copy libdtp.so to dttv/3rd/libdtp/armeabi-v7a/
+* copy libdtp.so to dttv/dttvlib/distribution/libdtp/lib/armeabi-v7a/
 * build dttv with android studio
 * apk: dttv/app/build/outputs/apk/app-debug.apk
 

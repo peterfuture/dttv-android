@@ -38,10 +38,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter> -->
         </activity>
-        <activity
+        <!--<activity
             android:name="dttv.app.FileShowActivity"
             android:screenOrientation="portrait"
-            android:configChanges="orientation|keyboardHidden"></activity>
+            android:configChanges="orientation|keyboardHidden"></activity>-->
         <activity
             android:name="dttv.app.MainActivity"
             android:screenOrientation="portrait"

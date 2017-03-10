@@ -225,25 +225,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
         mSeekBarProgress = (SeekBar) mLinearLayoutControlPanel.findViewById(R.id.videoplayer_seekbar_progress);
 
-/*
-        mBarView = (View) findViewById(R.id.audio_player_bar_lay);
-        mLinearLayoutControlPanel = (RelativeLayout) mBarView.findViewById(R.id.audio_player_bar_lay);
-        mRelativeLayoutRootView = (RelativeLayout) findViewById(R.id.videoplayer_layout_rootview);
-        mLinearLayoutTopBar = (RelativeLayout) findViewById(R.id.videoplayer_top_bar);
-        mTextViewUrl = (TextView) findViewById(R.id.videoplayer_url);
-        mTextViewDecoderType = (TextView) findViewById(R.id.mTextViewDecoderType);
-        mButtonRotate = (ImageButton) findViewById(R.id.dt_player_rotate_btn);
-        mTextViewCurrentTime = (TextView) mBarView.findViewById(R.id.dt_play_current_time);
-        mTextViewDuration = (TextView) mBarView.findViewById(R.id.dt_play_total_time);
-        mButtonPre = (ImageButton) mBarView.findViewById(R.id.dt_play_prev_btn);
-        mButtonPause = (ImageButton) mBarView.findViewById(R.id.dt_play_pause_btn);
-        mButtonNext = (ImageButton) mBarView.findViewById(R.id.dt_play_next_btn);
-        mButtonAudioEffect = (Button) mBarView.findViewById(R.id.dt_play_effect_btn);
-        mButtonRatio = (ImageButton) mBarView.findViewById(R.id.dt_play_ratio_btn);
-        mButtonRatio.setBackgroundResource(R.drawable.dt_player_control_ratio_16_9);
-        mSeekBarProgress = (SeekBar) mBarView.findViewById(R.id.dt_play_progress_seekbar);
-*/
-
         mProgressBarBright = (ProgressBar) findViewById(R.id.videoplayer_bright_progressbar);
         mProgressBarVolume = (ProgressBar) findViewById(R.id.videoplayer_volume_progress);
 

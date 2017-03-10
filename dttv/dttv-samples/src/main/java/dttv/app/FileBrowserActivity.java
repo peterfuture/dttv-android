@@ -39,6 +39,7 @@ import dttv.app.utils.Constant;
 import dttv.app.utils.PlayerUtil;
 import dttv.app.utils.SettingUtil;
 import dttv.app.utils.StorageUtils;
+import dttv.app.widget.AddUrlDialog;
 
 import android.content.ActivityNotFoundException;
 
@@ -73,6 +74,8 @@ public class FileBrowserActivity extends Activity {
     private static final String FILEINFO_KEY_DATE_SORT = "fileinfo_item_date_sort";
     private static final String FILEINFO_KEY_SIZE_DISPLAY = "fileinfo_item_size_display";
     private static final String FILEINFO_KEY_SIZE_SORT = "fileinfo_item_size_sort";
+
+    private static final String CON_UDP = "UDP";
 
     public static String mCurrentPath = ROOT;
 
@@ -190,6 +193,7 @@ public class FileBrowserActivity extends Activity {
     protected void updateMenu(Menu menu) {
         menu.clear();
         menu.add("Setting").setShowAsAction(MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+        menu.add(CON_UDP).setShowAsAction(MenuItem.SHOW_AS_ACTION_WITH_TEXT);
     }
 
     @Override
@@ -214,8 +218,15 @@ public class FileBrowserActivity extends Activity {
         if (!TextUtils.isEmpty(res) && res.equals("Setting")) {
             openSettingUI();
         }
+
+        if (!TextUtils.isEmpty(res) && res.equals(CON_UDP)) {
+            AddUrlDialog dialog = new AddUrlDialog(this);
+            dialog.show();
+        }
         return super.onOptionsItemSelected(item);
     }
+
+
 
     @Override
     public void onPause() {

@@ -3,6 +3,7 @@ package dttv.app.utils;
 import dttv.app.VideoPlayerActivity;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 
 public class PlayerUtil {
@@ -18,7 +19,7 @@ public class PlayerUtil {
     }
 
 
-    public void beginToPlayer(Activity cr, String uri, String name, int type) {
+    public void beginToPlayer(Context cr, String uri, String name, int type) {
         Intent intent = new Intent();
         intent.putExtra(Constant.FILE_MSG, uri);
         intent.putExtra(Constant.FILE_TYPE, type);

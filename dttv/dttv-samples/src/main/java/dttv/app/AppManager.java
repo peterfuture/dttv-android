@@ -79,7 +79,7 @@ public class AppManager {
     public void AppExit(Context context){
         try {
             finishAllActivity();
-            android.os.Process.killProcess(Process.myPid());
+            Process.killProcess(Process.myPid());
             System.exit(0);
         }catch (Exception e){}
     }

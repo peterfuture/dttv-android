@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:background="@color/white"
+    android:orientation="horizontal">
+    <EditText
+        android:id="@+id/ed_coupon_no"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:gravity="center_vertical"
+        android:textSize="16sp"
+        android:hint="请输入URL"
+        android:inputType="text"
+        android:maxLength="20"
+        android:paddingLeft="14dp" />
+    <Button
+        android:id="@+id/dialog_button_ok"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textColor="#4C79FF"
+        android:textSize="16sp"
+        android:text="添加"/>
+</LinearLayout>

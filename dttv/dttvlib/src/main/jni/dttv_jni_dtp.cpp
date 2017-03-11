@@ -9,8 +9,8 @@
 
 #define TAG "NATIVE-DTP"
 
-extern "C" void ao_opensl_setup(ao_wrapper_t *ao);
-void vo_android_setup(vo_wrapper_t *vo);
+extern vo_wrapper_t vo_android;
+extern ao_wrapper_t ao_opensl_ops;
 
 namespace android {
 
@@ -121,16 +121,11 @@ namespace android {
         mDtpHandle = handle;
         LOGV("Get Media Info Ok,filesize:%lld fulltime:%lld S \n", info.file_size, info.duration);
 
-        /*
-         *
-         *  register plugin - [AO AD AF - VO VD VF]
-         *
-         * */
-        ao_opensl_setup(&ao);
-        dtplayer_register_plugin(DTP_PLUGIN_TYPE_AO, &ao);
 
-        vo_android_setup(&vo);
-        dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo);
+        // register external module
+
+        dtplayer_register_plugin(DTP_PLUGIN_TYPE_AO, &ao_opensl_ops);
+        dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android);
 
         status = PLAYER_INITED;
         return 0;

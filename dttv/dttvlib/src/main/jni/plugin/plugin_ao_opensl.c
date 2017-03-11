@@ -646,24 +646,6 @@ static int ao_opensl_get_parameter(ao_wrapper_t *ao, int cmd, unsigned long arg)
     return 0;
 }
 
-
-
-const char *ao_opensl_name = "OPENSL AO";
-
-void ao_opensl_setup(ao_wrapper_t *ao) {
-    if (!ao) return;
-    ao->id = AO_ID_OPENSL;
-    ao->name = ao_opensl_name;
-    ao->init = ao_opensl_init;
-    ao->pause = ao_opensl_pause;
-    ao->resume = ao_opensl_resume;
-    ao->stop = ao_opensl_stop;
-    ao->write = ao_opensl_write;
-    ao->get_parameter = ao_opensl_get_parameter;
-    ao->set_parameter = ao_opensl_set_parameter;
-    return;
-}
-
 ao_wrapper_t ao_opensl_ops = {
         .id = AO_ID_OPENSL,
         .name = "opensl es",

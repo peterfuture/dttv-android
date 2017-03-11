@@ -4,25 +4,28 @@
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
     android:background="@color/white"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:weightSum="6">
     <EditText
         android:id="@+id/ed_coupon_no"
-        android:layout_width="300dp"
+        android:layout_width="0dp"
         android:layout_height="50dp"
+        android:layout_weight="5"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:gravity="center_vertical"
         android:textSize="16sp"
-        android:hint="请输入URL"
+        android:text="udp://239.1.1.1:1234"
         android:inputType="text"
         android:maxLength="20"
         android:paddingLeft="14dp" />
     <Button
         android:id="@+id/dialog_button_ok"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:layout_marginTop="10dp"
         android:textColor="#4C79FF"
         android:textSize="16sp"

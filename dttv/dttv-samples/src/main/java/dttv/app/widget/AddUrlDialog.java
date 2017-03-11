@@ -92,7 +92,7 @@ public class AddUrlDialog extends BaseDialog {
                     String uri = ed_coupon_no.getEditableText().toString();
                     String name = "自测地址";
                     PlayerUtil.getInstance().beginToPlayer(context, uri, name, Constant.LOCAL_VIDEO);
-                    dismiss();
+                    closeDialog();
                 }
             }
         });

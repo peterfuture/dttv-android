@@ -17,7 +17,8 @@ typedef enum {
     DTP_PLUGIN_TYPE_STREAM,
     DTP_PLUGIN_TYPE_DEMUXER,
     DTP_PLUGIN_TYPE_MAX,
-} dtp_plugin_type_t;
+}
+dtp_plugin_type_t;
 
 
 #ifdef  __cplusplus

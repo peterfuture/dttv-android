@@ -16,7 +16,8 @@ typedef enum {
     DT_SYNC_AUDIO_MASTER,
     DT_SYNC_VIDEO_MASTER,
     DT_SYNC_EXTERNAL_CLOCK,
-} dtp_sync_mode_t;
+}
+dtp_sync_mode_t;
 
 typedef struct {
     int num;
@@ -99,6 +100,7 @@ typedef struct {
     int64_t file_size;
     int bit_rate;
     dtp_media_format_t format;
+    int livemode;
 
     int nb_stream;
     int has_video;
@@ -151,12 +153,14 @@ typedef struct {
     int adec_bps;
     int adec_error_count;
     int adec_status;
+    int64_t adec_last_ms;
 
     int vdec_width;
     int vdec_height;
     int vdec_fps;
     int vdec_error_count;
     int vdec_status;
+    int64_t vdec_last_ms;
 
     int sdec_width;
     int sdec_height;

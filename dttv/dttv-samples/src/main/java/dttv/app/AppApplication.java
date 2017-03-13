@@ -17,7 +17,7 @@ public class AppApplication extends Application {
     public void onCreate() {
         super.onCreate();
         this.mContext = this;
-        CrashHandler.getInstance().init(this);//初始化全局异常管理
+        //CrashHandler.getInstance().init(this);//初始化全局异常管理
     }
 
     public static Context getContext(){

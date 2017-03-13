@@ -118,7 +118,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
     /*varibles*/
 
-    private MediaPlayer MediaPlayer;
+    private MediaPlayer mMediaPlayer;
     private String mPath;
     private int mState = PLAYER_IDLE;
     private int mSeekFlag = 0;
@@ -157,7 +157,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             return;
         }
 
-        /*MediaPlayer need to init prior to mGLSurfaceView*/
+        /*mMediaPlayer need to init prior to mGLSurfaceView*/
         mState = PLAYER_IDLE;
 
         mSettingUtil = new SettingUtil(this);
@@ -165,12 +165,19 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         mHWCodecEnable = mSettingUtil.isHWCodecEnable();
         Log.i(TAG, "getDisplaymode: " + mDisplayMode + " HWCodec Enable:" + mHWCodecEnable);
 
-        MediaPlayer = new MediaPlayer(this, mHWCodecEnable!=0);
+        mMediaPlayer = new MediaPlayer(this, mHWCodecEnable!=0);
 
         getWindow().setBackgroundDrawableResource(R.color.videoplayer_background);
         initView();
         initDisplay();
+        /*new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        }).start();*/
         setDataSource();
+
         prepare();
         initListener();
     }
@@ -257,15 +264,15 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         mTextViewUrl.setText(mediaName);
 
         //----------------------add type--------------------------------------
-        Toast.makeText(this, "playing:" + mPath, 1).show();
+        //Toast.makeText(this, "playing:" + mPath, 1).show();
         try {
             mState = PLAYER_INIT_START;
-            MediaPlayer.setDataSource(mPath);
+            mMediaPlayer.setDataSource(mPath);
             mState = PLAYER_INITED;
 
             //setup video size
-            int width = MediaPlayer.getVideoWidth();
-            int height = MediaPlayer.getVideoHeight();
+            int width = mMediaPlayer.getVideoWidth();
+            int height = mMediaPlayer.getVideoHeight();
             if (mDisplayMode == VIDEOPLAYER_DISPLAY_FULLSCREEN) {
                 width = mScreenWidth;
                 height = mScreenHeight;
@@ -302,7 +309,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private void prepare() {
         try {
             mState = PLAYER_PREPAR;
-            MediaPlayer.prepareAsync();
+            mMediaPlayer.prepareAsync();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -310,9 +317,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     }
 
     private void initListener() {
-        MediaPlayer.setOnPreparedListener(new PrePareListener());
-        MediaPlayer.setOnFreshVideo(new FreshVideo());
-        MediaPlayer.setOnCompletionListener(new OnCompleteListener());
+        mMediaPlayer.setOnPreparedListener(new PrePareListener());
+        mMediaPlayer.setOnFreshVideo(new FreshVideo());
+        mMediaPlayer.setOnCompletionListener(new OnCompleteListener());
 
         mSeekBarProgress.setOnSeekBarChangeListener(new OnSeekChangeListener());
 /*
@@ -342,7 +349,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             // TODO Auto-generated method stub
             Log.i(TAG, "enter onPrepared");
             mState = PLAYER_PREPARED;
-            MediaPlayer.start();
+            mMediaPlayer.start();
             mState = PLAYER_RUNNING;
             int duration = mp.getDuration();
             if (duration > 0) {
@@ -378,7 +385,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             // TODO Auto-generated method stub
             if (mSeekFlag == 1) {
                 //int currentTime = seekBar.getProgress();
-                //MediaPlayer.seekTo(currentTime);
+                //mMediaPlayer.seekTo(currentTime);
             }
         }
 
@@ -393,8 +400,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             // TODO Auto-generated method stub
             mState = PLAYER_SEEKING;
             int currentTime = seekBar.getProgress();
-            MediaPlayer.seekTo(currentTime);
-            MediaPlayer.start();
+            mMediaPlayer.seekTo(currentTime);
+            mMediaPlayer.start();
             mSeekFlag = 0;
         }
 
@@ -403,9 +410,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if (MediaPlayer != null) {
-            MediaPlayer.seekTo(mCurrentPosition);
-            MediaPlayer.start();
+        if (mMediaPlayer != null) {
+            mMediaPlayer.seekTo(mCurrentPosition);
+            mMediaPlayer.start();
         }
     }
 
@@ -416,9 +423,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             int msgId = msg.what;
             switch (msgId) {
                 case Constant.REFRESH_TIME_MSG:
-                    int currentTime = MediaPlayer.getCurrentPosition();
+                    int currentTime = mMediaPlayer.getCurrentPosition();
                     mCurrentPosition = currentTime;
-                    int duration = MediaPlayer.getDuration();
+                    int duration = mMediaPlayer.getDuration();
                     if (currentTime < 0)
                         currentTime = 0;
                     if (currentTime > duration)
@@ -468,7 +475,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     public void onPause() {
         releaseTimerAndHandler();
         mGLSurfaceView.onPause();
-        MediaPlayer.pause();
+        mMediaPlayer.pause();
         super.onPause();
         if (mState == PLAYER_PAUSED)
             mState = PLAYER_RUNNING;
@@ -481,10 +488,10 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     protected void onResume() {
         super.onResume();
         //mGLSurfaceView.onResume();
-        Log.i(TAG, "enter onResume MediaPlayer is:" + MediaPlayer);
-        if (MediaPlayer != null) {
-            MediaPlayer.seekTo(mCurrentPosition);
-            MediaPlayer.start();
+        Log.i(TAG, "enter onResume mMediaPlayer is:" + mMediaPlayer);
+        if (mMediaPlayer != null) {
+            mMediaPlayer.seekTo(mCurrentPosition);
+            mMediaPlayer.start();
         }
     }
 
@@ -492,8 +499,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     protected void onStop() {
         Log.i(TAG, "enterStop");
         mState = PLAYER_STOP;
-        //MediaPlayer.release();
-        MediaPlayer.stop();
+        //mMediaPlayer.release();
+        mMediaPlayer.stop();
         super.onStop();
     }
 
@@ -531,8 +538,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 String effectStr = effectTxt.getText().toString();
                 String effectStr2 = Constant.gEqulizerPresets[position];
                 //Toast.makeText(mActivity, "effectStr is:"+effectStr+"-0-0 effectStr2 is:"+effectStr2, Toast.LENGTH_LONG).show();
-                if (MediaPlayer != null) {
-                    MediaPlayer.setAuxEffectSendLevel(position);
+                if (mMediaPlayer != null) {
+                    mMediaPlayer.setAuxEffectSendLevel(position);
                     mButtonAudioEffect.setText(effectStr);
                 }
             }
@@ -571,11 +578,11 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
     private void handlePausePlay() {
         try {
-            if (MediaPlayer.isPlaying()) {
-                MediaPlayer.pause();
+            if (mMediaPlayer.isPlaying()) {
+                mMediaPlayer.pause();
                 mButtonPause.setBackgroundResource(R.drawable.videoplayer_button_pause);
             } else {
-                MediaPlayer.start();
+                mMediaPlayer.start();
                 mButtonPause.setBackgroundResource(R.drawable.videoplayer_button_play);
             }
         } catch (IllegalStateException e) {
@@ -596,8 +603,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             } else {
                 mDisplayMode = VIDEOPLAYER_DISPLAY_ORIGINAL;
                 mButtonRatio.setBackgroundResource(R.drawable.videoplayer_button_ratio_normal);
-                layoutParams.width = MediaPlayer.getVideoWidth();
-                layoutParams.height = MediaPlayer.getVideoHeight();
+                layoutParams.width = mMediaPlayer.getVideoWidth();
+                layoutParams.height = mMediaPlayer.getVideoHeight();
             }
 
             mGLSurfaceView.setLayoutParams(layoutParams);
@@ -610,9 +617,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     @Override
     protected void onDestroy() {
         Log.i(TAG, "enter onDestroy");
-        MediaPlayer.stop();
-        MediaPlayer.release();
-        MediaPlayer = null;
+        mMediaPlayer.stop();
+        mMediaPlayer.release();
+        mMediaPlayer = null;
         super.onDestroy();
     }
 
@@ -667,7 +674,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             Log.i(TAG, "gl create enter");
             //gl.glClearColor(0.0f, 0f, 1f, 0.5f); // display blue at first
             //gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-            MediaPlayer.onSurfaceCreated();
+            mMediaPlayer.onSurfaceCreated();
 
         }
 
@@ -676,7 +683,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             //other case
             lock.lock();
             Log.i(TAG, "gl surface change enter, width:" + width + " height:" + height);
-            MediaPlayer.onSurfaceChanged(width, height);
+            mMediaPlayer.onSurfaceChanged(width, height);
             mSurfaceWidth = width;
             mSurfaceHeight = height;
 
@@ -691,7 +698,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             //gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
             //Log.i(TAG, "draw enter");
             lock.lock();
-            MediaPlayer.onDrawFrame();
+            mMediaPlayer.onDrawFrame();
             lock.unlock();
         }
     }
@@ -727,8 +734,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 mButtonRatio.setBackgroundResource(R.drawable.dt_player_control_ratio_1_1);
                 break;
             case SCREEN_ORIGINAL:
-                lp.width = MediaPlayer.getVideoWidth();
-                lp.height = MediaPlayer.getVideoHeight();
+                lp.width = mMediaPlayer.getVideoWidth();
+                lp.height = mMediaPlayer.getVideoHeight();
                 mButtonRatio.setBackgroundResource(R.drawable.dt_player_control_ratio_16_9);
                 break;
             case SCREEN_FULLSCREEN:

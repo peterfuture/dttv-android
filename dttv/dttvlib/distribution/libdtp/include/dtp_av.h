@@ -40,7 +40,8 @@ typedef enum {
     DTP_MEDIA_TYPE_SUBTITLE,
     DTP_MEDIA_TYPE_ATTACHMENT,
     DTP_MEDIA_TYPE_NB
-} dtp_media_type_t;
+}
+dtp_media_type_t;
 
 typedef enum {
     DTP_MEDIA_FORMAT_INVALID = -1,

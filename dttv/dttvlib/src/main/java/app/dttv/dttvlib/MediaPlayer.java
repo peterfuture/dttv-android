@@ -96,7 +96,7 @@ public class MediaPlayer {
 
         int ret = native_setup(new WeakReference<MediaPlayer>(this));
         Log.d(TAG, "Native Setup.ret:" + ret);
-        if (ret > 0) {
+        if (ret >= 0) {
             native_set_parameter(KEY_PARAMETER_USEHWCODEC, mUseHwCodec ? 1 : 0, 0);
         }
     }

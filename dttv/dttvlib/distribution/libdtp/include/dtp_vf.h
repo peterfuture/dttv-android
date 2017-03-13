@@ -11,7 +11,8 @@ typedef enum {
     VF_STATUS_ERROR   = -1,
     VF_STATUS_IDLE    = 0,
     VF_STATUS_RUNNING = 1
-} vf_status_t;
+}
+vf_status_t;
 
 typedef struct dtvideo_filter {
     dtvideo_para_t para;

@@ -102,7 +102,10 @@ typedef struct {
 // VIDEO
 typedef enum {
     DT_VIDEO_FORMAT_INVALID = -1,
+    DT_VIDEO_FORMAT_MPEG2,
+    DT_VIDEO_FORMAT_MPEG4,
     DT_VIDEO_FORMAT_H264,
+    DT_VIDEO_FORMAT_HEVC,
     DT_VIDEO_FORMAT_UNKOWN,
 } dtvideo_format_t;
 

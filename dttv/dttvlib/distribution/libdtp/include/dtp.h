@@ -131,6 +131,16 @@ int dtplayer_resume(void *handle);
 int dtplayer_stop(void *handle);
 
 /*
+ * stop player in async mode:
+ * send quit cmd and return
+ *
+ * @param handle - dtplayer handle
+ * @return ret - 0 success , negtive failed
+ *
+ * */
+int dtplayer_stop_async(void *handle);
+
+/*
  * seekto:
  * seek to dest_pos, recommended API
  *

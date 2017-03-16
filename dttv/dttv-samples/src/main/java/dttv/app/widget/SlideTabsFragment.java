@@ -92,7 +92,7 @@ public class SlideTabsFragment extends Fragment implements I_OnMyKey {
         mTextTabs[0].setText(addresses[0]);
         mTextTabs[0].setTextSize(20);
         mTextTabs[0].setGravity(Gravity.CENTER);
-        mTextTabs[0].setTextColor(getResources().getColorStateList(R.drawable.dt_rb_blue_bg));
+        //mTextTabs[0].setTextColor(getResources().getColorStateList(R.drawable.dt_rb_blue_bg));
         mTabWidget.addView(mTextTabs[0]);
         /* 
          * Listener必须在mTabWidget.addView()之后再加入，用于覆盖默认的Listener，
@@ -104,7 +104,7 @@ public class SlideTabsFragment extends Fragment implements I_OnMyKey {
         mTextTabs[1].setText(addresses[1]);
         mTextTabs[1].setTextSize(20);
         mTextTabs[1].setGravity(Gravity.CENTER);
-        mTextTabs[1].setTextColor(getResources().getColorStateList(R.drawable.dt_rb_blue_bg));
+        //mTextTabs[1].setTextColor(getResources().getColorStateList(R.drawable.dt_rb_blue_bg));
         mTabWidget.addView(mTextTabs[1]);
         mTextTabs[1].setOnClickListener(mTabClickListener);
         mTextTabs[2] = new TextView(mContext);
@@ -112,7 +112,7 @@ public class SlideTabsFragment extends Fragment implements I_OnMyKey {
         mTextTabs[2].setText(addresses[2]);
         mTextTabs[2].setTextSize(20);
         mTextTabs[2].setGravity(Gravity.CENTER);
-        mTextTabs[2].setTextColor(getResources().getColorStateList(R.drawable.dt_rb_blue_bg));
+        //mTextTabs[2].setTextColor(getResources().getColorStateList(R.drawable.dt_rb_blue_bg));
         mTabWidget.addView(mTextTabs[2]);
         mTextTabs[2].setOnClickListener(mTabClickListener);
 

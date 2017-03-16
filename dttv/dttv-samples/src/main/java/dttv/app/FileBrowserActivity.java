@@ -271,20 +271,20 @@ public class FileBrowserActivity extends Activity {
         String uri = f.getPath();
         type = FileInfo.getFileType(f);
         String name = f.getPath();
-        if (type.contains("video") || type.contains("audio")) {
+        //if (type.contains("video") || type.contains("audio")) {
             PlayerUtil.getInstance().beginToPlayer(this, uri, name, Constant.LOCAL_VIDEO);
             return;
-        }
+        //}
 
         // Use system app
-        Intent intent = new Intent();
+        /*Intent intent = new Intent();
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setAction(android.content.Intent.ACTION_VIEW);
         intent.setDataAndType(Uri.fromFile(f), type);
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
-        }
+        }*/
     }
 
     private boolean isDeviceFile(String path) {

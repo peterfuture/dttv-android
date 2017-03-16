@@ -14,6 +14,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.io.File;
+
+import dttv.app.AppApplication;
 import dttv.app.FileInfo;
 import dttv.app.R;
 import dttv.app.utils.Constant;
@@ -23,6 +26,7 @@ public class AddUrlDialog extends BaseDialog {
     private Context context;
     private EditText ed_coupon_no;
     private Button dialog_button_ok;
+    private Button dialog_button_sdp;
     private Handler mHandler;
     private String couponNo;
 
@@ -67,6 +71,7 @@ public class AddUrlDialog extends BaseDialog {
     private void findView() {
         ed_coupon_no=(EditText) findViewById(R.id.ed_coupon_no);
         dialog_button_ok=(Button) findViewById(R.id.dialog_button_ok);
+        dialog_button_sdp = (Button)findViewById(R.id.dialog_button_sdp);
         ed_coupon_no.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -90,7 +95,22 @@ public class AddUrlDialog extends BaseDialog {
                     Toast.makeText(context,"请输入地址",Toast.LENGTH_SHORT).show();
                 } else {
                     String uri = ed_coupon_no.getEditableText().toString();
-                    String name = "自测地址";
+                    String name = "UDP播放";
+                    PlayerUtil.getInstance().beginToPlayer(context, uri, name, Constant.LOCAL_VIDEO);
+                    closeDialog();
+                }
+            }
+        });
+
+        dialog_button_sdp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                File file = new File(AppApplication.filePath+"/tower.sdp");
+                if (!file.exists()){
+                    Toast.makeText(context,"sdp文件写入失败",Toast.LENGTH_SHORT).show();
+                }else{
+                    String uri = file.getAbsolutePath();
+                    String name = "UDP播放SDP";
                     PlayerUtil.getInstance().beginToPlayer(context, uri, name, Constant.LOCAL_VIDEO);
                     closeDialog();
                 }

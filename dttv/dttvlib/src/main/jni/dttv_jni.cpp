@@ -225,14 +225,7 @@ int jni_dttv_stop(JNIEnv *env, jobject thiz) {
         return -1;
     }
     LOGV("native stop enter \n ");
-    ret = mp->stop();
-    if (ret == -1) {
-        return -1;
-    }
-    while (mp->isQuitOK() == 0) {
-        usleep(10000);
-    }
-
+    mp->stop();
     LOGV("native stop exit \n ");
     return 0;
 }

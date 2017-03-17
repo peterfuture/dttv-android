@@ -261,9 +261,10 @@ namespace android {
             goto END;
         }
 
-        ret = dtplayer_stop(handle);
-        mDtpHandle = NULL;
         status = PLAYER_STOPPED;
+        ret = dtplayer_stop(handle);
+        //mDtpHandle = NULL;
+
         END:
         return ret;
     }

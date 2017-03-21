@@ -69,8 +69,8 @@ namespace android {
     void DTPlayer::setNativeWindow(ANativeWindow *window) {
         //ANativeWindow_setBuffersGeometry(window, getVideoWidth(), getVideoHeight(), WINDOW_FORMAT_RGBA_8888);
         // Use surface as video render
-        dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
         vo_android_surface.vo_priv = (void *)window;
+        dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
     }
 
     int DTPlayer::setDataSource(const char *file_name) {

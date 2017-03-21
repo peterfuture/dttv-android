@@ -302,7 +302,9 @@ static void jni_dttv_set_video_surface(JNIEnv *env, jobject thiz, jobject jsurfa
         LOGV("set parameter failed.mp == null.");
         return;
     }
-    mp->setNativeWindow((ANativeWindow *)ANativeWindow_fromSurface(env, jsurface));
+    ANativeWindow *window = (ANativeWindow *)ANativeWindow_fromSurface(env, jsurface);
+    LOGV("NativeWindow Address:%p \n", window);
+    mp->setNativeWindow(window);
 }
 
 int jni_gl_surface_create(JNIEnv *env, jobject thiz) {

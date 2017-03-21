@@ -295,9 +295,29 @@ int jni_dttv_set_parameter(JNIEnv *env, jobject thiz, int cmd, jlong arg1, jlong
     return 0;
 }
 
+static void jni_dttv_set_video_surface(JNIEnv *env, jobject thiz, jobject jsurface)
+{
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if (mp == NULL) {
+        LOGV("set parameter failed.mp == null.");
+        return;
+    }
+    mp->setNativeWindow((ANativeWindow *)ANativeWindow_fromSurface(env, jsurface));
+}
+
 int jni_gl_surface_create(JNIEnv *env, jobject thiz) {
+
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if (mp == NULL) {
+        LOGV("set parameter failed.mp == null.");
+        return 0;
+    }
+
     yuv_dttv_init();
     yuv_reg_player((void *) getMediaPlayer(env, thiz));
+
+
+
     return 0;
 }
 
@@ -342,6 +362,8 @@ static JNINativeMethod g_Methods[] = {
         {"native_get_duration",         "()I",                   (void *) jni_dttv_get_duration},
 
         {"native_set_parameter",        "(IJJ)I",                (void *) jni_dttv_set_parameter},
+
+        {"native_set_video_surface",    "(Landroid/view/Surface;)V", (void *)jni_dttv_set_video_surface},
 
         {"native_surface_create",       "()I",                   (void *) jni_gl_surface_create},
         {"native_surface_change",       "(II)I",                 (void *) jni_gl_surface_change},

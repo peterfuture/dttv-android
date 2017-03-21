@@ -2,6 +2,7 @@
 #define DTTV_JNI_H
 
 #include <jni.h>
+#include <android/native_window_jni.h>
 
 class dttvListenner {
 public:

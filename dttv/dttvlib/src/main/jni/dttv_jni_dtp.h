@@ -36,6 +36,8 @@ namespace android {
 
         int setListenner(dttvListenner *listenner);
 
+        void setNativeWindow(ANativeWindow *window);
+
         int setDataSource(const char *uri);
 
         int prePare();

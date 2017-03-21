@@ -10,6 +10,7 @@
 #define TAG "NATIVE-DTP"
 
 extern vo_wrapper_t vo_android;
+extern vo_wrapper_t vo_android_surface;
 extern ao_wrapper_t ao_opensl_ops;
 
 namespace android {
@@ -63,6 +64,13 @@ namespace android {
     int DTPlayer::setListenner(dttvListenner *listenner) {
         LOGV("[%d:%p] [%d:%p]", sizeof(mListenner), this->mListenner, sizeof(listenner), listenner);
         this->mListenner = listenner;
+    }
+
+    void DTPlayer::setNativeWindow(ANativeWindow *window) {
+        //ANativeWindow_setBuffersGeometry(window, getVideoWidth(), getVideoHeight(), WINDOW_FORMAT_RGBA_8888);
+        // Use surface as video render
+        dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
+        vo_android_surface.vo_priv = (void *)window;
     }
 
     int DTPlayer::setDataSource(const char *file_name) {
@@ -120,10 +128,8 @@ namespace android {
         mDuration = info.duration;
         mDtpHandle = handle;
         LOGV("Get Media Info Ok,filesize:%lld fulltime:%lld S \n", info.file_size, info.duration);
-
-
+        
         // register external module
-
         dtplayer_register_plugin(DTP_PLUGIN_TYPE_AO, &ao_opensl_ops);
         dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android);
 

@@ -317,6 +317,7 @@ int jni_gl_surface_create(JNIEnv *env, jobject thiz) {
 
     yuv_dttv_init();
     yuv_reg_player((void *) getMediaPlayer(env, thiz));
+    mp->setGLSurfaceView();
 
     return 0;
 }

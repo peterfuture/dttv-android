@@ -38,6 +38,8 @@ namespace android {
 
         void setNativeWindow(ANativeWindow *window);
 
+        void setGLSurfaceView();
+
         int setDataSource(const char *uri);
 
         int prePare();

@@ -67,10 +67,15 @@ namespace android {
     }
 
     void DTPlayer::setNativeWindow(ANativeWindow *window) {
-        //ANativeWindow_setBuffersGeometry(window, getVideoWidth(), getVideoHeight(), WINDOW_FORMAT_RGBA_8888);
         // Use surface as video render
         vo_android_surface.vo_priv = (void *)window;
+        dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
         LOGV("Get Native Window. Register window \n");
+    }
+
+    void DTPlayer::setGLSurfaceView() {
+        dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android);
+        LOGV("Use GLSurfaceView. Register gl render \n");
     }
 
     int DTPlayer::setDataSource(const char *file_name) {
@@ -131,8 +136,6 @@ namespace android {
         
         // register external module
         dtplayer_register_plugin(DTP_PLUGIN_TYPE_AO, &ao_opensl_ops);
-        dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android);
-        //dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
 
         status = PLAYER_INITED;
         return 0;

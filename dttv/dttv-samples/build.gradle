@@ -28,7 +28,6 @@ dependencies {
     println rootProject.getName()
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
-
     compile project(path: ':dttvlib')
     //compile 'com.android.support:appcompat-v7:23.4.0'
 

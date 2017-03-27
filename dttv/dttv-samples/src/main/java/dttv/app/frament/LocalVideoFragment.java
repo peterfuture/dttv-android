@@ -5,10 +5,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,6 +18,9 @@ import android.widget.Toast;
 import butterknife.BindView;
 import dttv.app.R;
 import dttv.app.base.SimpleFragment;
+import dttv.app.utils.DateUtils;
+import dttv.app.utils.FileNewUtils;
+import dttv.app.utils.Log;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -36,22 +41,26 @@ public class LocalVideoFragment extends SimpleFragment {
 
     @Override
     protected void initEventAndData() {
-        init_phone_video_grid();
+        initVideos();
     }
 
     public LocalVideoFragment() {
         // Required empty public constructor
     }
 
-    private void init_phone_video_grid() {
+    private void initVideos() {
         //System.gc();
         String[] proj = { MediaStore.Video.Media._ID,
                 MediaStore.Video.Media.DATA,
                 MediaStore.Video.Media.DISPLAY_NAME,
-                MediaStore.Video.Media.SIZE, MediaStore.Video.Media.DEFAULT_SORT_ORDER };
-        videocursor = getActivity().managedQuery(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Video.Media.DATE_MODIFIED,
+                MediaStore.Video.Media.SIZE,
+                MediaStore.Video.Media.DEFAULT_SORT_ORDER
+        };
+        videocursor = getActivity().getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                 proj, null, null, null);
         count = videocursor.getCount();
+        Log.i(TAG,"count is:"+count);
         localVideoListView.setAdapter(new VideoAdapter(getActivity().getApplicationContext()));
         localVideoListView.setOnItemClickListener(videogridlistener);
     }
@@ -76,22 +85,45 @@ public class LocalVideoFragment extends SimpleFragment {
         }
 
         public View getView(int position, View convertView, ViewGroup parent) {
-            System.gc();
-            TextView tv = new TextView(vContext.getApplicationContext());
-            String id = null;
+
+            ViewHolder viewHolder = null;
+
             if (convertView == null) {
-                video_column_index = videocursor
-                        .getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME);
+                viewHolder = new ViewHolder();
+                convertView = LayoutInflater.from(vContext).inflate(R.layout.dt_video_item,null);
+                viewHolder.nameTxt = (TextView) convertView.findViewById(R.id.media_row_name);
+                viewHolder.dateTxt = (TextView) convertView.findViewById(R.id.media_row_date);
+                viewHolder.imageView = (ImageView)convertView.findViewById(R.id.media_row_icon);
+                convertView.setTag(viewHolder);
+            } else {
+                viewHolder = (ViewHolder) convertView.getTag();
+            }
+
+            video_column_index = videocursor
+                    .getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME);
+            videocursor.moveToPosition(position);
+            String name = videocursor.getString(video_column_index);
+            viewHolder.nameTxt.setText(name);
+
+            video_column_index = videocursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_MODIFIED);
+            String date = videocursor.getString(video_column_index);
+            video_column_index = videocursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE);
+            String size = videocursor.getString(video_column_index);
+            try {
+                viewHolder.dateTxt.setText(DateUtils.getInstanse().getmstodate(Long.parseLong(date+"000"), DateUtils.YYYYMMDDHHMMSS
+                ) + "  " + FileNewUtils.getInstance().FormetFileSize(Long.parseLong(size)));
                 videocursor.moveToPosition(position);
-                id = videocursor.getString(video_column_index);
-                video_column_index = videocursor
-                        .getColumnIndexOrThrow(MediaStore.Video.Media.SIZE);
-                videocursor.moveToPosition(position);
-                id += " Size(KB):" + videocursor.getString(video_column_index);
-                tv.setText(id);
-            } else
-                tv = (TextView) convertView;
-            return tv;
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return convertView;
+        }
+
+        class ViewHolder{
+            ImageView imageView;
+            TextView nameTxt;
+            TextView dateTxt;
         }
     }
 
@@ -110,4 +142,9 @@ public class LocalVideoFragment extends SimpleFragment {
         }
     };
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        videocursor.close();
+    }
 }

@@ -172,7 +172,7 @@ public class FileUtils
     /**
      * Converts a Collection containing java.io.File instanced into array
      * representation. This is to account for the difference between
-     * File.listFiles() and FileUtils.listFiles().
+     * File.listFiles() and FileNewUtils.listFiles().
      *
      * @param files  a Collection containing java.io.File instances
      * @return an array of java.io.File
@@ -737,7 +737,7 @@ public class FileUtils
      * <h4>Example: Copy directories only</h4>
      *  <pre>
      *  // only copy the directory structure
-     *  FileUtils.copyDirectory(srcDir, destDir, DirectoryFileFilter.DIRECTORY);
+     *  FileNewUtils.copyDirectory(srcDir, destDir, DirectoryFileFilter.DIRECTORY);
      *  </pre>
      *
      * <h4>Example: Copy directories and txt files</h4>
@@ -750,7 +750,7 @@ public class FileUtils
      *  FileFilter filter = FileFilterUtils.orFileFilter(DirectoryFileFilter.DIRECTORY, txtFiles);
      *
      *  // Copy using the filter
-     *  FileUtils.copyDirectory(srcDir, destDir, filter);
+     *  FileNewUtils.copyDirectory(srcDir, destDir, filter);
      *  </pre>
      *
      * @param srcDir  an existing directory to copy, must not be <code>null</code>
@@ -781,7 +781,7 @@ public class FileUtils
      * <h4>Example: Copy directories only</h4>
      *  <pre>
      *  // only copy the directory structure
-     *  FileUtils.copyDirectory(srcDir, destDir, DirectoryFileFilter.DIRECTORY, false);
+     *  FileNewUtils.copyDirectory(srcDir, destDir, DirectoryFileFilter.DIRECTORY, false);
      *  </pre>
      *
      * <h4>Example: Copy directories and txt files</h4>
@@ -794,7 +794,7 @@ public class FileUtils
      *  FileFilter filter = FileFilterUtils.orFileFilter(DirectoryFileFilter.DIRECTORY, txtFiles);
      *
      *  // Copy using the filter
-     *  FileUtils.copyDirectory(srcDir, destDir, filter, false);
+     *  FileNewUtils.copyDirectory(srcDir, destDir, filter, false);
      *  </pre>
      *
      * @param srcDir  an existing directory to copy, must not be <code>null</code>
@@ -1131,7 +1131,7 @@ public class FileUtils
      * <p>
      * The recommended usage pattern is:
      * <pre>
-     * LineIterator it = FileUtils.lineIterator(file, "UTF-8");
+     * LineIterator it = FileNewUtils.lineIterator(file, "UTF-8");
      * try {
      *   while (it.hasNext()) {
      *     String line = it.nextLine();
@@ -1632,7 +1632,7 @@ public class FileUtils
      * if desired simply by reusing the same checksum object.
      * For example:
      * <pre>
-     *   long csum = FileUtils.checksum(file, new CRC32()).getValue();
+     *   long csum = FileNewUtils.checksum(file, new CRC32()).getValue();
      * </pre>
      *
      * @param file  the file to checksum, must not be <code>null</code>

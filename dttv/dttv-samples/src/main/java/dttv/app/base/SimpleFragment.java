@@ -18,6 +18,8 @@ import me.yokeyword.fragmentation.SupportFragment;
 
 public abstract class SimpleFragment extends SupportFragment {
 
+    public String TAG = getClass().getSimpleName();
+
     protected View mView;
     protected Activity mActivity;
     protected Context mContext;

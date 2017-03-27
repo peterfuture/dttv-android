@@ -30,4 +30,9 @@
     <color name="colorCard">#FFFFFF</color>
     <color name="colorText">#2C2C2C</color>
     <color name="colorLogo">#FED530</color>
+
+
+    <color name="black_9999">#999999</color>
+    <color name="black_6666">#666666</color>
+    <color name="black_3333">#333333</color>
 </resources>

@@ -1,9 +1,8 @@
 package dttv.app;
 
-import android.os.Bundle;
+
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 
 import java.util.ArrayList;
@@ -11,10 +10,12 @@ import java.util.List;
 
 import butterknife.BindView;
 import dttv.app.adapter.HomeAdapter;
+import dttv.app.base.SimpleActivity;
+import dttv.app.frament.BiliVideoFragment;
 import dttv.app.frament.LocalVideoFragment;
 
 
-public class HomeActivity extends FragmentActivity {
+public class HomeActivity extends SimpleActivity {
 
     @BindView(R.id.tab_home_main)
     TabLayout mTabLayout;
@@ -26,21 +27,23 @@ public class HomeActivity extends FragmentActivity {
 
     HomeAdapter mAdapter;
 
-    @Override
+    /*@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         initEventAndData();
-    }
+    }*/
 
 
 
-    private void initEventAndData() {
+    public void initEventAndData() {
         fragments.add(new LocalVideoFragment());
-        fragments.add(new LocalVideoFragment());
+        fragments.add(new BiliVideoFragment());
         fragments.add(new LocalVideoFragment());
         fragments.add(new LocalVideoFragment());
         mAdapter = new HomeAdapter(getSupportFragmentManager(),fragments);
+        //mViewPager = (ViewPager)findViewById(R.id.vp_home_main);
+        //mTabLayout = (TabLayout)findViewById(R.id.tab_home_main);
         mViewPager.setAdapter(mAdapter);
 
         //TabLayout配合ViewPager有时会出现不显示Tab文字的Bug,需要按如下顺序
@@ -53,5 +56,15 @@ public class HomeActivity extends FragmentActivity {
         mTabLayout.getTabAt(1).setText(tabTitle[1]);
         mTabLayout.getTabAt(2).setText(tabTitle[2]);
         mTabLayout.getTabAt(3).setText(tabTitle[3]);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    protected int getLayout() {
+        return R.layout.activity_home;
     }
 }

@@ -77,7 +77,7 @@
         <activity
             android:name=".SettingActivity"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".VideoPlayerActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -101,7 +101,9 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <!--<activity android:name=".HomeActivity"></activity>-->
+        <!-- <activity android:name=".HomeActivity"></activity> -->
+        <activity android:name=".PipTestActivity">
+        </activity>
     </application>
 
 </manifest>

@@ -14,14 +14,57 @@
         app:tabSelectedTextColor="@android:color/white"
         app:tabTextColor="@color/black_3333"
         app:tabBackground="@color/colorPrimary"
-        android:layout_alignParentBottom="true"
         />
 
     <android.support.v4.view.ViewPager
         android:id="@+id/vp_home_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/tab_home_main"
+        android:layout_below="@+id/tab_home_main"
         />
 
+    <dttv.app.widget.FloatingActionMenu
+        android:id="@+id/fab_menu_circle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"
+        >
+
+        <!--First button as menu button-->
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_main_circle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_add_white_24dp"
+            app:fabSize="normal"
+            app:backgroundTint="@color/material_orange"/>
+
+        <!-- Other button as menu items-->
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_random_circle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_home_white_24dp"
+            app:fabSize="mini"
+            app:backgroundTint="@color/material_orange" />
+
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_download_circle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_file_download_white_24dp"
+            app:fabSize="mini"
+            app:backgroundTint="@color/material_orange"/>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_browser_circle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_open_in_browser_white_24dp"
+            app:fabSize="mini"
+            app:backgroundTint="@color/material_orange"/>
+
+    </dttv.app.widget.FloatingActionMenu>
 </RelativeLayout>

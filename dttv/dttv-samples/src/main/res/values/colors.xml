@@ -35,4 +35,7 @@
     <color name="black_9999">#999999</color>
     <color name="black_6666">#666666</color>
     <color name="black_3333">#333333</color>
+
+
+    <color name="material_orange">#FF9800</color>
 </resources>

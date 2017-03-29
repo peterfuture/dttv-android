@@ -138,7 +138,7 @@ public class LocalVideoFragment extends SimpleFragment {
             /*   Intent intent = new Intent(MainActivity.this, ViewVideo.class);
                   intent.putExtra("videofilename", filename);
                   startActivity(intent);*/
-            Toast.makeText(getActivity().getApplicationContext(), filename, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getActivity().getApplicationContext(), filename, Toast.LENGTH_SHORT).show();
         }
     };
 

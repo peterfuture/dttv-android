@@ -11,10 +11,13 @@
             backward-compatibility can go here.
         -->
     </style>
+    <style name="AppThemeOld" parent="Base.Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+    </style>
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar"></style>
 
     <!-- Application theme. -->
-    <style name="AppThemeOld" parent="AppBaseTheme">
+    <style name="AppTheme_new" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
 	

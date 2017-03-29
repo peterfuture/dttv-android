@@ -13,6 +13,7 @@ import dttv.app.adapter.HomeAdapter;
 import dttv.app.base.SimpleActivity;
 import dttv.app.frament.BiliVideoFragment;
 import dttv.app.frament.LocalVideoFragment;
+import dttv.app.widget.FloatingActionMenu;
 
 
 public class HomeActivity extends SimpleActivity {
@@ -21,6 +22,9 @@ public class HomeActivity extends SimpleActivity {
     TabLayout mTabLayout;
     @BindView(R.id.vp_home_main)
     ViewPager mViewPager;
+
+    @BindView(R.id.fab_menu_circle)
+    FloatingActionMenu menuCircle;
 
     String[] tabTitle = new String[]{"本地视频","网络视频","其他","热门"};
     List<Fragment> fragments = new ArrayList<Fragment>();
@@ -37,6 +41,9 @@ public class HomeActivity extends SimpleActivity {
 
 
     public void initEventAndData() {
+        menuCircle.setIsCircle(true);
+        menuCircle.setmItemGap(30);
+
         fragments.add(new LocalVideoFragment());
         fragments.add(new BiliVideoFragment());
         fragments.add(new LocalVideoFragment());

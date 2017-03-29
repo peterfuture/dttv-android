@@ -19,7 +19,7 @@
         android:layout_height="60dp"
         android:gravity="center_vertical"
         android:paddingLeft="5dp"
-        android:textColor="@color/filebrowser_device_color"
+        android:textColor="@color/black_3333"
         android:textSize="16sp"
         android:textStyle="bold"
         />

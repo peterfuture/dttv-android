@@ -25,7 +25,7 @@
         android:layout_weight="1"
         android:gravity="bottom"
         android:paddingLeft="5dp"
-        android:textColor="@color/filebrowser_device_color"
+        android:textColor="@color/black_3333"
         android:textSize="16sp"
         android:textStyle="bold"
         />
@@ -41,7 +41,7 @@
           android:layout_height="match_parent"
           android:layout_weight="1"
           android:gravity="right"
-          android:textColor="@color/filebrowser_device_color"
+          android:textColor="@color/black_6666"
           android:textSize="10sp"
           android:textStyle="italic"
           />
@@ -51,7 +51,7 @@
           android:layout_height="match_parent"
           android:layout_weight="1.5"
           android:gravity="center"
-          android:textColor="@color/filebrowser_device_color"
+          android:textColor="@color/black_6666"
           android:textSize="10sp"
           android:textStyle="italic"
           />

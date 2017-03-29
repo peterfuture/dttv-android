@@ -47,8 +47,8 @@
         android:background="@drawable/filebrowser_button_bar_bg"/>
 	<ListView
 	    android:id="@+id/filebrowser_listview"
-	    android:layout_width="fill_parent"
-	    android:layout_height="fill_parent" >
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent" >
 	</ListView>
 
 </LinearLayout>

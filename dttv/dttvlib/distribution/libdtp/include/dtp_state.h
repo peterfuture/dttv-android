@@ -19,6 +19,12 @@ typedef enum {
 }
 dtp_sync_mode_t;
 
+typedef enum {
+    DTP_CMD_SET_AODEVICE = 0x100,
+    DTP_CMD_SET_VODEVICE,
+    DTP_CMD_SET_SODEVICE,
+} dtp_cmd_t;
+
 typedef struct {
     int num;
     int den;

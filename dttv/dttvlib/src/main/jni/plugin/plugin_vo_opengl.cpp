@@ -37,22 +37,22 @@ static void dump_frame(dt_av_frame_t *pFrame, int width, int height, int iFrame)
     fclose(pFile);
 }
 
-static int vo_android_init(vo_wrapper_t *vout) {
+static int vo_android_init(vo_context_t *voc) {
     struct vo_info *info = (struct vo_info *) malloc(sizeof(struct vo_info));
-    vout->handle = info;
+    voc->private_data = info;
     info->dx = 0;
     info->dy = 0;
-    info->dw = vout->para.d_width;
-    info->dh = vout->para.d_height;
+    info->dw = voc->para.d_width;
+    info->dh = voc->para.d_height;
     memset(&glvf, 0, sizeof(dtvideo_filter_t));
-    memcpy(&glvf.para, &vout->para, sizeof(dtvideo_para_t));
+    memcpy(&glvf.para, &voc->para, sizeof(dtvideo_para_t));
     lock_init(&info->mutex, NULL);
     LOGV("android vo init OK, w:%d h:%d\n", info->dw, info->dh);
     return 0;
 }
 
-static int vo_android_render(vo_wrapper_t *vout, dt_av_frame_t *frame) {
-    struct vo_info *info = (struct vo_info *) vout->handle;
+static int vo_android_render(vo_context_t *voc, dt_av_frame_t *frame) {
+    struct vo_info *info = (struct vo_info *) voc->private_data;
 
     // reset vf and window size
     dtvideo_filter_t *vf = &glvf;
@@ -76,10 +76,8 @@ static int vo_android_render(vo_wrapper_t *vout, dt_av_frame_t *frame) {
     return 0;
 }
 
-static int vo_android_stop(vo_wrapper_t *vout) {
-    struct vo_info *info = (struct vo_info *) vout->handle;
-    free(info);
-    vout->handle = NULL;
+static int vo_android_stop(vo_context_t *voc) {
+    struct vo_info *info = (struct vo_info *) voc->private_data;
     video_filter_stop(&glvf);
     LOGV("stop vo android\n");
     return 0;
@@ -91,4 +89,5 @@ vo_wrapper_t vo_android = {
         .init = vo_android_init,
         .stop = vo_android_stop,
         .render = vo_android_render,
+        .private_data_size = sizeof(struct vo_info),
 };

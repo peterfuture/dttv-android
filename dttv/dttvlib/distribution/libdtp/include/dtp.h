@@ -162,6 +162,30 @@ int dtplayer_seekto(void *handle, int dest_pos);
  * */
 int dtplayer_get_states(void *handle, dtp_state_t * state);
 
+/*
+ * dtplayer parameter request:
+ * called by user, get dtplayer parameter
+ *
+ * @param handle - dtplayer handle
+ * @param cmd
+ * @param arg
+ * @return ret - 0 success , negtive failed
+ *
+ * */
+int dtplayer_get_parameter(void *handle, int cmd, unsigned long arg);
+
+/*
+ * dtplayer parameter set:
+ * called by user, set dtplayer parameter
+ *
+ * @param handle - dtplayer handle
+ * @param cmd
+ * @param arg
+ * @return ret - 0 success , negtive failed
+ *
+ * */
+int dtplayer_set_parameter(void *handle, int cmd, unsigned long arg);
+
 #ifdef  __cplusplus
 }
 #endif

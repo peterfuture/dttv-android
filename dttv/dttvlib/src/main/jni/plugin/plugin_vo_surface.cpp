@@ -3,6 +3,7 @@
 #include <android/native_window_jni.h>
 #include <dtp_vf.h>
 #include <dtp_av.h>
+#include <dtp_video_plugin.h>
 #include "dttv_jni_log.h"
 
 struct surface_context {
@@ -13,18 +14,19 @@ struct surface_context {
 
 static dtvideo_filter_t vf_surface;
 
-static int vo_surface_init(vo_wrapper_t *vout) {
+static int vo_surface_init(vo_context_t *voc) {
 
     struct surface_context *context = (struct surface_context *) malloc(
             sizeof(struct surface_context));
-    vout->handle = context;
+    voc->private_data = context;
     context->dx = 0;
     context->dy = 0;
-    context->dw = vout->para.d_width;
-    context->dh = vout->para.d_height;
+    context->dw = voc->para.d_width;
+    context->dh = voc->para.d_height;
+    context->window = NULL;
 
-    if(vout->vo_priv) {
-        context->window = (ANativeWindow *) vout->vo_priv;
+    if(voc->private_data) {
+        context->window = (ANativeWindow *) voc->para.device;
         LOGV("VOUT Window Addr:%p \n", context->window);
         ANativeWindow_setBuffersGeometry(context->window, context->dw, context->dh,
                                          WINDOW_FORMAT_RGBA_8888);
@@ -38,17 +40,17 @@ static int vo_surface_init(vo_wrapper_t *vout) {
     return 0;
 }
 
-static int vo_surface_render(vo_wrapper_t *vout, dt_av_frame_t *frame) {
+static int vo_surface_render(vo_context_t *voc, dt_av_frame_t *frame) {
 
-    struct surface_context *context = (struct surface_context *) vout->handle;
+    struct surface_context *context = (struct surface_context *) voc->private_data;
 
-    if(vout->vo_priv == NULL) {
+    if(voc->para.device == NULL) {
         LOGV("android vo surface not set\n");
         return 0;
     }
 
     if(context->native_window_init == 0) {
-        context->window = (ANativeWindow *) vout->vo_priv;
+        context->window = (ANativeWindow *) voc->para.device;
         ANativeWindow_setBuffersGeometry(context->window, context->dw, context->dh,
                                          WINDOW_FORMAT_RGBA_8888);
         context->native_window_init = 1;
@@ -99,15 +101,13 @@ static int vo_surface_render(vo_wrapper_t *vout, dt_av_frame_t *frame) {
 
 }
 
-static int vo_surface_stop(vo_wrapper_t *vout) {
-    struct surface_context *context = (struct surface_context *) vout->handle;
+static int vo_surface_stop(vo_context_t *voc) {
+    struct surface_context *context = (struct surface_context *) voc->private_data;
     video_filter_stop(&vf_surface);
     if(context->window) {
         ANativeWindow *window = context->window;
         ANativeWindow_release(window);
     }
-    free(context);
-    vout->vo_priv = NULL;
 
     return 0;
 }

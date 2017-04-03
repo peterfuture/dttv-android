@@ -112,16 +112,16 @@ typedef struct{
  *
  *****************************************************************************/
 
-static inline int bytesPerSample(ao_wrapper_t *aout) {
-    dtaudio_para_t *para = &aout->para;
+static inline int bytesPerSample(ao_context_t *aoc) {
+    dtaudio_para_t *para = &aoc->para;
     return para->dst_channels * para->data_width / 8;
     //return 2 /* S16 */ * 2 /* stereo */;
 }
 
 // get us delay
 //
-static int TimeGet(ao_wrapper_t *aout, int64_t *drift) {
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
+static int TimeGet(ao_context_t *aoc, int64_t *drift) {
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
 
     SLAndroidSimpleBufferQueueState st;
     SLresult res = GetState(sys->playerBufferQueue, &st);
@@ -145,12 +145,12 @@ static int TimeGet(ao_wrapper_t *aout, int64_t *drift) {
     return 0;
 }
 
-static void Flush(ao_wrapper_t *aout, bool drain) {
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
+static void Flush(ao_context_t *aoc, bool drain) {
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
 
     if (drain) {
         int64_t delay;
-        if (!TimeGet(aout, &delay))
+        if (!TimeGet(aoc, &delay))
             usleep(delay * 1000);
     } else {
         SetPlayState(sys->playerPlay, SL_PLAYSTATE_STOPPED);
@@ -162,15 +162,15 @@ static void Flush(ao_wrapper_t *aout, bool drain) {
     }
 }
 
-static void Pause(ao_wrapper_t *aout, bool pause) {
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
+static void Pause(ao_context_t *aoc, bool pause) {
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
     SetPlayState(sys->playerPlay,
                  pause ? SL_PLAYSTATE_PAUSED : SL_PLAYSTATE_PLAYING);
 }
 
-static int WriteBuffer(ao_wrapper_t *aout) {
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
-    const int unit_size = sys->samples_per_buf * bytesPerSample(aout);
+static int WriteBuffer(ao_context_t *aoc) {
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
+    const int unit_size = sys->samples_per_buf * bytesPerSample(aoc);
 
     /* Check if we can fill at least one buffer unit by chaining blocks */
     if (sys->dbt.level < unit_size) {
@@ -219,25 +219,25 @@ static int WriteBuffer(ao_wrapper_t *aout) {
 /*****************************************************************************
  * Play: play a sound
  *****************************************************************************/
-static int Play(ao_wrapper_t *aout, uint8_t *buf, int size) {
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
+static int Play(ao_context_t *aoc, uint8_t *buf, int size) {
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
     int ret = 0;
     //__android_log_print(ANDROID_LOG_DEBUG,TAG, "space:%d level:%d  size:%d  \n",buf_space(&sys->dbt), buf_level(&sys->dbt), size);
     if (buf_space(&sys->dbt) > size) {
         ret = buf_put(&sys->dbt, buf, size);
     }
-    sys->samples += ret / bytesPerSample(aout);
+    sys->samples += ret / bytesPerSample(aoc);
     //__android_log_print(ANDROID_LOG_DEBUG,TAG, "add sampels, %d add %d \n",sys->samples, ret / bytesPerSample(aout));
 
     /* Fill OpenSL buffer */
-    WriteBuffer(aout); // will read data in callback
+    WriteBuffer(aoc); // will read data in callback
     return ret;
 }
 
 static void PlayedCallback(SLAndroidSimpleBufferQueueItf caller, void *pContext) {
     (void) caller;
-    ao_wrapper_t *aout = (ao_wrapper_t *)pContext;
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
+    ao_context_t *aoc = (ao_context_t *)pContext;
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
 
     assert (caller == sys->playerBufferQueue);
     sys->started = 1;
@@ -281,11 +281,11 @@ static SLuint32 convertSampleRate(SLuint32 sr) {
     return -1;
 }
 
-static int Start(ao_wrapper_t *aout) {
+static int Start(ao_context_t *aoc) {
     SLresult result;
 
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
-    dtaudio_para_t *para = &aout->para;
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
+    dtaudio_para_t *para = &aoc->para;
 
     // configure audio source - this defines the number of samples you can enqueue.
     SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {
@@ -353,7 +353,7 @@ static int Start(ao_wrapper_t *aout) {
     CHECK_OPENSL_ERROR("Failed to get buff queue interface");
 
     result = RegisterCallback(sys->playerBufferQueue, PlayedCallback,
-                              (void *) aout);
+                              (void *) aoc);
     CHECK_OPENSL_ERROR("Failed to register buff queue callback.");
 
     // set the player's state to playing
@@ -363,7 +363,7 @@ static int Start(ao_wrapper_t *aout) {
     /* XXX: rounding shouldn't affect us at normal sampling rate */
     sys->rate = para->dst_samplerate;
     sys->samples_per_buf = OPENSLES_BUFLEN * para->dst_samplerate / 1000;
-    sys->buf = (uint8_t *)malloc(OPENSLES_BUFFERS * sys->samples_per_buf * bytesPerSample(aout));
+    sys->buf = (uint8_t *)malloc(OPENSLES_BUFFERS * sys->samples_per_buf * bytesPerSample(aoc));
     if (!sys->buf)
         goto error;
 
@@ -383,8 +383,8 @@ static int Start(ao_wrapper_t *aout) {
     return -1;
 }
 
-static void Stop(ao_wrapper_t *aout) {
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
+static void Stop(ao_context_t *aoc) {
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
 
     SetPlayState(sys->playerPlay, SL_PLAYSTATE_STOPPED);
     //Flush remaining buffers if any.
@@ -403,9 +403,9 @@ static void Stop(ao_wrapper_t *aout) {
  *
  *****************************************************************************/
 
-static int Open(ao_wrapper_t *aout) {
+static int Open(ao_context_t *aoc) {
 
-    dtaudio_para_t *para = &aout->para;
+    dtaudio_para_t *para = &aoc->para;
     SLresult result;
 
     aout_sys_t *sys = (aout_sys_t *) malloc(sizeof(*sys));
@@ -464,7 +464,7 @@ static int Open(ao_wrapper_t *aout) {
 
     if (buf_init(&sys->dbt, para->dst_samplerate * 4 / 10) < 0) // 100ms
         return -1;
-    aout->ao_priv = (void *) sys;
+    aoc->private_data = (void *) sys;
     return 0;
 
     error:
@@ -492,10 +492,10 @@ int dtap_change_effect(ao_wrapper_t *wrapper, int id)
 }
 #endif
 
-static int ao_opensl_init(ao_wrapper_t *aout) {
-    if (Open(aout) == -1)
+static int ao_opensl_init(ao_context_t *aoc) {
+    if (Open(aoc) == -1)
         return -1;
-    Start(aout);
+    Start(aoc);
 
 #ifdef ENABLE_DTAP
     ao_wrapper_t *wrapper = aout->wrapper;
@@ -512,8 +512,8 @@ static int ao_opensl_init(ao_wrapper_t *aout) {
     return 0;
 }
 
-static int ao_opensl_write(ao_wrapper_t *aout, uint8_t *buf, int size) {
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
+static int ao_opensl_write(ao_context_t *aoc, uint8_t *buf, int size) {
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
     int ret = 0;
 
 #ifdef ENABLE_DTAP
@@ -530,32 +530,32 @@ static int ao_opensl_write(ao_wrapper_t *aout, uint8_t *buf, int size) {
 #endif
 
     lock(&sys->lock);
-    ret = Play(aout, buf, size);
+    ret = Play(aoc, buf, size);
     unlock(&sys->lock);
     return ret;
 }
 
-static int ao_opensl_pause(ao_wrapper_t *aout) {
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
+static int ao_opensl_pause(ao_context_t *aoc) {
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
     lock(&sys->lock);
-    Pause(aout, 1);
+    Pause(aoc, 1);
     unlock(&sys->lock);
     return 0;
 }
 
-static int ao_opensl_resume(ao_wrapper_t *aout) {
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
+static int ao_opensl_resume(ao_context_t *aoc) {
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
     lock(&sys->lock);
-    Pause(aout, 0);
+    Pause(aoc, 0);
     unlock(&sys->lock);
     return 0;
 }
 
-static int ao_opensl_level(ao_wrapper_t *aout) {
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
+static int ao_opensl_level(ao_context_t *aoc) {
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
     lock(&sys->lock);
-    int level = sys->samples * bytesPerSample(aout);
-    const int unit_size = sys->samples_per_buf * bytesPerSample(aout);
+    int level = sys->samples * bytesPerSample(aoc);
+    const int unit_size = sys->samples_per_buf * bytesPerSample(aoc);
     SLAndroidSimpleBufferQueueState st;
     SLresult res;
     if (!sys->started)
@@ -571,14 +571,14 @@ static int ao_opensl_level(ao_wrapper_t *aout) {
     return level;
 }
 
-static int64_t ao_opensl_get_latency(ao_wrapper_t *aout) {
+static int64_t ao_opensl_get_latency(ao_context_t *aoc) {
     int64_t latency;
     int ret = 0;
     int level = 0;
-    aout_sys_t *sys = (aout_sys_t *) aout->ao_priv;
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
 
 #if 1
-    TimeGet(aout, &latency);
+    TimeGet(aoc, &latency);
     if (latency == -1)
         return 0;
     latency = 9 * latency / 100;
@@ -595,8 +595,8 @@ static int64_t ao_opensl_get_latency(ao_wrapper_t *aout) {
     return latency;
 }
 
-static int ao_opensl_stop(ao_wrapper_t *ao) {
-    aout_sys_t *sys = (aout_sys_t *) ao->ao_priv;
+static int ao_opensl_stop(ao_context_t *aoc) {
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
 #ifdef ENABLE_DTAP
     audio_effect_t *ae = (audio_effect_t *)wrapper->ao_priv;
     lock(&ae->lock);
@@ -606,7 +606,7 @@ static int ao_opensl_stop(ao_wrapper_t *ao) {
 #endif
 
     lock(&sys->lock);
-    Stop(ao);
+    Stop(aoc);
     unlock(&sys->lock);
     return 0;
 }
@@ -656,4 +656,5 @@ ao_wrapper_t ao_opensl_ops = {
         .write = ao_opensl_write,
         .get_parameter = ao_opensl_get_parameter,
         .set_parameter = ao_opensl_set_parameter,
+        .private_data_size = sizeof(aout_sys_t),
 };

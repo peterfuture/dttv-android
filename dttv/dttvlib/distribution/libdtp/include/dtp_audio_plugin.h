@@ -31,27 +31,28 @@ typedef struct {
     int afmt;
     int audio_filter;
     int audio_output;
+    void *device;               // audio render device.
     void *avctx_priv;           // point to avcodec_context
     void *service_mgt;          // service manager context
 } dtaudio_para_t;
 
 struct ao_wrapper;
+struct ao_context;
 
-typedef int (*ao_init)(struct ao_wrapper *ao);
-typedef int (*ao_start)(struct ao_wrapper *ao);
-typedef int (*ao_pause)(struct ao_wrapper *ao);
-typedef int (*ao_resume)(struct ao_wrapper *ao);
-typedef int (*ao_write)(struct ao_wrapper *ao, uint8_t * buf, int size);
-typedef int (*ao_get_parameter)(struct ao_wrapper *ao, int cmd,
+typedef int (*ao_init)(struct ao_context *aoc);
+typedef int (*ao_start)(struct ao_context *aoc);
+typedef int (*ao_pause)(struct ao_context *aoc);
+typedef int (*ao_resume)(struct ao_context *aoc);
+typedef int (*ao_write)(struct ao_context *aoc, uint8_t * buf, int size);
+typedef int (*ao_get_parameter)(struct ao_context *aoc, int cmd,
                                 unsigned long arg);
-typedef int (*ao_set_parameter)(struct ao_wrapper *ao, int cmd,
+typedef int (*ao_set_parameter)(struct ao_context *aoc, int cmd,
                                 unsigned long arg);
-typedef int (*ao_stop)(struct ao_wrapper *ao);
+typedef int (*ao_stop)(struct ao_context *aoc);
 
 typedef struct ao_wrapper {
     int id;
     const char *name;
-    dtaudio_para_t para;
 
     ao_init init;
     ao_start start;
@@ -63,8 +64,14 @@ typedef struct ao_wrapper {
     ao_stop stop;
 
     struct ao_wrapper *next;
-    void *ao_priv;
+    int private_data_size;
 } ao_wrapper_t;
+
+typedef struct ao_context {
+    dtaudio_para_t para;
+    ao_wrapper_t *wrapper;
+    void *private_data;
+}ao_context_t;
 
 #ifdef  __cplusplus
 }

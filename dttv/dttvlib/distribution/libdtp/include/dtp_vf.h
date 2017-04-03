@@ -16,7 +16,7 @@ vf_status_t;
 
 typedef struct dtvideo_filter {
     dtvideo_para_t para;
-    vf_wrapper_t *wrapper;
+    vf_context_t *vfc;
     int status;
     void *vf_priv;
     void *parent;

@@ -31,27 +31,27 @@ typedef struct {
     int flag;                   // setting from player
     int video_filter;
     int video_output;
+    void *device;               // video render device. Ext: surfaceview for android
     void *avctx_priv;
 } dtvideo_para_t;
 
 struct vo_wrapper;
+struct vo_context;
 
-typedef int (*vo_init)(struct vo_wrapper *vo);
-typedef int (*vo_stop)(struct vo_wrapper *vo);
-typedef int (*vo_render)(struct vo_wrapper *vo, dt_av_frame_t * pic);
+typedef int (*vo_init)(struct vo_context *ctx);
+typedef int (*vo_render)(struct vo_context *ctx, dt_av_frame_t * frame);
+typedef int (*vo_stop)(struct vo_context *ctx);
 
 typedef struct vo_wrapper {
     int id;
     const char *name;
-    dtvideo_para_t para;
 
     vo_init init;
     vo_render render;
     vo_stop stop;
 
-    void *handle;
     struct vo_wrapper *next;
-    void *vo_priv;
+    int private_data_size;
 } vo_wrapper_t;
 
 /* video filter plugin */
@@ -64,14 +64,14 @@ typedef enum {
 } vf_cap_t;
 
 struct vf_wrapper;
+struct vf_context;
 
-typedef int (*vf_init)(struct vf_wrapper *vf);
-typedef int (*vf_process)(struct vf_wrapper *vf, dt_av_frame_t *frame);
+typedef int (*vf_init)(struct vf_context *vfc);
+typedef int (*vf_process)(struct vf_context *vfc, dt_av_frame_t *frame);
 typedef int (*vf_capable)(vf_cap_t cap);
-typedef int (*vf_release)(struct vf_wrapper *vf);
+typedef int (*vf_release)(struct vf_context *vfc);
 
 typedef struct vf_wrapper {
-    dtvideo_para_t para;
     char *name;
     int type;
 
@@ -81,8 +81,20 @@ typedef struct vf_wrapper {
     vf_release release;
 
     struct vf_wrapper *next;
-    void *vf_priv;
+    int private_data_size;
 } vf_wrapper_t;
+
+typedef struct vo_context {
+    dtvideo_para_t para;
+    vo_wrapper_t *wrapper;
+    void *private_data;
+} vo_context_t;
+
+typedef struct vf_context {
+    dtvideo_para_t para;
+    vf_wrapper_t *wrapper;
+    void *private_data;
+} vf_context_t;
 
 #ifdef  __cplusplus
 }

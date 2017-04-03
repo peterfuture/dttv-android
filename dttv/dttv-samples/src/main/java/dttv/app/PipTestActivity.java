@@ -14,7 +14,8 @@ import app.dttv.dttvlib.MediaPlayer;
 public class PipTestActivity extends Activity {
 
     private String TAG = "PipTestActivity";
-    private static final String SAMPLE = Environment.getExternalStorageDirectory() + "/video.mp4";
+    //private static final String SAMPLE = Environment.getExternalStorageDirectory() + "/video.mp4";
+    private static final String SAMPLE = "/data/video.mp4";
 
     private SurfaceView mSurfaceView;
     private MediaPlayer mMediaPlayer = null;

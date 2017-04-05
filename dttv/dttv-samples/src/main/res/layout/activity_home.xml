@@ -12,8 +12,8 @@
         android:background="@color/black_9999"
         app:tabIndicatorColor="@android:color/white"
         app:tabSelectedTextColor="@android:color/white"
-        app:tabTextColor="@color/black_3333"
-        app:tabBackground="@color/colorPrimary"
+        app:tabTextColor="@color/black_6666"
+        app:tabBackground="@color/tab_bg"
         />
 
     <android.support.v4.view.ViewPager
@@ -38,16 +38,16 @@
             android:layout_height="wrap_content"
             android:src="@drawable/ic_add_white_24dp"
             app:fabSize="normal"
-            app:backgroundTint="@color/material_orange"/>
+            app:backgroundTint="@color/tab_bg"/>
 
         <!-- Other button as menu items-->
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab_random_circle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_home_white_24dp"
+            android:src="@drawable/folder_icon"
             app:fabSize="mini"
-            app:backgroundTint="@color/material_orange" />
+            app:backgroundTint="@color/tab_bg" />
 
 
         <android.support.design.widget.FloatingActionButton
@@ -56,15 +56,15 @@
             android:layout_height="wrap_content"
             android:src="@drawable/ic_file_download_white_24dp"
             app:fabSize="mini"
-            app:backgroundTint="@color/material_orange"/>
+            app:backgroundTint="@color/tab_bg"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab_browser_circle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_open_in_browser_white_24dp"
+            android:src="@drawable/settings_icon"
             app:fabSize="mini"
-            app:backgroundTint="@color/material_orange"/>
+            app:backgroundTint="@color/tab_bg"/>
 
     </dttv.app.widget.FloatingActionMenu>
 </RelativeLayout>

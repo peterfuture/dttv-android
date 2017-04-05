@@ -1,6 +1,7 @@
 package dttv.app;
 
 
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
@@ -13,6 +14,7 @@ import dttv.app.adapter.HomeAdapter;
 import dttv.app.base.SimpleActivity;
 import dttv.app.frament.BiliVideoFragment;
 import dttv.app.frament.LocalVideoFragment;
+import dttv.app.utils.ActivityUtils;
 import dttv.app.widget.FloatingActionMenu;
 
 
@@ -63,6 +65,23 @@ public class HomeActivity extends SimpleActivity {
         mTabLayout.getTabAt(1).setText(tabTitle[1]);
         mTabLayout.getTabAt(2).setText(tabTitle[2]);
         mTabLayout.getTabAt(3).setText(tabTitle[3]);
+
+        menuCircle.setOnMenuItemClickListener(new FloatingActionMenu.OnMenuItemClickListener() {
+            @Override
+            public void onMenuItemClick(FloatingActionMenu fam, int index, FloatingActionButton item) {
+                switch (index){
+                    case 0:
+                        ActivityUtils.startIntent(mContext,FileBrowserActivity.class);
+                        break;
+                    case 1:
+
+                        break;
+                    case 2:
+                        ActivityUtils.startIntent(mContext,SettingActivity.class);
+                        break;
+                }
+            }
+        });
     }
 
     @Override

@@ -2,6 +2,7 @@ package dttv.app.frament;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
@@ -15,12 +16,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+
 import butterknife.BindView;
 import dttv.app.R;
+import dttv.app.VideoPlayerActivity;
 import dttv.app.base.SimpleFragment;
 import dttv.app.utils.DateUtils;
 import dttv.app.utils.FileNewUtils;
 import dttv.app.utils.Log;
+import dttv.app.utils.PlayerUtil;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -33,6 +38,7 @@ public class LocalVideoFragment extends SimpleFragment {
     private Cursor videocursor;
     private int video_column_index;
     int count;
+
 
     @Override
     protected int getLayoutId() {
@@ -134,11 +140,22 @@ public class LocalVideoFragment extends SimpleFragment {
             video_column_index = videocursor
                     .getColumnIndexOrThrow(MediaStore.Video.Media.DATA);
             videocursor.moveToPosition(position);
-            String filename = videocursor.getString(video_column_index);
-            /*   Intent intent = new Intent(MainActivity.this, ViewVideo.class);
+            String filePathName = videocursor.getString(video_column_index);
+            String fileName = "";
+            try {
+                File file = new File(filePathName);
+                if (file.exists()){
+                    fileName = file.getName();
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            /*Intent intent = new Intent(VideoPlayerActivity.class);
                   intent.putExtra("videofilename", filename);
                   startActivity(intent);*/
-            //Toast.makeText(getActivity().getApplicationContext(), filename, Toast.LENGTH_SHORT).show();
+            PlayerUtil.getInstance().beginToPlayer(getActivity(),filePathName,fileName,1);
+            //Toast.makeText(getActivity().getApplicationContext(), filePathName, Toast.LENGTH_SHORT).show();
         }
     };
 

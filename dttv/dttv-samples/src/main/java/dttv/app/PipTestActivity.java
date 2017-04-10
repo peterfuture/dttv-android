@@ -15,7 +15,7 @@ public class PipTestActivity extends Activity {
 
     private String TAG = "PipTestActivity";
     //private static final String SAMPLE = Environment.getExternalStorageDirectory() + "/video.mp4";
-    private static final String SAMPLE = "/data/video.mp4";
+    private static final String SAMPLE = "udp://239.1.1.1:1235";
 
     private SurfaceView mSurfaceView;
     private MediaPlayer mMediaPlayer = null;
@@ -45,6 +45,7 @@ public class PipTestActivity extends Activity {
                                    int height) {
 
             try {
+                Log.i(TAG, "SurfaceHolder changed. w" + width + " h:" + height);
                 mMediaPlayer.setDataSource(SAMPLE);
                 mMediaPlayer.setDisplay(holder);
                 mMediaPlayer.prepare();

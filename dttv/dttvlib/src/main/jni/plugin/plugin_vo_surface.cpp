@@ -16,16 +16,14 @@ static dtvideo_filter_t vf_surface;
 
 static int vo_surface_init(vo_context_t *voc) {
 
-    struct surface_context *context = (struct surface_context *) malloc(
-            sizeof(struct surface_context));
-    voc->private_data = context;
+    struct surface_context *context = (struct surface_context *) voc->private_data;
     context->dx = 0;
     context->dy = 0;
     context->dw = voc->para.d_width;
     context->dh = voc->para.d_height;
     context->window = NULL;
 
-    if(voc->private_data) {
+    if(voc->private_data && context->dw > 0) {
         context->window = (ANativeWindow *) voc->para.device;
         LOGV("VOUT Window Addr:%p \n", context->window);
         ANativeWindow_setBuffersGeometry(context->window, context->dw, context->dh,
@@ -50,6 +48,8 @@ static int vo_surface_render(vo_context_t *voc, dt_av_frame_t *frame) {
     }
 
     if(context->native_window_init == 0) {
+        context->dw = frame->width;
+        context->dh = frame->height;
         context->window = (ANativeWindow *) voc->para.device;
         ANativeWindow_setBuffersGeometry(context->window, context->dw, context->dh,
                                          WINDOW_FORMAT_RGBA_8888);
@@ -59,16 +59,22 @@ static int vo_surface_render(vo_context_t *voc, dt_av_frame_t *frame) {
 
     // filter
     dtvideo_filter_t *vf = &vf_surface;
-    if (frame->pixfmt != DTAV_PIX_FMT_RGBA) {
-        vf->para.s_width = frame->width;
-        vf->para.s_height = frame->height;
+    if (vf->para.d_width != context->dw
+        || vf->para.d_height != context->dh
+        || vf->para.d_pixfmt != WINDOW_FORMAT_RGBA_8888) {
         vf->para.d_width = context->dw;
         vf->para.d_height = context->dh;
+        vf->para.s_width = frame->width;
+        vf->para.s_height = frame->height;
         vf->para.s_pixfmt = frame->pixfmt;
         vf->para.d_pixfmt = DTAV_PIX_FMT_RGBA;
+        LOGV("Need to Update Video Filter Parameter. w:%d->%d h:%d->%d pixfmt:%d->%d \n",
+                vf->para.s_width, vf->para.d_width, vf->para.s_height, vf->para.d_height ,
+                vf->para.s_pixfmt, vf->para.d_pixfmt);
         video_filter_update(vf);
-        LOGV("Need to Update Video Filter Parameter.\n");
     }
+
+
     video_filter_process(vf, frame);
 
     ANativeWindow_Buffer buf;
@@ -118,4 +124,5 @@ vo_wrapper_t vo_android_surface = {
         .init = vo_surface_init,
         .stop = vo_surface_stop,
         .render = vo_surface_render,
+        .private_data_size = sizeof(struct surface_context),
 };

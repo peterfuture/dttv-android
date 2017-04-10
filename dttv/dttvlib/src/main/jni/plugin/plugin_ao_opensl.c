@@ -611,36 +611,38 @@ static int ao_opensl_stop(ao_context_t *aoc) {
     return 0;
 }
 
-static int ao_opensl_get_volume(ao_wrapper_t *ao) {
+static int ao_opensl_get_volume(ao_context_t *aoc) {
     return 0;
 }
 
-static int ao_opensl_set_volume(ao_wrapper_t *ao, int value) {
+static int ao_opensl_set_volume(ao_context_t *aoc, int value) {
     __android_log_print(ANDROID_LOG_DEBUG, TAG, "opensl setvolume %d \n", value);
     return 0;
 }
 
-static int ao_opensl_set_parameter(ao_wrapper_t *ao, int cmd, unsigned long arg)
+static int ao_opensl_set_parameter(ao_context_t *aoc, int cmd, unsigned long arg)
 {
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
     switch (cmd) {
         case DTP_AO_CMD_SET_VOLUME:
-            ao_opensl_set_volume(ao, (int)arg);
+            ao_opensl_set_volume(aoc, (int)arg);
             break;
     }
     return 0;
 }
 
-static int ao_opensl_get_parameter(ao_wrapper_t *ao, int cmd, unsigned long arg)
+static int ao_opensl_get_parameter(ao_context_t *aoc, int cmd, unsigned long arg)
 {
+    aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
     switch (cmd) {
         case DTP_AO_CMD_GET_LATENCY:
-            *(int *)(arg) = ao_opensl_get_latency(ao);
+            *(int *)(arg) = ao_opensl_get_latency(aoc);
             break;
         case DTP_AO_CMD_GET_LEVEL:
-            *(int *)(arg) = ao_opensl_level(ao);
+            *(int *)(arg) = ao_opensl_level(aoc);
             break;
         case DTP_AO_CMD_GET_VOLUME:
-            *(int *)(arg) = ao_opensl_get_volume(ao);
+            *(int *)(arg) = ao_opensl_get_volume(aoc);
             break;
     }
     return 0;

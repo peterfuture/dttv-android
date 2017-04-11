@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <android/log.h>
+#include <dtp_av.h>
 
 #include "dtp_av.h"
 #include "dtp_plugin.h"
@@ -11,7 +12,6 @@
 #include "../dttv_jni_log.h"
 
 struct vo_info {
-    int dx, dy, dw, dh;
     lock_t mutex;
 };
 
@@ -38,37 +38,29 @@ static void dump_frame(dt_av_frame_t *pFrame, int width, int height, int iFrame)
 }
 
 static int vo_android_init(vo_context_t *voc) {
-    struct vo_info *info = (struct vo_info *) malloc(sizeof(struct vo_info));
-    voc->private_data = info;
-    info->dx = 0;
-    info->dy = 0;
-    info->dw = voc->para.d_width;
-    info->dh = voc->para.d_height;
-    memset(&glvf, 0, sizeof(dtvideo_filter_t));
-    memcpy(&glvf.para, &voc->para, sizeof(dtvideo_para_t));
+    struct vo_info *info = (struct vo_info *) voc->private_data;
     lock_init(&info->mutex, NULL);
-    LOGV("android vo init OK, w:%d h:%d\n", info->dw, info->dh);
+    LOGV("android vo init OK");
     return 0;
 }
 
 static int vo_android_render(vo_context_t *voc, dt_av_frame_t *frame) {
     struct vo_info *info = (struct vo_info *) voc->private_data;
-
     // reset vf and window size
     dtvideo_filter_t *vf = &glvf;
+
     if (frame->pixfmt != DTAV_PIX_FMT_YUV420P) {
         vf->para.s_width = frame->width;
         vf->para.s_height = frame->height;
-        vf->para.d_width = info->dw;
-        vf->para.d_height = info->dh;
+        vf->para.d_width = frame->width;
+        vf->para.d_height = frame->height;
         vf->para.s_pixfmt = frame->pixfmt;
         vf->para.d_pixfmt = DTAV_PIX_FMT_YUV420P;
         video_filter_update(vf);
         LOGV("Need to Update Video Filter Parameter.\n");
     }
-
     video_filter_process(vf, frame);
-    // int size = info->dw * info->dh * 3 / 2; // yuv 420 size
+
     lock(&info->mutex);
     yuv_update_frame(frame);
     frame->data[0] = NULL;

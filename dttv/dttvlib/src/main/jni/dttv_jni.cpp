@@ -314,16 +314,20 @@ int jni_gl_surface_create(JNIEnv *env, jobject thiz) {
         LOGV("set parameter failed.mp == null.");
         return 0;
     }
-
     yuv_dttv_init();
     yuv_reg_player((void *) getMediaPlayer(env, thiz));
-    mp->setGLSurfaceView();
 
     return 0;
 }
 
-int jni_gl_surface_change(JNIEnv *env, jobject obj, int w, int h) {
+int jni_gl_surface_change(JNIEnv *env, jobject thiz, int w, int h) {
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if (mp == NULL) {
+        LOGV("set parameter failed.mp == null.");
+        return 0;
+    }
     yuv_setupGraphics(w, h);
+    mp->setGLSurfaceView();
     LOGV("on surface changed, w:%d h:%d \n", w, h);
     return 0;
 }

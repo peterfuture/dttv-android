@@ -329,7 +329,6 @@ void yuv_reg_player(void *mp) {
 }
 
 int yuv_update_frame(dt_av_frame_t *frame) {
-    int ret = 0;
     if (g_inited == 0) {
         if (frame->data[0]) {
             free(frame->data[0]);
@@ -352,7 +351,6 @@ int yuv_update_frame(dt_av_frame_t *frame) {
         return 0;
     }
     g_dtp->Notify(MEDIA_FRESH_VIDEO);
-    LOGV("Refresh one frame");
     return 0;
 }
 
@@ -385,5 +383,4 @@ void yuv_renderFrame() {
     frame_valid = 0;
     memset(&g_frame, 0, sizeof(dt_av_frame_t));
     unlock(&mutex);
-    LOGV("Draw one frame");
 }

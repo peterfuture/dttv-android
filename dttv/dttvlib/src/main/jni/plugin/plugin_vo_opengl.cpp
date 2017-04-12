@@ -40,6 +40,7 @@ static void dump_frame(dt_av_frame_t *pFrame, int width, int height, int iFrame)
 static int vo_android_init(vo_context_t *voc) {
     struct vo_info *info = (struct vo_info *) voc->private_data;
     lock_init(&info->mutex, NULL);
+    memset(&glvf, 0, sizeof(dtvideo_filter_t));
     LOGV("android vo init OK");
     return 0;
 }
@@ -49,7 +50,8 @@ static int vo_android_render(vo_context_t *voc, dt_av_frame_t *frame) {
     // reset vf and window size
     dtvideo_filter_t *vf = &glvf;
 
-    if (frame->pixfmt != DTAV_PIX_FMT_YUV420P) {
+    if (frame->pixfmt != DTAV_PIX_FMT_YUV420P)
+    {
         vf->para.s_width = frame->width;
         vf->para.s_height = frame->height;
         vf->para.d_width = frame->width;
@@ -60,11 +62,8 @@ static int vo_android_render(vo_context_t *voc, dt_av_frame_t *frame) {
         LOGV("Need to Update Video Filter Parameter.\n");
     }
     video_filter_process(vf, frame);
-
-    lock(&info->mutex);
     yuv_update_frame(frame);
     frame->data[0] = NULL;
-    unlock(&info->mutex);
     return 0;
 }
 
@@ -76,10 +75,10 @@ static int vo_android_stop(vo_context_t *voc) {
 }
 
 vo_wrapper_t vo_android = {
-        .id = 0x100,//VO_ID_ANDROID,
-        .name = "vo android",
-        .init = vo_android_init,
-        .stop = vo_android_stop,
-        .render = vo_android_render,
-        .private_data_size = sizeof(struct vo_info),
+    .id = 0x100,//VO_ID_ANDROID,
+    .name = "vo android",
+    .init = vo_android_init,
+    .stop = vo_android_stop,
+    .render = vo_android_render,
+    .private_data_size = sizeof(struct vo_info),
 };

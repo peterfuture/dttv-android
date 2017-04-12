@@ -24,6 +24,7 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
@@ -127,6 +128,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private int mSurfaceWidth = 320;
     private int mSurfaceHeight = 240;
     private int mCurrentPosition = -1;
+    private int mSurfaceDestroyed = 0;
 
     private int mScreenWidth;
     private int mScreenHeight;
@@ -216,6 +218,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         //mGLSurfaceView.setRenderMode(mGLSurfaceView.RENDERMODE_CONTINUOUSLY);
         mGLSurfaceView.setRenderMode(mGLSurfaceView.RENDERMODE_WHEN_DIRTY);
         //mGLSurfaceView.setOnTouchListener((OnTouchListener) this);
+
+        mGLSurfaceView.getHolder().addCallback(callback);
 
         mTextViewUrl = (TextView) mLinearLayoutTopBar.findViewById(R.id.videoplayer_url);
         mTextViewCurrentTime = (TextView) mLinearLayoutControlPanel.findViewById(R.id.videoplayer_textview_current_time);
@@ -364,7 +368,11 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     class FreshVideo implements OnFreshVideo {
         @Override
         public void onFresh(MediaPlayer mp) {
-            mGLSurfaceView.requestRender();
+            if(mSurfaceDestroyed == 0) {
+                Log.i(TAG, "enter request render");
+                mGLSurfaceView.requestRender();
+                Log.i(TAG, "exit request render");
+            }
         }
     }
 
@@ -500,7 +508,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         Log.i(TAG, "enterStop");
         mState = PLAYER_STOP;
         //mMediaPlayer.release();
-        mMediaPlayer.stop();
+        if(mMediaPlayer != null)
+            mMediaPlayer.stop();
         super.onStop();
     }
 
@@ -617,9 +626,11 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     @Override
     protected void onDestroy() {
         Log.i(TAG, "enter onDestroy");
-        mMediaPlayer.stop();
-        mMediaPlayer.release();
-        mMediaPlayer = null;
+        if(mMediaPlayer != null) {
+            mMediaPlayer.stop();
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+        }
         super.onDestroy();
     }
 
@@ -701,7 +712,30 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             mMediaPlayer.onDrawFrame();
             lock.unlock();
         }
+
     }
+
+    private SurfaceHolder.Callback callback = new SurfaceHolder.Callback() {
+
+        @Override
+        public void surfaceCreated(SurfaceHolder holder) {
+            Log.i(TAG, "SurfaceHolder create");
+        }
+
+        @Override
+        public void surfaceChanged(SurfaceHolder holder, int format, int width,
+                                   int height) {
+            Log.i(TAG, "SurfaceHolder changed. w:" + width + " h:" + height);
+        }
+
+        @Override
+        public void surfaceDestroyed(SurfaceHolder holder) {
+            Log.i(TAG, "SurfaceHolder destroy");
+            mSurfaceDestroyed = 1;
+        }
+
+    };
+
 
     private int temp_flag = 0;
 

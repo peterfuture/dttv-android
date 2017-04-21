@@ -370,7 +370,7 @@ public class MediaPlayer {
                         mOnFreshVideo.onFresh(mMediaPlayer);
                     break;
                 case MEDIA_ERROR:
-
+                    release();
                     break;
                 case MEDIA_HW_ERROR:
                     if (mOnHWRenderFailedListener != null)

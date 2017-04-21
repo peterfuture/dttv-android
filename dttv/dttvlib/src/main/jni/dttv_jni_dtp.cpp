@@ -69,8 +69,11 @@ namespace android {
     void DTPlayer::setNativeWindow(ANativeWindow *window) {
         // Use surface as video render
         dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
-        dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, (unsigned long)window);
-        LOGV("Get Native Window. Register window \n");
+        LOGV("Get Native Window. Register window. %p\n", window);
+    }
+
+    void DTPlayer::setSurface(void *surface) {
+        dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, (unsigned long)surface);
     }
 
     void DTPlayer::setGLSurfaceView() {
@@ -443,6 +446,16 @@ namespace android {
         lock(&dtp->dtp_mutex);
         int ret = 0;
         void *handle = dtp->mDtpHandle;
+
+        // Handle Error
+        if (state->cur_status == PLAYER_STATUS_ERROR) {
+            dtp->status = PLAYER_STOPPED;
+            dtp->mListenner->notify(MEDIA_ERROR);
+            LOGV("Error \n");
+            ret = -1;
+            goto END;
+        }
+
         if (dtp->status == PLAYER_STOPPED) {
             ret = -1;
             goto END;

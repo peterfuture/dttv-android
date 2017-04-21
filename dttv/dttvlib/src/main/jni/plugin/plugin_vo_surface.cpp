@@ -14,6 +14,9 @@ struct surface_context {
 
 static dtvideo_filter_t vf_surface;
 
+struct AVMediaCodecBuffer;
+extern "C" int av_mediacodec_release_buffer(AVMediaCodecBuffer *buffer, int render);
+
 static int vo_surface_init(vo_context_t *voc) {
 
     struct surface_context *context = (struct surface_context *) voc->private_data;
@@ -23,7 +26,7 @@ static int vo_surface_init(vo_context_t *voc) {
     context->dh = voc->para.d_height;
     context->window = NULL;
 
-    if(voc->private_data && context->dw > 0) {
+    if(0 && voc->private_data && context->dw > 0) {
         context->window = (ANativeWindow *) voc->para.device;
         LOGV("VOUT Window Addr:%p \n", context->window);
         ANativeWindow_setBuffersGeometry(context->window, context->dw, context->dh,
@@ -41,6 +44,16 @@ static int vo_surface_init(vo_context_t *voc) {
 static int vo_surface_render(vo_context_t *voc, dt_av_frame_t *frame) {
 
     struct surface_context *context = (struct surface_context *) voc->private_data;
+
+    // Render Frame Using MediaCodec
+    if(frame->data[3] != NULL)
+    {
+        AVMediaCodecBuffer *buffer = (AVMediaCodecBuffer *)frame->data[3];
+        LOGV("android render frame with mediacodec:%p\n", buffer);
+        av_mediacodec_release_buffer(buffer, 1);
+        frame->data[0] = NULL;
+        return 0;
+    }
 
     if(voc->para.device == NULL) {
         LOGV("android vo surface not set\n");

@@ -69,11 +69,12 @@ namespace android {
     void DTPlayer::setNativeWindow(ANativeWindow *window) {
         // Use surface as video render
         dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
+        dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, (unsigned long)window);
         LOGV("Get Native Window. Register window. %p\n", window);
     }
 
     void DTPlayer::setSurface(void *surface) {
-        dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, (unsigned long)surface);
+        //dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, (unsigned long)surface);
     }
 
     void DTPlayer::setGLSurfaceView() {

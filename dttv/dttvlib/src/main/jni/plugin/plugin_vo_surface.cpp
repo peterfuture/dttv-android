@@ -25,17 +25,8 @@ static int vo_surface_init(vo_context_t *voc) {
     context->dw = voc->para.d_width;
     context->dh = voc->para.d_height;
     context->window = NULL;
-
-    if(0 && voc->private_data && context->dw > 0) {
-        context->window = (ANativeWindow *) voc->para.device;
-        LOGV("VOUT Window Addr:%p \n", context->window);
-        ANativeWindow_setBuffersGeometry(context->window, context->dw, context->dh,
-                                         WINDOW_FORMAT_RGBA_8888);
-        context->native_window_init = 1;
-    } else {
-        context->window = NULL;
-        context->native_window_init = 0;
-    }
+    context->window = NULL;
+    context->native_window_init = 0;
     LOGV("android vo init OK, w:%d h:%d\n", context->dw, context->dh);
 
     return 0;

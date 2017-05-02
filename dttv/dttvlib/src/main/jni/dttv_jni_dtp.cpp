@@ -74,7 +74,7 @@ namespace android {
     }
 
     void DTPlayer::setSurface(void *surface) {
-        //dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, (unsigned long)surface);
+        dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, (unsigned long)surface);
     }
 
     void DTPlayer::setGLSurfaceView() {

@@ -81,6 +81,13 @@ typedef struct dt_av_pkt {
     dtp_media_type_t type;
 } dt_av_pkt_t;
 
+
+enum {
+    DTP_FRAME_FLAG_NONE       = 0,
+    DTP_FRAME_FLAG_FFMPEG     = 1,
+    DTP_FRAME_FLAG_MEDIACODEC = 2,
+};
+
 /* av frame after decode */
 typedef struct {
     /* frame members need to equal to ffmpeg AVFrame*/
@@ -95,6 +102,8 @@ typedef struct {
     int64_t pts;
     int64_t dts;
     int duration;
+    int flags;
+    void *opaque;
 } dt_av_frame_t;
 
 
@@ -399,6 +408,10 @@ typedef struct dtav_subtitle {
     dtav_sub_rect_t **rects;
     int64_t pts;    ///< Same as packet pts, in AV_TIME_BASE
 } dtav_sub_frame_t;
+
+dt_av_frame_t *dtp_frame_alloc();
+void dtp_frame_unref(dt_av_frame_t *frame, int render);
+void dtp_frame_free(dt_av_frame_t *frame, int render);
 
 #ifdef  __cplusplus
 }

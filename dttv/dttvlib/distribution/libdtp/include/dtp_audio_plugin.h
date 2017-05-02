@@ -71,7 +71,7 @@ typedef struct ao_context {
     dtaudio_para_t para;
     ao_wrapper_t *wrapper;
     void *private_data;
-}ao_context_t;
+} ao_context_t;
 
 #ifdef  __cplusplus
 }

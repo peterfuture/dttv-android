@@ -1,6 +1,7 @@
 package dttv.app;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Environment;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,12 +11,12 @@ import android.view.SurfaceView;
 import java.io.IOException;
 
 import app.dttv.dttvlib.MediaPlayer;
+import dttv.app.utils.Constant;
 
 public class PipTestActivity extends Activity {
 
     private String TAG = "PipTestActivity";
-    //private static final String SAMPLE = Environment.getExternalStorageDirectory() + "/video.mp4";
-    private static final String SAMPLE = "udp://239.1.1.1:1234";
+    private  String SAMPLE;
 
     private SurfaceView mSurfaceView;
     private MediaPlayer mMediaPlayer = null;
@@ -25,12 +26,14 @@ public class PipTestActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pip_test);
 
+        Intent intent = getIntent();
+        SAMPLE = intent.getStringExtra(Constant.FILE_MSG);
+
         mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         mSurfaceView.getHolder().addCallback(callback);
 
         mMediaPlayer = new MediaPlayer(this, true);
     }
-
 
     // SurfaceView callback
     private SurfaceHolder.Callback callback = new SurfaceHolder.Callback() {

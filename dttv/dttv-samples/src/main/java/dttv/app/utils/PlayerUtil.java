@@ -1,5 +1,6 @@
 package dttv.app.utils;
 
+import dttv.app.PipTestActivity;
 import dttv.app.VideoPlayerActivity;
 
 import android.app.Activity;
@@ -20,11 +21,19 @@ public class PlayerUtil {
 
 
     public void beginToPlayer(Context cr, String uri, String name, int type) {
+
         Intent intent = new Intent();
         intent.putExtra(Constant.FILE_MSG, uri);
         intent.putExtra(Constant.FILE_TYPE, type);
         intent.putExtra(Constant.MEIDA_NAME_STR, name);
-        intent.setClass(cr, VideoPlayerActivity.class);
+
+        // Fixme: select videoplayer - Android MediaPlayer | dtplayer(with glsurfaceview) | dtplayer(with surfaceview)
+
+        //intent.setClass(cr, VideoPlayerActivity.class);
+        //cr.startActivity(intent);
+
+        // use PipTestActivity
+        intent.setClass(cr, PipTestActivity.class);
         cr.startActivity(intent);
     }
 }

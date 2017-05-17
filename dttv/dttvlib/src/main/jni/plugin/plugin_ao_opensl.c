@@ -13,14 +13,17 @@
 #define OPENSLES_BUFFERS 255 /* maximum number of buffers */
 #define OPENSLES_BUFLEN  10   /* ms */
 
+#define TAG "AO-OPENSL"
+
 /*
  * 10ms of precision when mesasuring latency should be enough,
  * with 255 buffers we can buffer 2.55s of audio.
  */
 
 #define CHECK_OPENSL_ERROR(msg)                \
-    if ((result != SL_RESULT_SUCCESS)) \
+    if ((result != SL_RESULT_SUCCESS))         \
     {                                          \
+        LOGI("%s", msg);                  \
         goto error;                            \
     }
 
@@ -106,7 +109,7 @@ typedef struct{
 
 #endif
 
-#define TAG "AO-OPENSL"
+
 
 /*****************************************************************************
  *
@@ -408,10 +411,10 @@ static int Open(ao_context_t *aoc) {
     dtaudio_para_t *para = &aoc->para;
     SLresult result;
 
-    aout_sys_t *sys = (aout_sys_t *) malloc(sizeof(*sys));
+    struct aout_sys_t *sys = (struct aout_sys_t *) malloc(sizeof(*sys));
     if (sys == NULL)
         return -1;
-
+    memset(sys, 0, sizeof(struct aout_sys_t));
     sys->p_so_handle = dlopen("libOpenSLES.so", RTLD_NOW);
     if (sys->p_so_handle == NULL) {
         goto error;
@@ -462,9 +465,11 @@ static int Open(ao_context_t *aoc) {
 
     lock_init(&sys->lock, NULL);
 
-    if (buf_init(&sys->dbt, para->dst_samplerate * 4 / 10) < 0) // 100ms
-        return -1;
+    if (buf_init(&sys->dbt, para->samplerate * 4 / 10) < 0) // 100ms
+        goto error;
+
     aoc->private_data = (void *) sys;
+    LOGI("[%s:%d] channels:[%d - %d] samplerate:[%d - %d] \n", __FUNCTION__, __LINE__, para->samplerate, para->dst_channels, para->samplerate, para->dst_samplerate);
     return 0;
 
     error:
@@ -475,6 +480,7 @@ static int Open(ao_context_t *aoc) {
     if (sys->p_so_handle)
         dlclose(sys->p_so_handle);
     free(sys);
+    LOGI("[%s:%d] open failed. channels:%d samplerate:%d \n", __FUNCTION__, __LINE__, para->dst_channels, para->dst_samplerate);
     return -1;
 }
 
@@ -516,6 +522,11 @@ static int ao_opensl_write(ao_context_t *aoc, uint8_t *buf, int size) {
     aout_sys_t *sys = (aout_sys_t *) aoc->private_data;
     int ret = 0;
 
+    if(!sys) {
+        LOGI(TAG, "Opensl empty. not render");
+        return 0;
+    }
+    LOGI(TAG, "[%s:%d] start to write pcm: %d \n", __FUNCTION__, __LINE__, size);
 #ifdef ENABLE_DTAP
     audio_effect_t *ae = (audio_effect_t *)wrapper->ao_priv;
     lock(&ae->lock);

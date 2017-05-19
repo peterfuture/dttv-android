@@ -42,6 +42,8 @@ namespace android {
 
         void setGLSurfaceView();
 
+        void setupRender();
+
         int setDataSource(const char *uri);
 
         int prePare();
@@ -114,6 +116,10 @@ namespace android {
         dtp_state_t dtp_state;
         int mHWEnable;
         int volume;
+
+        unsigned long mNativeWindow;
+        unsigned long mSurface;
+
         ao_wrapper_t ao;
         vo_wrapper_t vo;
         int audio_pp_id;   // audio effect id

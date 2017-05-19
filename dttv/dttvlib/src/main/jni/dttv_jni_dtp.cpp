@@ -27,6 +27,8 @@ namespace android {
               mDisplayWidth(0) {
         memset(&media_info, 0, sizeof(dtp_media_info_t));
         lock_init(&dtp_mutex, NULL);
+        mNativeWindow = -1;
+        mSurface = -1;
         LOGV("dtplayer constructor ok \n");
     }
 
@@ -42,6 +44,8 @@ namespace android {
         memset(&media_info, 0, sizeof(dtp_media_info_t));
         lock_init(&dtp_mutex, NULL);
         mListenner = listenner;
+        mNativeWindow = -1;
+        mSurface = -1;
         LOGV("dtplayer constructor ok \n");
     }
 
@@ -67,19 +71,56 @@ namespace android {
     }
 
     void DTPlayer::setNativeWindow(ANativeWindow *window) {
-        // Use surface as video render
-        dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
-        dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, (unsigned long)window);
-        LOGV("Get Native Window. Register window. %p\n", window);
+        mNativeWindow = (unsigned long) window;
     }
 
     void DTPlayer::setSurface(void *surface) {
-        dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, (unsigned long)surface);
+        mSurface = (unsigned long)surface;
     }
 
     void DTPlayer::setGLSurfaceView() {
         dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android);
         LOGV("Use GLSurfaceView. Register gl render \n");
+    }
+
+    void DTPlayer::setupRender() {
+        dtp_media_info_t info;
+        int ret = 0;
+        dtvideo_format_t vfmt;
+        dtaudio_format_t afmt;
+        ret = dtplayer_get_mediainfo(mDtpHandle, &info);
+        if (ret < 0) {
+            LOGV("Get mediainfo failed, quit \n");
+            return;
+        }
+
+        // audio render setup
+        if(info.has_audio) {
+            astream_info_t *stream = info.tracks.astreams[info.cur_ast_index];
+            afmt = stream->format;
+            LOGI("current afmt: %d \n", afmt);
+            dtplayer_register_plugin(DTP_PLUGIN_TYPE_AO, &ao_opensl_ops);
+        }
+
+        // video render setup
+        if(info.has_audio) {
+            vstream_info_t *stream = info.tracks.vstreams[info.cur_vst_index];
+            vfmt = stream->format;
+            LOGI("current vfmt: %d \n", vfmt);
+            switch (vfmt) {
+                case DT_VIDEO_FORMAT_H264:
+                case DT_VIDEO_FORMAT_HEVC:
+                    dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
+                    dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mSurface);
+                    break;
+                default:
+                    dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
+                    dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mNativeWindow);
+                    break;
+            }
+        }
+
+        return;
     }
 
     int DTPlayer::setDataSource(const char *file_name) {
@@ -137,9 +178,6 @@ namespace android {
         mDuration = info.duration;
         mDtpHandle = handle;
         LOGV("Get Media Info Ok,filesize:%lld fulltime:%lld S \n", info.file_size, info.duration);
-        
-        // register external module
-        dtplayer_register_plugin(DTP_PLUGIN_TYPE_AO, &ao_opensl_ops);
 
         status = PLAYER_INITED;
         return 0;
@@ -190,6 +228,8 @@ namespace android {
             LOGV("player is running \n");
             goto END;
         }
+
+        setupRender();
 
         ret = dtplayer_start(handle);
         if (ret < 0) {

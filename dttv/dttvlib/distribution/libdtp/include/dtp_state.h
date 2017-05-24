@@ -167,6 +167,7 @@ typedef struct {
     int vdec_error_count;
     int vdec_status;
     int64_t vdec_last_ms;
+    int vdec_type;
 
     int sdec_width;
     int sdec_height;
@@ -184,6 +185,8 @@ typedef struct {
     int64_t full_time;
     int64_t start_time;
     int64_t discontinue_point_ms;
+
+    int vdec_type;
 } dtp_state_t;
 
 #ifdef  __cplusplus

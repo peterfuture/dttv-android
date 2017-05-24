@@ -42,6 +42,8 @@ namespace android {
 
         void setGLSurfaceView();
 
+        int supportMediaCodec();
+
         void setupRender();
 
         int setDataSource(const char *uri);

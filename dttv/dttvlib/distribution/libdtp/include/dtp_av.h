@@ -109,6 +109,11 @@ typedef struct {
 
 // =================================================
 // VIDEO
+enum {
+    DT_VDEC_TYPE_FFMPEG = 0,
+    DT_VDEC_TYPE_MEDIACODEC = 1
+};
+
 typedef enum {
     DT_VIDEO_FORMAT_INVALID = -1,
     DT_VIDEO_FORMAT_MPEG2,

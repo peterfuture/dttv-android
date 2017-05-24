@@ -83,10 +83,29 @@ namespace android {
         LOGV("Use GLSurfaceView. Register gl render \n");
     }
 
-    void DTPlayer::setupRender() {
+    int DTPlayer::supportMediaCodec() {
         dtp_media_info_t info;
         int ret = 0;
         dtvideo_format_t vfmt;
+        dtaudio_format_t afmt;
+
+        ret = dtplayer_get_mediainfo(mDtpHandle, &info);
+        if (ret < 0) {
+            LOGV("Get mediainfo failed, quit \n");
+            return 0;
+        }
+
+        if(info.has_video == 0)
+            return 0;
+        vstream_info_t *stream = info.tracks.vstreams[info.cur_vst_index];
+        vfmt = stream->format;
+        if(vfmt == DT_VIDEO_FORMAT_H264 || vfmt == DT_VIDEO_FORMAT_HEVC)
+            return 1;
+    }
+
+    void DTPlayer::setupRender() {
+        dtp_media_info_t info;
+        int ret = 0;
         dtaudio_format_t afmt;
         ret = dtplayer_get_mediainfo(mDtpHandle, &info);
         if (ret < 0) {
@@ -103,23 +122,14 @@ namespace android {
         }
 
         // video render setup
-        if(info.has_audio) {
-            vstream_info_t *stream = info.tracks.vstreams[info.cur_vst_index];
-            vfmt = stream->format;
-            LOGI("current vfmt: %d \n", vfmt);
-            switch (vfmt) {
-                case DT_VIDEO_FORMAT_H264:
-                case DT_VIDEO_FORMAT_HEVC:
-                    dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
-                    dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mSurface);
-                    break;
-                default:
-                    dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
-                    dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mNativeWindow);
-                    break;
+        if(info.has_video) {
+            dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
+            if(mHWEnable == 0) {
+                dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mNativeWindow);
+                return;
             }
+            dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, supportMediaCodec()?mSurface:mNativeWindow);
         }
-
         return;
     }
 
@@ -501,6 +511,21 @@ namespace android {
             ret = -1;
             goto END;
         }
+
+        // mediacodec support check
+        if (state->cur_status == PLAYER_STATUS_PREPARE_START) {
+            LOGV("Check hw codec crated or not. vcodec type:%d.\n", state->vdec_type);
+            if(state->vdec_type == DT_VDEC_TYPE_FFMPEG) {
+                if(dtp->mHWEnable == 1 && dtp->supportMediaCodec()) {
+                    dtp->mHWEnable = 0;
+                    dtplayer_set_parameter(dtp->mDtpHandle, DTP_CMD_SET_VODEVICE, dtp->mNativeWindow);
+                    dtp->mSeekPosition = dtp->mCurrentPosition;
+                    dtplayer_seekto(handle, dtp->mCurrentPosition);
+                }
+            }
+            goto END;
+        }
+
         memcpy(&dtp->dtp_state, state, sizeof(dtp_state_t));
         if (state->cur_status == PLAYER_STATUS_EXIT) {
             LOGV("PLAYER EXIT OK\n");

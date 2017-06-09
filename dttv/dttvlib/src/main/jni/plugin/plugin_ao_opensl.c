@@ -469,7 +469,7 @@ static int Open(ao_context_t *aoc) {
         goto error;
 
     aoc->private_data = (void *) sys;
-    LOGI("[%s:%d] channels:[%d - %d] samplerate:[%d - %d] \n", __FUNCTION__, __LINE__, para->samplerate, para->dst_channels, para->samplerate, para->dst_samplerate);
+    LOGI("[%s:%d] channels:[%d - %d] samplerate:[%d - %d] \n", __FUNCTION__, __LINE__, para->channels, para->dst_channels, para->samplerate, para->dst_samplerate);
     return 0;
 
     error:

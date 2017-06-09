@@ -57,7 +57,7 @@ static int vo_surface_render(vo_context_t *voc, dt_av_frame_t *frame) {
     dtvideo_filter_t *vf = &vf_surface;
     if (vf->para.d_width != context->dw
         || vf->para.d_height != context->dh
-        || vf->para.d_pixfmt != WINDOW_FORMAT_RGBA_8888) {
+        || vf->para.d_pixfmt != DTAV_PIX_FMT_RGBA) {
         vf->para.d_width = context->dw;
         vf->para.d_height = context->dh;
         vf->para.s_width = frame->width;
@@ -69,7 +69,6 @@ static int vo_surface_render(vo_context_t *voc, dt_av_frame_t *frame) {
                 vf->para.s_pixfmt, vf->para.d_pixfmt);
         video_filter_update(vf);
     }
-
 
     video_filter_process(vf, frame);
 

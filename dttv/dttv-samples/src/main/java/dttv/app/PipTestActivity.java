@@ -12,6 +12,8 @@ import java.io.IOException;
 
 import app.dttv.dttvlib.MediaPlayer;
 import dttv.app.utils.Constant;
+import dttv.app.utils.SettingUtil;
+import dttv.app.utils.VolumeUtil;
 
 public class PipTestActivity extends Activity {
 
@@ -20,6 +22,9 @@ public class PipTestActivity extends Activity {
 
     private SurfaceView mSurfaceView;
     private MediaPlayer mMediaPlayer = null;
+
+    private SettingUtil mSettingUtil;
+    private int mHWCodecEnable = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +37,10 @@ public class PipTestActivity extends Activity {
         mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         mSurfaceView.getHolder().addCallback(callback);
 
-        mMediaPlayer = new MediaPlayer(this, true);
+        mSettingUtil = new SettingUtil(this);
+        mHWCodecEnable = mSettingUtil.isHWCodecEnable();
+
+        mMediaPlayer = new MediaPlayer(this, mHWCodecEnable == 1);
     }
 
     // SurfaceView callback

@@ -155,6 +155,7 @@ namespace android {
         para.disable_sub = 1;
         if (!mHWEnable) {
             para.disable_hw_vcodec = 1;
+            LOGV("disable hw codec\n");
         }
         para.width = -1;
         para.height = -1;

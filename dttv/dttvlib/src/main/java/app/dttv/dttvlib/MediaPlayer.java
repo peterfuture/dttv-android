@@ -66,7 +66,6 @@ public class MediaPlayer {
 
     private Context mContext;
     private long mNativeContext; // accessed by native methods
-    private boolean mUseHwCodec = true;
     private static EventHandler mEventHandler;
 
     private SurfaceHolder mSurfaceHolder;
@@ -78,13 +77,12 @@ public class MediaPlayer {
     }
 
     public MediaPlayer(Context ctx) {
-        this(ctx, false);
+        this(ctx, true);
     }
 
-    public MediaPlayer(Context ctx, boolean hw) {
+    public MediaPlayer(Context ctx, boolean bUseHwCodec) {
 
         mContext = ctx;
-        mUseHwCodec = hw;
 
         Looper looper;
         if ((looper = Looper.myLooper()) != null)
@@ -95,9 +93,9 @@ public class MediaPlayer {
             mEventHandler = null;
 
         int ret = native_setup(new WeakReference<MediaPlayer>(this));
-        Log.d(TAG, "Native Setup.ret:" + ret);
+        Log.d(TAG, "Native Setup.ret:" + ret + " use hw:" + (bUseHwCodec ? 1 : 0));
         if (ret >= 0) {
-            native_set_parameter(KEY_PARAMETER_USEHWCODEC, mUseHwCodec ? 1 : 0, 0);
+            native_set_parameter(KEY_PARAMETER_USEHWCODEC, bUseHwCodec ? 1 : 0, 0);
         }
     }
 

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -28,7 +29,7 @@ import dttv.app.utils.TimesUtil;
 public class PipTestActivity extends Activity implements View.OnClickListener, View.OnTouchListener {
 
     private String TAG = "PipTestActivity";
-    private  String SAMPLE;
+    private String SAMPLE;
 
     private SurfaceView mSurfaceView;
     private MediaPlayer mMediaPlayer = null;
@@ -52,6 +53,13 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
     private int mHWCodecEnable = 1;
 
     private int mPaused = 0;
+    private int mStopped = 0;
+
+    private int mSeeking = 0;
+    private int mSeekPosition = -1;
+    private int mSeekCurPosition = -1;
+
+    private int mResumePosition = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +79,27 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
 
         setupView();
         setupLisenner();
+    }
 
+    @Override
+    public void onPause() {
+        mMediaPlayer.pause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        if (mStopped == 0) {
+            mMediaPlayer.start();
+        }
+        // else do nothing - resume play in surface create
+        super.onResume();
+    }
+
+    @Override
+    protected void onStop() {
+        stopMediaPlayer();
+        super.onStop();
     }
 
     private void setupView() {
@@ -92,6 +120,10 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
     }
 
     private void setupLisenner() {
+        mMediaPlayer.setOnPreparedListener(new OnPrepareListener());
+        mMediaPlayer.setOnSeekCompleteListener(new OnSeekCompleteListner());
+        mMediaPlayer.setOnCompletionListener(new OnCompleteListener());
+
         mPauseButton.setOnClickListener(this);
         mNextButton.setOnClickListener(this);
         mSettingButton.setOnClickListener(this);
@@ -106,7 +138,7 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
         switch (id) {
             case R.id.btn_pause:
                 mMediaPlayer.pause();
-                if(mPaused == 0) {
+                if (mPaused == 0) {
                     mPauseButton.setBackgroundResource(R.drawable.play);
                     mPaused = 1;
                 } else {
@@ -139,13 +171,22 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
         }
 
         public void onStopTrackingTouch(SeekBar seekBar) {
-            mMediaPlayer.seekTo(seekBar.getProgress());
+            int position = seekBar.getProgress();
+            ;
+            if (mSeeking == 1) {
+                mSeekCurPosition = position;
+                return;
+            } else {
+                mSeeking = 1;
+                mSeekCurPosition = mSeekPosition = position;
+            }
+            mMediaPlayer.seekTo(mSeekPosition);
         }
     };
 
     // Timer Handle
     private void startTimer() {
-        if(mTimer != null || mTimerTask != null) {
+        if (mTimer != null || mTimerTask != null) {
             return;
         }
 
@@ -162,12 +203,13 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
     }
 
     private void stopTimer() {
-        if(mTimer != null || mTimerTask != null) {
+        if (mTimer == null && mTimerTask == null) {
             return;
         }
 
         mTimer.cancel();
         mTimerTask.cancel();
+        mHandle.removeCallbacksAndMessages(null);
     }
 
     // Handle Message
@@ -190,6 +232,69 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
         mHandle.sendMessage(message);
     }
 
+    // VideoPlayer Lisenter
+    class OnPrepareListener implements MediaPlayer.OnPreparedListener {
+        @Override
+        public void onPrepared(MediaPlayer mp) {
+            Log.i(TAG, "prepared");
+        }
+    }
+
+    class OnSeekCompleteListner implements MediaPlayer.OnSeekCompleteListener {
+        @Override
+        public void onSeekComplete(MediaPlayer mp) {
+            // check no seek left
+            if (mSeekCurPosition != mSeekPosition) {
+                mSeekPosition = mSeekCurPosition;
+                mMediaPlayer.seekTo(mSeekPosition);
+                Log.i(TAG, "cache seekto " + mSeekPosition);
+                return;
+            }
+
+            startTimer();
+            mSeeking = 0;
+            mSeekCurPosition = mSeekPosition = -1;
+            Log.i(TAG, "seek complete.");
+        }
+    }
+
+    ;
+
+    class OnCompleteListener implements MediaPlayer.OnCompletionListener {
+        @Override
+        public void onCompletion(MediaPlayer mp) {
+            stopMediaPlayer();
+        }
+    }
+
+    private void startMediaPlayer() {
+        try {
+            mMediaPlayer.setDataSource(SAMPLE);
+            mMediaPlayer.setDisplay(mSurfaceView.getHolder());
+            mMediaPlayer.prepare();
+            mMediaPlayer.start();
+            if (mResumePosition > 0) {
+                mMediaPlayer.seekTo(mResumePosition);
+                mResumePosition = -1;
+            }
+
+            startTimer();
+            mTextViewDuration.setText(TimesUtil.getTime(mMediaPlayer.getDuration()));
+            mSeekBarProgress.setMax(mMediaPlayer.getDuration());
+        } catch (IOException ex) {
+        }
+    }
+
+    private void stopMediaPlayer() {
+        if (mStopped == 1)
+            return;
+
+        mResumePosition = mMediaPlayer.getCurrentPosition();
+        stopTimer();
+        mMediaPlayer.stop();
+        mStopped = 1;
+    }
+
     // SurfaceView callback
     private SurfaceHolder.Callback callback = new SurfaceHolder.Callback() {
 
@@ -201,28 +306,16 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
         @Override
         public void surfaceChanged(SurfaceHolder holder, int format, int width,
                                    int height) {
-
-            try {
-                Log.i(TAG, "SurfaceHolder changed. w" + width + " h:" + height);
-                mMediaPlayer.setDataSource(SAMPLE);
-                mMediaPlayer.setDisplay(holder);
-                mMediaPlayer.prepare();
-
-                // init view
-                startTimer();
-                mTextViewDuration.setText(TimesUtil.getTime(mMediaPlayer.getDuration()));
-                mSeekBarProgress.setMax(mMediaPlayer.getDuration());
-            }catch(IOException ex) {}
+            Log.i(TAG, "SurfaceHolder changed. w" + width + " h:" + height);
+            startMediaPlayer();
         }
 
         @Override
         public void surfaceDestroyed(SurfaceHolder holder) {
             Log.i(TAG, "SurfaceHolder destroy");
-            stopTimer();
-            mMediaPlayer.stop();
+            stopMediaPlayer();
         }
 
     };
-
 
 }

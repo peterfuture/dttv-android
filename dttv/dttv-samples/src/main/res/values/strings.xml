@@ -56,6 +56,9 @@
     <string name="videoplayer_string_decoder_hw">硬解码</string>
     <string name="videoplayer_string_setting">播放器设置</string>
 
+    <!-- videoplayer -->
+    <string name="time_zero">00:00:00</string>
+
     <!-- Setting -->
     <string name="setting_preference_title">播放器设置</string>
 

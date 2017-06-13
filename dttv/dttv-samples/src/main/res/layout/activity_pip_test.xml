@@ -1,16 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/pip_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="dttv.app.PipTestActivity">
+    android:layout_gravity="center"
+    android:orientation="vertical" >
 
     <SurfaceView
         android:id="@+id/surfaceView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="117dp"
-        tools:layout_editor_absoluteY="169dp" />
+        android:visibility="visible" />
 
-</android.support.constraint.ConstraintLayout>
+    <LinearLayout
+        android:id="@+id/control_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/videoplayer_control_panel_color"
+        android:paddingLeft="@dimen/contro_pannel_padding"
+        android:paddingRight="@dimen/contro_pannel_padding"
+        android:paddingTop="@dimen/contro_pannel_padding"
+        android:paddingBottom="@dimen/contro_pannel_padding"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <SeekBar
+            android:id="@+id/seekbar_time"
+            style="@android:style/Widget.Holo.SeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <RelativeLayout
+            android:id="@+id/control_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/contro_bar_padding"
+            android:paddingRight="@dimen/contro_bar_padding"
+            android:paddingTop="@dimen/contro_bar_padding"
+            android:paddingBottom="@dimen/contro_bar_padding"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageButton
+                android:id="@+id/btn_pause"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:background="@drawable/pause" />
+
+            <ImageButton
+                android:id="@+id/btn_next"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="@dimen/contro_view_padding"
+                android:layout_toRightOf="@id/btn_pause"
+                android:background="@drawable/next" />
+
+            <TextView
+                android:id="@+id/txt_cur"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:paddingLeft="@dimen/contro_view_padding"
+                android:gravity="center"
+                android:layout_toRightOf="@id/btn_next"
+                android:text="@string/time_zero" />
+
+            <TextView
+                android:id="@+id/txt_dur"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:paddingLeft="@dimen/contro_view_padding"
+                android:gravity="center"
+                android:layout_toRightOf="@id/txt_cur"
+                android:text="@string/time_zero" />
+
+            <ImageButton
+                android:id="@+id/btn_ratio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/ratio" />
+
+            <ImageButton
+                android:id="@+id/btn_setting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toLeftOf="@id/btn_ratio"
+                android:paddingRight="@dimen/contro_view_padding"
+                android:background="@drawable/setting" />
+        </RelativeLayout>
+    </LinearLayout>
+
+</RelativeLayout>

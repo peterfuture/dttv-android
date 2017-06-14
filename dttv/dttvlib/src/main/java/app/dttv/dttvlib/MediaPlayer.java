@@ -355,8 +355,10 @@ public class MediaPlayer {
                 case MEDIA_SEEK_COMPLETE:
                     if (native_is_playing() == 1 ? true : false)
                         stayAwake(true);
-                    if (mOnSeekCompleteListener != null)
-                        mOnSeekCompleteListener.onSeekComplete(mMediaPlayer);
+                    if (mOnSeekCompleteListener != null) {
+                       mOnSeekCompleteListener.onSeekComplete(mMediaPlayer);
+                        Log.i(TAG, "seek complete");
+                    }
                     break;
                 case MEDIA_SET_VIDEO_SIZE:
                     if (mOnVideoSizeChangedListener != null)
@@ -375,7 +377,7 @@ public class MediaPlayer {
                         mOnHWRenderFailedListener.onFailed();
                     return;
                 default:
-                    Log.e("", "Unknown message type " + msg.what);
+                    Log.e(TAG, "Unknown message type " + msg.what);
                     return;
             }
         }
@@ -397,6 +399,9 @@ public class MediaPlayer {
                 break;
             case MEDIA_PLAYBACK_COMPLETE:
                 mEventHandler.sendEmptyMessage(MEDIA_PLAYBACK_COMPLETE);
+                break;
+            case MEDIA_SEEK_COMPLETE:
+                mEventHandler.sendEmptyMessage(MEDIA_SEEK_COMPLETE);
                 break;
             case MEDIA_ERROR:
                 mEventHandler.sendEmptyMessage(MEDIA_ERROR);

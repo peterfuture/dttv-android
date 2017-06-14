@@ -102,6 +102,12 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
         super.onStop();
     }
 
+    @Override
+    protected void onDestroy() {
+        mMediaPlayer = null;
+        super.onDestroy();
+    }
+
     private void setupView() {
         mCtlPanel = (LinearLayout) findViewById(R.id.control_panel);
         mCtlPanel.setVisibility(View.VISIBLE);
@@ -172,7 +178,6 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
 
         public void onStopTrackingTouch(SeekBar seekBar) {
             int position = seekBar.getProgress();
-            ;
             if (mSeeking == 1) {
                 mSeekCurPosition = position;
                 return;
@@ -181,6 +186,7 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
                 mSeekCurPosition = mSeekPosition = position;
             }
             mMediaPlayer.seekTo(mSeekPosition);
+            Log.i(TAG, "Seekto " + mSeekPosition);
         }
     };
 
@@ -210,6 +216,8 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
         mTimer.cancel();
         mTimerTask.cancel();
         mHandle.removeCallbacksAndMessages(null);
+        mTimer = null;
+        mTimerTask = null;
     }
 
     // Handle Message
@@ -218,8 +226,10 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case UPDATE_TEXTVIEW:
-                    mTextViewCurTime.setText(TimesUtil.getTime(mMediaPlayer.getCurrentPosition()));
-                    mSeekBarProgress.setProgress(mMediaPlayer.getCurrentPosition());
+                    if (mSeeking == 0) {
+                        mTextViewCurTime.setText(TimesUtil.getTime(mMediaPlayer.getCurrentPosition()));
+                        mSeekBarProgress.setProgress(mMediaPlayer.getCurrentPosition());
+                    }
                     break;
                 default:
                     break;
@@ -251,9 +261,9 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
                 return;
             }
 
-            startTimer();
             mSeeking = 0;
             mSeekCurPosition = mSeekPosition = -1;
+            startTimer();
             Log.i(TAG, "seek complete.");
         }
     }
@@ -281,6 +291,7 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
             startTimer();
             mTextViewDuration.setText(TimesUtil.getTime(mMediaPlayer.getDuration()));
             mSeekBarProgress.setMax(mMediaPlayer.getDuration());
+            mStopped = 0;
         } catch (IOException ex) {
         }
     }

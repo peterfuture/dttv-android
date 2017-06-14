@@ -75,7 +75,7 @@ namespace android {
     }
 
     void DTPlayer::setSurface(void *surface) {
-        mSurface = (unsigned long)surface;
+        mSurface = (unsigned long) surface;
     }
 
     void DTPlayer::setGLSurfaceView() {
@@ -95,11 +95,11 @@ namespace android {
             return 0;
         }
 
-        if(info.has_video == 0)
+        if (info.has_video == 0)
             return 0;
         vstream_info_t *stream = info.tracks.vstreams[info.cur_vst_index];
         vfmt = stream->format;
-        if(vfmt == DT_VIDEO_FORMAT_H264 || vfmt == DT_VIDEO_FORMAT_HEVC)
+        if (vfmt == DT_VIDEO_FORMAT_H264 || vfmt == DT_VIDEO_FORMAT_HEVC)
             return 1;
     }
 
@@ -114,7 +114,7 @@ namespace android {
         }
 
         // audio render setup
-        if(info.has_audio) {
+        if (info.has_audio) {
             astream_info_t *stream = info.tracks.astreams[info.cur_ast_index];
             afmt = stream->format;
             LOGI("current afmt: %d \n", afmt);
@@ -122,13 +122,14 @@ namespace android {
         }
 
         // video render setup
-        if(info.has_video) {
+        if (info.has_video) {
             dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
-            if(mHWEnable == 0) {
+            if (mHWEnable == 0) {
                 dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mNativeWindow);
                 return;
             }
-            dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, supportMediaCodec()?mSurface:mNativeWindow);
+            dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE,
+                                   supportMediaCodec() ? mSurface : mNativeWindow);
         }
         return;
     }
@@ -440,21 +441,7 @@ namespace android {
     }
 
     int DTPlayer::getCurrentPosition() {
-        void *handle = mDtpHandle;
-        int cur_pos = -1;
-        lock(&dtp_mutex);
-        if (!handle) {
-            unlock(&dtp_mutex);
-            return 0;
-        }
-        if (status == PLAYER_RUNNING) {
-            mCurrentPosition = dtp_state.cur_time;
-        }
-
-        cur_pos = mCurrentPosition;
-        LOGV("getCurrentPos:%d status:%d \n", mCurrentPosition, status);
-        unlock(&dtp_mutex);
-        return cur_pos;
+        return mCurrentPosition;
     }
 
     int DTPlayer::getDuration() {
@@ -512,14 +499,18 @@ namespace android {
             ret = -1;
             goto END;
         }
+        if (dtp->status == PLAYER_RUNNING) {
+            dtp->mCurrentPosition = state->cur_time;
+        }
 
         // mediacodec support check
         if (state->cur_status == PLAYER_STATUS_PREPARE_START) {
             LOGV("Check hw codec crated or not. vcodec type:%d.\n", state->vdec_type);
-            if(state->vdec_type == DT_VDEC_TYPE_FFMPEG) {
-                if(dtp->mHWEnable == 1 && dtp->supportMediaCodec()) {
+            if (state->vdec_type == DT_VDEC_TYPE_FFMPEG) {
+                if (dtp->mHWEnable == 1 && dtp->supportMediaCodec()) {
                     dtp->mHWEnable = 0;
-                    dtplayer_set_parameter(dtp->mDtpHandle, DTP_CMD_SET_VODEVICE, dtp->mNativeWindow);
+                    dtplayer_set_parameter(dtp->mDtpHandle, DTP_CMD_SET_VODEVICE,
+                                           dtp->mNativeWindow);
                     dtp->mSeekPosition = dtp->mCurrentPosition;
                     dtplayer_seekto(handle, dtp->mCurrentPosition);
                 }
@@ -534,7 +525,7 @@ namespace android {
             dtp->status = PLAYER_EXIT;
             goto END;
         } else if (state->cur_status == PLAYER_STATUS_SEEK_EXIT) {
-            LOGV("SEEK COMPLETE \n");
+            dtp->mListenner->notify(MEDIA_SEEK_COMPLETE);
             if (dtp->mCurrentPosition != dtp->mSeekPosition) {
                 //still have seek request
                 dtp->mSeekPosition = dtp->mCurrentPosition;

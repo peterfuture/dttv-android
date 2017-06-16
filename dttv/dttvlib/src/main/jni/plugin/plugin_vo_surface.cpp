@@ -4,6 +4,7 @@
 #include <dtp_vf.h>
 #include <dtp_av.h>
 #include <dtp_video_plugin.h>
+#include <dttv_jni_surface.h>
 #include "dttv_jni_log.h"
 
 struct surface_context {
@@ -46,7 +47,11 @@ static int vo_surface_render(vo_context_t *voc, dt_av_frame_t *frame) {
     if(context->native_window_init == 0) {
         context->dw = frame->width;
         context->dh = frame->height;
-        context->window = (ANativeWindow *) voc->para.device;
+        context->window = dttv_nativewindow_from_surface(voc->para.device);
+        if(context->window == NULL) {
+            return 0;
+        }
+
         ANativeWindow_setBuffersGeometry(context->window, context->dw, context->dh,
                                          WINDOW_FORMAT_RGBA_8888);
         context->native_window_init = 1;

@@ -68,6 +68,7 @@ namespace android {
     int DTPlayer::setListenner(dttvListenner *listenner) {
         LOGV("[%d:%p] [%d:%p]", sizeof(mListenner), this->mListenner, sizeof(listenner), listenner);
         this->mListenner = listenner;
+        return 0;
     }
 
     void DTPlayer::setNativeWindow(ANativeWindow *window) {
@@ -101,6 +102,8 @@ namespace android {
         vfmt = stream->format;
         if (vfmt == DT_VIDEO_FORMAT_H264 || vfmt == DT_VIDEO_FORMAT_HEVC)
             return 1;
+
+        return 0;
     }
 
     void DTPlayer::setupRender() {
@@ -124,12 +127,16 @@ namespace android {
         // video render setup
         if (info.has_video) {
             dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
+
+            dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mSurface);
+#if 0
             if (mHWEnable == 0) {
                 dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mNativeWindow);
                 return;
             }
             dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE,
                                    supportMediaCodec() ? mSurface : mNativeWindow);
+#endif
         }
         return;
     }
@@ -505,8 +512,9 @@ namespace android {
 
         // mediacodec support check
         if (state->cur_status == PLAYER_STATUS_PREPARE_START) {
-            LOGV("Check hw codec crated or not. vcodec type:%d.\n", state->vdec_type);
+            LOGV("Check hw codec crated or not. vcodec type:%d. hw init:%d \n", state->vdec_type, state->vdec_type == DT_VDEC_TYPE_FFMPEG);
             if (state->vdec_type == DT_VDEC_TYPE_FFMPEG) {
+#if 0
                 if (dtp->mHWEnable == 1 && dtp->supportMediaCodec()) {
                     dtp->mHWEnable = 0;
                     dtplayer_set_parameter(dtp->mDtpHandle, DTP_CMD_SET_VODEVICE,
@@ -514,6 +522,7 @@ namespace android {
                     dtp->mSeekPosition = dtp->mCurrentPosition;
                     dtplayer_seekto(handle, dtp->mCurrentPosition);
                 }
+#endif
             }
             goto END;
         }

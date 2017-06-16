@@ -5,6 +5,7 @@
 
 #include <plugin/gl_yuv.h>
 #include "dttv_jni_dtp.h"
+#include "dttv_jni_surface.h"
 
 #define TAG "DTTV-JNI"
 
@@ -51,7 +52,7 @@ dttvListenner::~dttvListenner() {
         isAttached = 1;
     }
 
-    if (isAttached < 0)
+    if (isAttached <= 0)
         return;
 
     env->DeleteGlobalRef(mObject);
@@ -302,9 +303,9 @@ static void jni_dttv_set_video_surface(JNIEnv *env, jobject thiz, jobject jsurfa
         LOGV("set parameter failed.mp == null.");
         return;
     }
-    ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
-    LOGV("NativeWindow Address:%p \n", window);
-    mp->setNativeWindow(window);
+    //ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
+    //LOGV("NativeWindow Address:%p \n", window);
+    //mp->setNativeWindow(window);
     jobject ref = env->NewGlobalRef(jsurface);
     mp->setSurface(ref);
 }
@@ -390,7 +391,6 @@ static int register_natives(JNIEnv *env) {
         return JNI_FALSE;
     }
 
-
     if (env->RegisterNatives(clazz, g_Methods, NELEM(g_Methods)) < 0) {
         LOGV("RegisterNatives failed.\n");
         return JNI_FALSE;
@@ -418,6 +418,7 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     result = JNI_VERSION_1_4;
     lock_init(&mutex, NULL);
     av_jni_set_java_vm(vm, reserved);
+    dttv_setup_gvm(vm);
     bail:
     return result;
 }

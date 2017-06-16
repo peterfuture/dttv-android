@@ -25,6 +25,7 @@ static int vo_surface_init(vo_context_t *voc) {
     context->window = NULL;
     context->window = NULL;
     context->native_window_init = 0;
+    vf_surface = {0};
     LOGV("android vo init OK, w:%d h:%d\n", context->dw, context->dh);
 
     return 0;
@@ -39,23 +40,24 @@ static int vo_surface_render(vo_context_t *voc, dt_av_frame_t *frame) {
         return 0;
     }
 
-    if(voc->para.device == NULL) {
+    if (voc->para.device == NULL) {
         LOGV("android vo surface not set\n");
         return 0;
     }
 
-    if(context->native_window_init == 0) {
+    if (context->native_window_init == 0) {
         context->dw = frame->width;
         context->dh = frame->height;
         context->window = dttv_nativewindow_from_surface(voc->para.device);
-        if(context->window == NULL) {
+        if (context->window == NULL) {
             return 0;
         }
 
         ANativeWindow_setBuffersGeometry(context->window, context->dw, context->dh,
                                          WINDOW_FORMAT_RGBA_8888);
         context->native_window_init = 1;
-        LOGV("android vo surface set ok. width:%d\n", ANativeWindow_getWidth(context->window));
+        LOGV("android vo surface set ok. frame[%d-%d] window:[%d-%d]\n", frame->width, frame->height,
+             ANativeWindow_getWidth(context->window), ANativeWindow_getHeight(context->window));
     }
 
     // filter
@@ -70,8 +72,8 @@ static int vo_surface_render(vo_context_t *voc, dt_av_frame_t *frame) {
         vf->para.s_pixfmt = frame->pixfmt;
         vf->para.d_pixfmt = DTAV_PIX_FMT_RGBA;
         LOGV("Need to Update Video Filter Parameter. w:%d->%d h:%d->%d pixfmt:%d->%d \n",
-                vf->para.s_width, vf->para.d_width, vf->para.s_height, vf->para.d_height ,
-                vf->para.s_pixfmt, vf->para.d_pixfmt);
+             vf->para.s_width, vf->para.d_width, vf->para.s_height, vf->para.d_height,
+             vf->para.s_pixfmt, vf->para.d_pixfmt);
         video_filter_update(vf);
     }
 
@@ -80,20 +82,23 @@ static int vo_surface_render(vo_context_t *voc, dt_av_frame_t *frame) {
     ANativeWindow_Buffer buf;
     ANativeWindow *window = context->window;
     if (ANativeWindow_lock(window, &buf, NULL) == 0) {
-        LOGV("Render one frame. dst:%p src:%p size:%d.\n", buf.bits, frame->data[0], frame->linesize[0]);
+#if 0
         if (buf.width >= buf.stride)
             memcpy(buf.bits, frame->data[0], context->dw*context->dh*4);
-#if 0
+#endif
+#if 1
         // 获取stride
-        uint8_t * dst = (uint8_t*)buf.bits;
+        uint8_t *dst = (uint8_t *) buf.bits;
         int dstStride = buf.stride * 4;
-        uint8_t * src = (uint8_t*) (frame->data[0]);
+        uint8_t *src = (uint8_t *) (frame->data[0]);
         int srcStride = frame->linesize[0];
+
+        LOGV("Render one frame. dstStride:%d.srcStride:%d dh:%d\n", dstStride, srcStride, context->dh);
 
         // 由于window的stride和帧的stride不同,因此需要逐行复制
         int h;
         for (h = 0; h < context->dh; h++) {
-            memcpy(dst + h * dstStride, src + h * srcStride, srcStride);
+            memcpy(dst + h * srcStride, src + h * srcStride, srcStride);
         }
 #endif
         ANativeWindow_unlockAndPost(window);
@@ -110,7 +115,7 @@ static int vo_surface_render(vo_context_t *voc, dt_av_frame_t *frame) {
 static int vo_surface_stop(vo_context_t *voc) {
     struct surface_context *context = (struct surface_context *) voc->private_data;
     video_filter_stop(&vf_surface);
-    if(context->window) {
+    if (context->window) {
         ANativeWindow *window = context->window;
         ANativeWindow_release(window);
     }

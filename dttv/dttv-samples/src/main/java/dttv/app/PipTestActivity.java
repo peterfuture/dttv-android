@@ -6,11 +6,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -52,14 +55,19 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
     private SettingUtil mSettingUtil;
     private int mHWCodecEnable = 1;
 
+    // contrl
     private int mPaused = 0;
     private int mStopped = 0;
 
     private int mSeeking = 0;
     private int mSeekPosition = -1;
     private int mSeekCurPosition = -1;
-
+    private int mRatio = 0; // 0 full 1 normal
     private int mResumePosition = -1;
+
+    // Info
+    private int mScreenWidth = 0;
+    private int mScreenHeight = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,6 +131,11 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
         mSeekBarProgress = (SeekBar) findViewById(R.id.seekbar_time);
         mTextViewCurTime = (TextView) findViewById(R.id.txt_cur);
         mTextViewDuration = (TextView) findViewById(R.id.txt_dur);
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        mScreenWidth = displayMetrics.widthPixels;
+        mScreenHeight = displayMetrics.heightPixels;
     }
 
     private void setupLisenner() {
@@ -157,6 +170,22 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
             case R.id.btn_setting:
                 break;
             case R.id.btn_ratio:
+
+                if (mRatio == 0) {
+                    // switch to normal
+                    mRatio = 1;
+                    ViewGroup.LayoutParams lp = mSurfaceView.getLayoutParams();
+                    lp.width = mMediaPlayer.getVideoWidth();
+                    lp.height = mMediaPlayer.getVideoHeight();
+                    mSurfaceView.setLayoutParams(lp);
+                } else {
+                    // switch to fullscreen
+                    mRatio = 0;
+                    ViewGroup.LayoutParams lp = mSurfaceView.getLayoutParams();
+                    lp.width = mScreenWidth;
+                    lp.height = mScreenHeight;
+                    mSurfaceView.setLayoutParams(lp);
+                }
                 break;
             default:
                 break;
@@ -279,6 +308,10 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
 
     private void startMediaPlayer() {
         try {
+            if (mMediaPlayer == null)
+                return;
+            if (mMediaPlayer.isPlaying())
+                return;
             mMediaPlayer.setDataSource(SAMPLE);
             mMediaPlayer.setDisplay(mSurfaceView.getHolder());
             mMediaPlayer.prepare();

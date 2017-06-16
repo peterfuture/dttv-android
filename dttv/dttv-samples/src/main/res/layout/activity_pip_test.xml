@@ -48,13 +48,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
+                android:paddingLeft="@dimen/contro_bar_padding"
                 android:background="@drawable/pause" />
 
             <ImageButton
                 android:id="@+id/btn_next"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingLeft="@dimen/contro_view_padding"
+                android:layout_marginLeft="@dimen/contro_view_padding"
                 android:layout_toRightOf="@id/btn_pause"
                 android:background="@drawable/next" />
 
@@ -63,7 +64,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/white"
-                android:paddingLeft="@dimen/contro_view_padding"
+                android:layout_marginLeft="@dimen/contro_view_padding"
                 android:gravity="center"
                 android:layout_toRightOf="@id/btn_next"
                 android:text="@string/time_zero" />
@@ -73,7 +74,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/white"
-                android:paddingLeft="@dimen/contro_view_padding"
+                android:layout_marginLeft="@dimen/contro_view_padding"
                 android:gravity="center"
                 android:layout_toRightOf="@id/txt_cur"
                 android:text="@string/time_zero" />
@@ -83,6 +84,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
+                android:paddingRight="@dimen/contro_bar_padding"
                 android:background="@drawable/ratio" />
 
             <ImageButton
@@ -90,7 +92,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toLeftOf="@id/btn_ratio"
-                android:paddingRight="@dimen/contro_view_padding"
+                android:layout_marginRight="@dimen/contro_view_padding"
                 android:background="@drawable/setting" />
         </RelativeLayout>
     </LinearLayout>

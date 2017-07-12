@@ -21,6 +21,14 @@
             android:visibility="visible" />
     </RelativeLayout>
 
+    <TextView
+        android:id="@+id/txt_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:visibility="visible"
+        android:gravity="left" />
+
     <LinearLayout
         android:id="@+id/control_panel"
         android:layout_width="match_parent"
@@ -96,12 +104,12 @@
                 android:background="@drawable/ratio" />
 
             <ImageButton
-                android:id="@+id/btn_setting"
+                android:id="@+id/btn_info"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toLeftOf="@id/btn_ratio"
                 android:layout_marginRight="@dimen/contro_view_padding"
-                android:background="@drawable/setting" />
+                android:background="@drawable/info" />
         </RelativeLayout>
     </LinearLayout>
 

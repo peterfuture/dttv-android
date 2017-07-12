@@ -151,6 +151,15 @@ static int jni_dttv_release(JNIEnv *env, jobject thiz) {
     return 0;
 }
 
+static void jni_dttv_native_finalize(JNIEnv *env, jobject thiz) {
+    LOGV("native_finalize");
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if (mp != NULL) {
+        LOGV("MediaPlayer finalized without being released");
+    }
+    jni_dttv_release(env, thiz);
+}
+
 void jni_dttv_set_datasource(JNIEnv *env, jobject thiz, jstring url) {
     int ret = 0;
     jboolean isCopy;
@@ -168,6 +177,61 @@ void jni_dttv_set_datasource(JNIEnv *env, jobject thiz, jstring url) {
         LOGV("setDataSource, failed, ret:%d ", ret);
     }
     return;
+}
+
+static void jni_dttv_setDataSourceAndHeaders(
+        JNIEnv *env, jobject thiz, jstring path,
+        jobjectArray keys, jobjectArray values) {
+
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if (mp == NULL) {
+        return;
+    }
+
+    if (path == NULL) {
+        return;
+    }
+
+    const char *tmp = env->GetStringUTFChars(path, NULL);
+    if (tmp == NULL) {  // Out of memory
+        return;
+    }
+    LOGV("setDataSource: path %s", tmp);
+    mp->setDataSource(tmp);
+#if 0
+    String8 pathStr(tmp);
+    env->ReleaseStringUTFChars(path, tmp);
+    tmp = NULL;
+
+    // We build a KeyedVector out of the key and val arrays
+    KeyedVector<String8, String8> headersVector;
+    if (!ConvertKeyValueArraysToKeyedVector(
+            env, keys, values, &headersVector)) {
+        return;
+    }
+
+    status_t opStatus =
+            mp->setDataSource(
+                    pathStr,
+                    headersVector.size() > 0? &headersVector : NULL);
+#endif
+}
+
+static void jni_dttv_setDataSourceFD(JNIEnv *env, jobject thiz, jobject fileDescriptor,
+                                     jlong offset, jlong length) {
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if (mp == NULL) {
+        return;
+    }
+
+    if (fileDescriptor == NULL) {
+        return;
+    }
+#if 0
+    int fd = jniGetFDFromFileDescriptor(env, fileDescriptor);
+    ALOGV("setDataSourceFD: fd %d", fd);
+    mp->setDataSource(fd, offset, length);
+#endif
 }
 
 int jni_dttv_prepare(JNIEnv *env, jobject thiz) {
@@ -239,6 +303,26 @@ int jni_dttv_reset(JNIEnv *env, jobject thiz) {
     return mp->reset();
 }
 
+static void
+jni_dttv_setAudioStreamType(JNIEnv *env, jobject thiz, int streamtype) {
+    return;
+}
+
+static void
+jni_dttv_setLooping(JNIEnv *env, jobject thiz, jboolean looping) {
+    return;
+}
+
+static jboolean
+jni_dttv_isLooping(JNIEnv *env, jobject thiz) {
+    return false;
+}
+
+static void
+jni_dttv_setVolume(JNIEnv *env, jobject thiz, float leftVolume, float rightVolume) {
+    return;
+}
+
 int jni_dttv_get_video_width(JNIEnv *env, jobject thiz) {
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
@@ -279,6 +363,16 @@ int jni_dttv_get_duration(JNIEnv *env, jobject thiz) {
     return mp->getDuration();
 }
 
+static jboolean
+jni_dttv_getMetadata(JNIEnv *env, jobject thiz, jobject meta) {
+    DTPlayer *media_player = getMediaPlayer(env, thiz);
+    if (media_player == NULL) {
+        return false;
+    }
+
+    return false;
+}
+
 int jni_dttv_set_parameter(JNIEnv *env, jobject thiz, int cmd, jlong arg1, jlong arg2) {
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
@@ -296,8 +390,7 @@ int jni_dttv_set_parameter(JNIEnv *env, jobject thiz, int cmd, jlong arg1, jlong
     return 0;
 }
 
-static void jni_dttv_set_video_surface(JNIEnv *env, jobject thiz, jobject jsurface)
-{
+static void jni_dttv_set_video_surface(JNIEnv *env, jobject thiz, jobject jsurface) {
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
         LOGV("set parameter failed.mp == null.");
@@ -352,32 +445,39 @@ static int jni_dttv_set_audio_effect(JNIEnv *env, jobject thiz, jint id) {
 }
 
 static JNINativeMethod g_Methods[] = {
-        {"native_init",                 "()V",                   (void *) jni_dttv_init},
-        {"native_setup",                "(Ljava/lang/Object;)I", (void *) jni_dttv_setup},
-        {"native_release",              "()I",                   (void *) jni_dttv_release},
-        {"native_set_datasource",       "(Ljava/lang/String;)V", (void *) jni_dttv_set_datasource},
-        {"native_prepare",              "()I",                   (void *) jni_dttv_prepare},
-        {"native_prepare_async",        "()I",                   (void *) jni_dttv_prepareasync},
-        {"native_start",                "()I",                   (void *) jni_dttv_start},
-        {"native_pause",                "()I",                   (void *) jni_dttv_pause},
-        {"native_seekTo",               "(I)I",                  (void *) jni_dttv_seekTo},
-        {"native_stop",                 "()I",                   (void *) jni_dttv_stop},
-        {"native_reset",                "()I",                   (void *) jni_dttv_reset},
-        {"native_get_video_width",      "()I",                   (void *) jni_dttv_get_video_width},
-        {"native_get_video_height",     "()I",                   (void *) jni_dttv_get_video_height},
-        {"native_is_playing",           "()I",                   (void *) jni_dttv_is_playing},
-        {"native_get_current_position", "()I",                   (void *) jni_dttv_get_current_position},
-        {"native_get_duration",         "()I",                   (void *) jni_dttv_get_duration},
+        {"native_init",                 "()V",                                                         (void *) jni_dttv_init},
+        {"native_setup",                "(Ljava/lang/Object;)I",                                       (void *) jni_dttv_setup},
+        {"native_release",              "()I",                                                         (void *) jni_dttv_release},
+        {"native_finalize",             "()V",                                                         (void *) jni_dttv_native_finalize},
+        {"native_set_datasource",       "(Ljava/lang/String;)V",                                       (void *) jni_dttv_set_datasource},
+        {"native_set_datasource",       "(Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V", (void *) jni_dttv_setDataSourceAndHeaders},
+        {"native_set_datasource",       "(Ljava/io/FileDescriptor;JJ)V",                               (void *) jni_dttv_setDataSourceFD},
+        {"native_prepare",              "()I",                                                         (void *) jni_dttv_prepare},
+        {"native_prepare_async",        "()I",                                                         (void *) jni_dttv_prepareasync},
+        {"native_start",                "()I",                                                         (void *) jni_dttv_start},
+        {"native_pause",                "()I",                                                         (void *) jni_dttv_pause},
+        {"native_seekTo",               "(I)I",                                                        (void *) jni_dttv_seekTo},
+        {"native_stop",                 "()I",                                                         (void *) jni_dttv_stop},
+        {"native_reset",                "()I",                                                         (void *) jni_dttv_reset},
+        {"setAudioStreamType",          "(I)V",                                                        (void *) jni_dttv_setAudioStreamType},
+        {"setLooping",                  "(Z)V",                                                        (void *) jni_dttv_setLooping},
+        {"isLooping",                   "()Z",                                                         (void *) jni_dttv_isLooping},
+        {"setVolume",                   "(FF)V",                                                       (void *) jni_dttv_setVolume},
+        {"native_get_video_width",      "()I",                                                         (void *) jni_dttv_get_video_width},
+        {"native_get_video_height",     "()I",                                                         (void *) jni_dttv_get_video_height},
+        {"native_is_playing",           "()I",                                                         (void *) jni_dttv_is_playing},
+        {"native_get_current_position", "()I",                                                         (void *) jni_dttv_get_current_position},
+        {"native_get_duration",         "()I",                                                         (void *) jni_dttv_get_duration},
+        {"native_getMetadata",          "(ZZLandroid/os/Parcel;)Z",                                    (void *) jni_dttv_getMetadata},
+        {"native_set_parameter",        "(IJJ)I",                                                      (void *) jni_dttv_set_parameter},
 
-        {"native_set_parameter",        "(IJJ)I",                (void *) jni_dttv_set_parameter},
+        {"native_set_video_surface",    "(Landroid/view/Surface;)V",                                   (void *) jni_dttv_set_video_surface},
 
-        {"native_set_video_surface",    "(Landroid/view/Surface;)V", (void *)jni_dttv_set_video_surface},
+        {"native_surface_create",       "()I",                                                         (void *) jni_gl_surface_create},
+        {"native_surface_change",       "(II)I",                                                       (void *) jni_gl_surface_change},
+        {"native_draw_frame",           "()I",                                                         (void *) jni_gl_draw_frame},
 
-        {"native_surface_create",       "()I",                   (void *) jni_gl_surface_create},
-        {"native_surface_change",       "(II)I",                 (void *) jni_gl_surface_change},
-        {"native_draw_frame",           "()I",                   (void *) jni_gl_draw_frame},
-
-        {"native_set_audio_effect",     "(I)I",                  (void *) jni_dttv_set_audio_effect},
+        {"native_set_audio_effect",     "(I)I",                                                        (void *) jni_dttv_set_audio_effect},
 };
 
 #define NELEM(x) ((int)(sizeof(x) / sizeof((x)[0])))

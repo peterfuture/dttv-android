@@ -46,11 +46,12 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
     private RelativeLayout mCtlBar;
     private ImageButton mPauseButton;
     private ImageButton mNextButton;
-    private ImageButton mSettingButton;
+    private ImageButton mInfoButton;
     private ImageButton mRatioButton;
     private SeekBar mSeekBarProgress;
     private TextView mTextViewCurTime;
     private TextView mTextViewDuration;
+    private TextView mTextViewInfo;
 
     private SettingUtil mSettingUtil;
     private int mHWCodecEnable = 1;
@@ -125,12 +126,13 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
 
         mPauseButton = (ImageButton) findViewById(R.id.btn_pause);
         mNextButton = (ImageButton) findViewById(R.id.btn_next);
-        mSettingButton = (ImageButton) findViewById(R.id.btn_setting);
+        mInfoButton = (ImageButton) findViewById(R.id.btn_info);
         mRatioButton = (ImageButton) findViewById(R.id.btn_ratio);
 
         mSeekBarProgress = (SeekBar) findViewById(R.id.seekbar_time);
         mTextViewCurTime = (TextView) findViewById(R.id.txt_cur);
         mTextViewDuration = (TextView) findViewById(R.id.txt_dur);
+        mTextViewInfo = (TextView) findViewById(R.id.txt_info);
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -145,7 +147,7 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
 
         mPauseButton.setOnClickListener(this);
         mNextButton.setOnClickListener(this);
-        mSettingButton.setOnClickListener(this);
+        mInfoButton.setOnClickListener(this);
         mRatioButton.setOnClickListener(this);
 
         mSeekBarProgress.setOnSeekBarChangeListener(seekLisenner);
@@ -167,7 +169,13 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
                 break;
             case R.id.btn_next:
                 break;
-            case R.id.btn_setting:
+            case R.id.btn_info:
+                // display video info dialog
+                String details = "uri:" + SAMPLE + "\n";
+                details += "video:\n";
+                details += "resolusion: " + mMediaPlayer.getVideoWidth() + "*" + mMediaPlayer.getVideoHeight() + "\n";
+                mTextViewInfo.setText(details);
+                mTextViewInfo.setVisibility(View.VISIBLE);
                 break;
             case R.id.btn_ratio:
 

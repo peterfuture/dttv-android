@@ -160,25 +160,6 @@ static void jni_dttv_native_finalize(JNIEnv *env, jobject thiz) {
     jni_dttv_release(env, thiz);
 }
 
-void jni_dttv_set_datasource(JNIEnv *env, jobject thiz, jstring url) {
-    int ret = 0;
-    jboolean isCopy;
-    const char *file_name = env->GetStringUTFChars(url, &isCopy);
-    LOGV("Enter setDataSource, path: [%s] size:%d ", file_name, strlen(file_name));
-
-    DTPlayer *mp = getMediaPlayer(env, thiz);
-    if (mp == NULL) {
-        LOGV("setDataSource, failed, mp == null ");
-        return;
-    }
-
-    ret = mp->setDataSource(file_name);
-    if (ret < 0) {
-        LOGV("setDataSource, failed, ret:%d ", ret);
-    }
-    return;
-}
-
 static void jni_dttv_setDataSourceAndHeaders(
         JNIEnv *env, jobject thiz, jstring path,
         jobjectArray keys, jobjectArray values) {
@@ -304,11 +285,6 @@ int jni_dttv_reset(JNIEnv *env, jobject thiz) {
 }
 
 static void
-jni_dttv_setAudioStreamType(JNIEnv *env, jobject thiz, int streamtype) {
-    return;
-}
-
-static void
 jni_dttv_setLooping(JNIEnv *env, jobject thiz, jboolean looping) {
     return;
 }
@@ -364,6 +340,16 @@ int jni_dttv_get_duration(JNIEnv *env, jobject thiz) {
 }
 
 static jboolean
+jni_dttv_getTrackInfo(JNIEnv *env, jobject thiz, jobject info) {
+    DTPlayer *media_player = getMediaPlayer(env, thiz);
+    if (media_player == NULL) {
+        return false;
+    }
+
+    return false;
+}
+
+static jboolean
 jni_dttv_getMetadata(JNIEnv *env, jobject thiz, jobject meta) {
     DTPlayer *media_player = getMediaPlayer(env, thiz);
     if (media_player == NULL) {
@@ -371,6 +357,16 @@ jni_dttv_getMetadata(JNIEnv *env, jobject thiz, jobject meta) {
     }
 
     return false;
+}
+
+void
+jni_dttv_addTimedTextSource(JNIEnv *env, jobject thiz, jstring path) {
+    return;
+}
+
+void
+jni_dttv_selectOrDeselectTrack(JNIEnv *env, jobject thiz, jint index, jboolean select) {
+    return;
 }
 
 int jni_dttv_set_parameter(JNIEnv *env, jobject thiz, int cmd, jlong arg1, jlong arg2) {
@@ -449,7 +445,6 @@ static JNINativeMethod g_Methods[] = {
         {"native_setup",                "(Ljava/lang/Object;)I",                                       (void *) jni_dttv_setup},
         {"native_release",              "()I",                                                         (void *) jni_dttv_release},
         {"native_finalize",             "()V",                                                         (void *) jni_dttv_native_finalize},
-        {"native_set_datasource",       "(Ljava/lang/String;)V",                                       (void *) jni_dttv_set_datasource},
         {"native_set_datasource",       "(Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V", (void *) jni_dttv_setDataSourceAndHeaders},
         {"native_set_datasource",       "(Ljava/io/FileDescriptor;JJ)V",                               (void *) jni_dttv_setDataSourceFD},
         {"native_prepare",              "()I",                                                         (void *) jni_dttv_prepare},
@@ -459,7 +454,6 @@ static JNINativeMethod g_Methods[] = {
         {"native_seekTo",               "(I)I",                                                        (void *) jni_dttv_seekTo},
         {"native_stop",                 "()I",                                                         (void *) jni_dttv_stop},
         {"native_reset",                "()I",                                                         (void *) jni_dttv_reset},
-        {"setAudioStreamType",          "(I)V",                                                        (void *) jni_dttv_setAudioStreamType},
         {"setLooping",                  "(Z)V",                                                        (void *) jni_dttv_setLooping},
         {"isLooping",                   "()Z",                                                         (void *) jni_dttv_isLooping},
         {"setVolume",                   "(FF)V",                                                       (void *) jni_dttv_setVolume},
@@ -468,7 +462,10 @@ static JNINativeMethod g_Methods[] = {
         {"native_is_playing",           "()I",                                                         (void *) jni_dttv_is_playing},
         {"native_get_current_position", "()I",                                                         (void *) jni_dttv_get_current_position},
         {"native_get_duration",         "()I",                                                         (void *) jni_dttv_get_duration},
-        {"native_getMetadata",          "(ZZLandroid/os/Parcel;)Z",                                    (void *) jni_dttv_getMetadata},
+        {"native_getTrackInfo",         "(Landroid/util/SparseArray;)Z",                               (void *) jni_dttv_getTrackInfo},
+        {"native_getMetadata",          "(Ljava/util/Map;)Z",                                          (void *) jni_dttv_getMetadata},
+        {"addTimedTextSource",          "(Ljava/lang/String;)V",                                       (void *) jni_dttv_addTimedTextSource},
+        {"selectOrDeselectTrack",       "(IZ)V",                                                       (void *) jni_dttv_selectOrDeselectTrack},
         {"native_set_parameter",        "(IJJ)I",                                                      (void *) jni_dttv_set_parameter},
 
         {"native_set_video_surface",    "(Landroid/view/Surface;)V",                                   (void *) jni_dttv_set_video_surface},

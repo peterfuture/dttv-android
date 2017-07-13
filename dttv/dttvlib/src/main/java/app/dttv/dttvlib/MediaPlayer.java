@@ -122,7 +122,7 @@ public class MediaPlayer {
 
     private static void postEventFromNative(Object mediaplayer_ref,
                                             int what, int arg1, int arg2, Object obj) {
-        MediaPlayer mp = (MediaPlayer) (mediaplayer_ref);
+        MediaPlayer mp = (MediaPlayer) ((WeakReference) mediaplayer_ref).get();
         if (mp == null)
             return;
 
@@ -156,7 +156,6 @@ public class MediaPlayer {
         mSurface = sh.getSurface();
         native_set_video_surface(mSurface);
         updateSurfaceScreenOn();
-
     }
 
     /**
@@ -222,7 +221,7 @@ public class MediaPlayer {
         if (mFD == null)
             return;
         try {
-            native_set_datasource(mFD.getParcelFileDescriptor().getFileDescriptor());
+            setDataSource(mFD.getParcelFileDescriptor().getFileDescriptor());
             return;
         } catch (Exception e) {
             closeFD();
@@ -271,7 +270,7 @@ public class MediaPlayer {
         if (file.exists()) {
             FileInputStream is = new FileInputStream(file);
             FileDescriptor fd = is.getFD();
-            native_set_datasource(fd);
+            setDataSource(fd);
             is.close();
         } else {
             native_set_datasource(path, keys, values);
@@ -291,6 +290,34 @@ public class MediaPlayer {
             throws IOException, IllegalArgumentException, IllegalStateException;
 
     /**
+     * Sets the data source (FileDescriptor) to use. It is the caller's responsibility
+     * to close the file descriptor. It is safe to do so as soon as this call returns.
+     *
+     * @param fd the FileDescriptor for the file you want to play
+     * @throws IllegalStateException if it is called in an invalid state
+     */
+    public void setDataSource(FileDescriptor fd)
+            throws IOException, IllegalArgumentException, IllegalStateException {
+        // intentionally less than LONG_MAX
+        setDataSource(fd, 0, 0x7ffffffffffffffL);
+    }
+
+    /**
+     * Sets the data source (FileDescriptor) to use.  The FileDescriptor must be
+     * seekable (N.B. a LocalSocket is not seekable). It is the caller's responsibility
+     * to close the file descriptor. It is safe to do so as soon as this call returns.
+     *
+     * @param fd     the FileDescriptor for the file you want to play
+     * @param offset the offset into the file where the data to be played starts, in bytes
+     * @param length the length in bytes of the data to be played
+     * @throws IllegalStateException if it is called in an invalid state
+     */
+    public void setDataSource(FileDescriptor fd, long offset, long length)
+            throws IOException, IllegalArgumentException, IllegalStateException {
+        native_set_datasource(fd, offset, length);
+    }
+
+    /**
      * Sets the data source (FileDescriptor) to use. It is the caller's
      * responsibility to close the file descriptor. It is safe to do so as soon as
      * this call returns.
@@ -298,7 +325,7 @@ public class MediaPlayer {
      * @param fd the FileDescriptor for the file you want to play
      * @throws IllegalStateException if it is called in an invalid state
      */
-    public native void native_set_datasource(FileDescriptor fileDescriptor)
+    public native void native_set_datasource(FileDescriptor fileDescriptor, long offset, long length)
             throws IOException, IllegalArgumentException, IllegalStateException;
 
     /**
@@ -599,6 +626,20 @@ public class MediaPlayer {
             mFD = null;
         }
     }
+
+    /**
+     * Sets the player to be looping or non-looping.
+     *
+     * @param looping whether to loop or not
+     */
+    public native void setLooping(boolean looping);
+
+    /**
+     * Checks whether the MediaPlayer is looping or non-looping.
+     *
+     * @return true if the MediaPlayer is currently looping, false otherwise
+     */
+    public native boolean isLooping();
 
     public native void setVolume(float leftVolume, float rightVolume);
 

@@ -421,6 +421,10 @@ namespace android {
         return vstream->height;
     }
 
+    dtp_media_info_t *DTPlayer::getMediaInfo() {
+        return &media_info;
+    }
+
     int DTPlayer::isPlaying() {
         void *handle = mDtpHandle;
         int isPlaying = 1;

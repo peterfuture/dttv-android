@@ -25,6 +25,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import app.dttv.dttvlib.MediaPlayer;
+import app.dttv.dttvlib.Metadata;
 import dttv.app.utils.Constant;
 import dttv.app.utils.SettingUtil;
 import dttv.app.utils.TimesUtil;
@@ -328,6 +329,8 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
                 mMediaPlayer.seekTo(mResumePosition);
                 mResumePosition = -1;
             }
+
+            Metadata meta =  mMediaPlayer.getMetadata();
 
             startTimer();
             mTextViewDuration.setText(TimesUtil.getTime(mMediaPlayer.getDuration()));

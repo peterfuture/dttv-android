@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include <plugin/gl_yuv.h>
+#include <dtp_state.h>
 #include "dttv_jni_dtp.h"
 #include "dttv_jni_surface.h"
 
@@ -356,7 +357,150 @@ jni_dttv_getMetadata(JNIEnv *env, jobject thiz, jobject meta) {
         return false;
     }
 
-    return false;
+    dtp_media_info_t *info = media_player->getMediaInfo();
+
+    jobject obj = env->NewLocalRef(meta);
+    //jclass clazz = env->FindClass("java/util/HashMap");
+    jclass clazz = env->GetObjectClass(obj);
+    jmethodID init = env->GetMethodID(clazz, "<init>", "()V");
+    jobject hashmap = env->NewObject(clazz, init);
+
+    jmethodID put = env->GetMethodID(
+            clazz,
+            "put",
+            "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
+    );
+
+    jclass clsstring = env->FindClass("java/lang/String");
+    jstring strencode = env->NewStringUTF("utf-8");
+    jmethodID getBytes = env->GetMethodID(clsstring, "getBytes", "(Ljava/lang/String;)[B");
+
+    //env->CallObjectMethod(hashmap, put, env->NewStringUTF("title"), env->NewStringUTF("video"));
+    //env->CallObjectMethod(hashmap, put, env->NewStringUTF("duration"), env->NewStringUTF("1000"));
+
+    //env->CallObjectMethod(meta, put, env->NewStringUTF("title"), env->NewStringUTF("video"));
+    //env->CallObjectMethod(meta, put, env->NewStringUTF("duration"), env->NewStringUTF("1000"));
+
+    char buf[1024];
+    //-------------------------------------------Media----------------------------------------------
+    // title
+    sprintf(buf, "%s", info->file);
+    jbyteArray title_key = (jbyteArray) env->CallObjectMethod(env->NewStringUTF("title"), getBytes,
+                                                              strencode);
+    jbyteArray title_value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                                getBytes, strencode);
+    env->CallObjectMethod(meta, put, title_key, title_value);
+    // fomat
+    sprintf(buf, "%d", info->format);
+    jbyteArray fmt_key = (jbyteArray) env->CallObjectMethod(env->NewStringUTF("format"), getBytes,
+                                                            strencode);
+    jbyteArray fmt_value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                              getBytes, strencode);
+    env->CallObjectMethod(meta, put, fmt_key, fmt_value);
+    // bitrate
+    sprintf(buf, "%d", info->bit_rate);
+    jbyteArray br_key = (jbyteArray) env->CallObjectMethod(env->NewStringUTF("bitrate"), getBytes,
+                                                           strencode);
+    jbyteArray br_value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                             getBytes, strencode);
+    env->CallObjectMethod(meta, put, br_key, br_value);
+    // filesize
+    sprintf(buf, "%d", info->file_size);
+    jbyteArray fs_key = (jbyteArray) env->CallObjectMethod(env->NewStringUTF("length"), getBytes,
+                                                           strencode);
+    jbyteArray fs_value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                             getBytes, strencode);
+    env->CallObjectMethod(meta, put, fs_key, fs_value);
+    // filesize
+    sprintf(buf, "%d", info->tracks.ast_num + info->tracks.vst_num + info->tracks.sst_num);
+    jbyteArray nt_key = (jbyteArray) env->CallObjectMethod(env->NewStringUTF("num_tracks"),
+                                                           getBytes,
+                                                           strencode);
+    jbyteArray nt_value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                             getBytes, strencode);
+    env->CallObjectMethod(meta, put, nt_key, nt_value);
+    // duration
+    sprintf(buf, "%d", media_player->getDuration());
+    jbyteArray dur_key = (jbyteArray) env->CallObjectMethod(env->NewStringUTF("duration"), getBytes,
+                                                            strencode);
+    jbyteArray dur_value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf), getBytes,
+                                                              strencode);
+    env->CallObjectMethod(meta, put, dur_key, dur_value);
+
+    if (media_player->getDuration() > 0) {
+        sprintf(buf, "%s", "true");
+        jbyteArray pause_key = (jbyteArray) env->CallObjectMethod(env->NewStringUTF("cap_pause"),
+                                                                  getBytes,
+                                                                  strencode);
+        jbyteArray pause_value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                                    getBytes,
+                                                                    strencode);
+        env->CallObjectMethod(meta, put, pause_key, pause_value);
+
+        sprintf(buf, "%s", "true");
+        jbyteArray seek_key = (jbyteArray) env->CallObjectMethod(env->NewStringUTF("cap_seek"),
+                                                                 getBytes,
+                                                                 strencode);
+        jbyteArray seek_value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf), getBytes,
+                                                                   strencode);
+        env->CallObjectMethod(meta, put, seek_key, seek_value);
+    }
+
+    //-------------------------------------------Audio----------------------------------------------
+    if (info->has_audio) {
+        int cur = info->cur_ast_index;
+        sprintf(buf, "%d", info->tracks.astreams[cur]->format);
+        jbyteArray ac_key = (jbyteArray) env->CallObjectMethod(env->NewStringUTF("audio_codec"),
+                                                               getBytes,
+                                                               strencode);
+        jbyteArray ac_value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                                 getBytes, strencode);
+        env->CallObjectMethod(meta, put, ac_key, ac_value);
+
+        sprintf(buf, "%d", info->tracks.astreams[cur]->sample_rate);
+        jbyteArray sr_key = (jbyteArray) env->CallObjectMethod(
+                env->NewStringUTF("audio_sample_rate"),
+                getBytes,
+                strencode);
+        jbyteArray sr_value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                                 getBytes, strencode);
+        env->CallObjectMethod(meta, put, sr_key, sr_value);
+
+
+    }
+    //-------------------------------------------Video----------------------------------------------
+    if (info->has_video) {
+        int cur = info->cur_vst_index;
+        sprintf(buf, "%d", info->tracks.vstreams[cur]->format);
+        jbyteArray vc_key = (jbyteArray) env->CallObjectMethod(env->NewStringUTF("video_codec"),
+                                                               getBytes,
+                                                               strencode);
+        jbyteArray vc_value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                                 getBytes, strencode);
+        env->CallObjectMethod(meta, put, vc_key, vc_value);
+
+        sprintf(buf, "%d", info->tracks.vstreams[cur]->width);
+        jbyteArray vw_key = (jbyteArray) env->CallObjectMethod(env->NewStringUTF("video_width"),
+                                                               getBytes,
+                                                               strencode);
+        jbyteArray vw_value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                                 getBytes, strencode);
+        env->CallObjectMethod(meta, put, vw_key, vw_value);
+
+        sprintf(buf, "%d", info->tracks.vstreams[cur]->height);
+        jbyteArray vh_key = (jbyteArray) env->CallObjectMethod(env->NewStringUTF("video_height"),
+                                                               getBytes,
+                                                               strencode);
+        jbyteArray vh_value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                                 getBytes, strencode);
+        env->CallObjectMethod(meta, put, vh_key, vh_value);
+    }
+    //--------------------------------------------Sub-----------------------------------------------
+
+    env->DeleteLocalRef(clsstring);
+    env->DeleteLocalRef(clazz);
+
+    return true;
 }
 
 void
@@ -384,6 +528,15 @@ int jni_dttv_set_parameter(JNIEnv *env, jobject thiz, int cmd, jlong arg1, jlong
             break;
     }
     return 0;
+}
+
+jstring jni_dttv_getMetaEncoding(JNIEnv *env, jobject thiz) {
+    char msg[60] = "UTF-8";
+    return env->NewStringUTF(msg);
+}
+
+void jni_dttv_setMetaEncoding(JNIEnv *env, jobject thiz, jstring encoding) {
+    return;
 }
 
 static void jni_dttv_set_video_surface(JNIEnv *env, jobject thiz, jobject jsurface) {
@@ -467,9 +620,10 @@ static JNINativeMethod g_Methods[] = {
         {"addTimedTextSource",          "(Ljava/lang/String;)V",                                       (void *) jni_dttv_addTimedTextSource},
         {"selectOrDeselectTrack",       "(IZ)V",                                                       (void *) jni_dttv_selectOrDeselectTrack},
         {"native_set_parameter",        "(IJJ)I",                                                      (void *) jni_dttv_set_parameter},
-
+        {"native_set_parameter",        "(IJJ)I",                                                      (void *) jni_dttv_set_parameter},
+        {"getMetaEncoding",             "()Ljava/lang/String;",                                        (void *) jni_dttv_getMetaEncoding},
+        {"setMetaEncoding",             "(Ljava/lang/String;)V",                                       (void *) jni_dttv_setMetaEncoding},
         {"native_set_video_surface",    "(Landroid/view/Surface;)V",                                   (void *) jni_dttv_set_video_surface},
-
         {"native_surface_create",       "()I",                                                         (void *) jni_gl_surface_create},
         {"native_surface_change",       "(II)I",                                                       (void *) jni_gl_surface_change},
         {"native_draw_frame",           "()I",                                                         (void *) jni_gl_draw_frame},

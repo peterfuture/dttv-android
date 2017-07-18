@@ -111,30 +111,30 @@ public class Metadata {
       }
     }
 
-    if (BuildConfig.DEBUG) {
-      android.util.Log.i("Vitamio[Metadata]", "title:\t\t" + getString(TITLE));
-      android.util.Log.i("Vitamio[Metadata]", "comment:\t\t" + getString(COMMENT));
-      android.util.Log.i("Vitamio[Metadata]", "copyright:\t\t" + getString(COPYRIGHT));
-      android.util.Log.i("Vitamio[Metadata]", "album:\t\t" + getString(ALBUM));
-      android.util.Log.i("Vitamio[Metadata]", "artist:\t\t" + getString(ARTIST));
-      android.util.Log.i("Vitamio[Metadata]", "composer:\t\t" + getString(COMPOSER));
-      android.util.Log.i("Vitamio[Metadata]", "genre:\t\t" + getString(GENRE));
-      android.util.Log.i("Vitamio[Metadata]", "date:\t\t" + getString(DATE));
-      android.util.Log.i("Vitamio[Metadata]", "duration:\t\t" + getLong(DURATION));
-      android.util.Log.i("Vitamio[Metadata]", "length:\t\t" + getLong(LENGTH));
-      android.util.Log.i("Vitamio[Metadata]", "bit_rate:\t\t" + getInt(BIT_RATE));
-      android.util.Log.i("Vitamio[Metadata]", "audio_bit_rate:\t" + getInt(AUDIO_BIT_RATE));
-      android.util.Log.i("Vitamio[Metadata]", "video_bit_rate:\t" + getInt(VIDEO_BIT_RATE));
-      android.util.Log.i("Vitamio[Metadata]", "audio_sample_rate:\t" + getInt(AUDIO_SAMPLE_RATE));
-      android.util.Log.i("Vitamio[Metadata]", "video_frame_rate:\t" + getDouble(VIDEO_FRAME_RATE));
-      android.util.Log.i("Vitamio[Metadata]", "format:\t\t" + getString(MIME_TYPE));
-      android.util.Log.i("Vitamio[Metadata]", "audio_codec:\t" + getString(AUDIO_CODEC));
-      android.util.Log.i("Vitamio[Metadata]", "video_codec:\t" + getString(VIDEO_CODEC));
-      android.util.Log.i("Vitamio[Metadata]", "video_height:\t" + getInt(VIDEO_HEIGHT));
-      android.util.Log.i("Vitamio[Metadata]", "video_width:\t" + getInt(VIDEO_WIDTH));
-      android.util.Log.i("Vitamio[Metadata]", "num_tracks:\t\t" + getInt(NUM_TRACKS));
-      android.util.Log.i("Vitamio[Metadata]", "cap_pause:\t\t" + getBoolean(PAUSE_AVAILABLE));
-      android.util.Log.i("Vitamio[Metadata]", "cap_seek:\t\t" + getBoolean(SEEK_AVAILABLE));
+    if (true || BuildConfig.DEBUG) {
+      android.util.Log.i("dttv[Metadata]", "title:\t\t" + getString(TITLE));
+      android.util.Log.i("dttv[Metadata]", "comment:\t\t" + getString(COMMENT));
+      android.util.Log.i("dttv[Metadata]", "copyright:\t\t" + getString(COPYRIGHT));
+      android.util.Log.i("dttv[Metadata]", "album:\t\t" + getString(ALBUM));
+      android.util.Log.i("dttv[Metadata]", "artist:\t\t" + getString(ARTIST));
+      android.util.Log.i("dttv[Metadata]", "composer:\t\t" + getString(COMPOSER));
+      android.util.Log.i("dttv[Metadata]", "genre:\t\t" + getString(GENRE));
+      android.util.Log.i("dttv[Metadata]", "date:\t\t" + getString(DATE));
+      android.util.Log.i("dttv[Metadata]", "duration:\t\t" + getLong(DURATION));
+      android.util.Log.i("dttv[Metadata]", "length:\t\t" + getLong(LENGTH));
+      android.util.Log.i("dttv[Metadata]", "bit_rate:\t\t" + getInt(BIT_RATE));
+      android.util.Log.i("dttv[Metadata]", "audio_bit_rate:\t" + getInt(AUDIO_BIT_RATE));
+      android.util.Log.i("dttv[Metadata]", "video_bit_rate:\t" + getInt(VIDEO_BIT_RATE));
+      android.util.Log.i("dttv[Metadata]", "audio_sample_rate:\t" + getInt(AUDIO_SAMPLE_RATE));
+      android.util.Log.i("dttv[Metadata]", "video_frame_rate:\t" + getDouble(VIDEO_FRAME_RATE));
+      android.util.Log.i("dttv[Metadata]", "format:\t\t" + getString(MIME_TYPE));
+      android.util.Log.i("dttv[Metadata]", "audio_codec:\t" + getString(AUDIO_CODEC));
+      android.util.Log.i("dttv[Metadata]", "video_codec:\t" + getString(VIDEO_CODEC));
+      android.util.Log.i("dttv[Metadata]", "video_height:\t" + getInt(VIDEO_HEIGHT));
+      android.util.Log.i("dttv[Metadata]", "video_width:\t" + getInt(VIDEO_WIDTH));
+      android.util.Log.i("dttv[Metadata]", "num_tracks:\t\t" + getInt(NUM_TRACKS));
+      android.util.Log.i("dttv[Metadata]", "cap_pause:\t\t" + getBoolean(PAUSE_AVAILABLE));
+      android.util.Log.i("dttv[Metadata]", "cap_seek:\t\t" + getBoolean(SEEK_AVAILABLE));
     }
 
     return true;

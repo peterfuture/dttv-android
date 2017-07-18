@@ -72,6 +72,8 @@ namespace android {
 
         int getVideoWidth();
 
+        dtp_media_info_t *getMediaInfo();
+
         int isPlaying();
 
         int isQuitOK();

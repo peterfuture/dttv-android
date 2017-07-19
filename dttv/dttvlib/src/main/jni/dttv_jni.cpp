@@ -341,13 +341,100 @@ int jni_dttv_get_duration(JNIEnv *env, jobject thiz) {
 }
 
 static jboolean
-jni_dttv_getTrackInfo(JNIEnv *env, jobject thiz, jobject info) {
+jni_dttv_getTrackInfo(JNIEnv *env, jobject thiz, jobject sparse) {
     DTPlayer *media_player = getMediaPlayer(env, thiz);
     if (media_player == NULL) {
         return false;
     }
 
-    return false;
+    dtp_media_info_t *info = media_player->getMediaInfo();
+    int MEDIA_TRACK_TYPE_UNKNOWN = 0;
+    int MEDIA_TRACK_TYPE_VIDEO = 1;
+    int MEDIA_TRACK_TYPE_AUDIO = 2;
+    int MEDIA_TRACK_TYPE_TIMEDTEXT = 3;
+    int MEDIA_TRACK_TYPE_SUBTITLE = 4;
+
+    char buf[1024];
+
+    jclass sparse_class = env->GetObjectClass(sparse);
+    //jmethodID sparse_init = env->GetMethodID(sparse_class, "<init>", "()V");
+    //jobject sparse = env->NewObject(sparse_class, sparse_init);
+
+    jmethodID put = env->GetMethodID(
+            sparse_class,
+            "put",
+            "(ILjava/lang/Object;)V"
+    );
+
+    jclass string_class = env->FindClass("java/lang/String");
+    jstring string_encode = env->NewStringUTF("utf-8");
+    jmethodID string_getBytes = env->GetMethodID(string_class, "getBytes", "(Ljava/lang/String;)[B");
+
+    char *lang = "und";
+    int i = 0;
+    char index[10];
+    int count = 0;
+
+
+    if(info->has_video) {
+        buf[0] = '\0';
+        for(i = 0; i < info->tracks.vst_num; i++) {
+            if(i > 0)
+                strcat(buf, "!#!");
+            sprintf(index, "%d", count++);
+            strcat(buf, index);
+            strcat(buf, ".");
+            strcat(buf, info->tracks.vstreams[i]->language);
+        }
+
+        jbyteArray value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                              string_getBytes, string_encode);
+        env->CallVoidMethod(sparse, put, MEDIA_TRACK_TYPE_VIDEO, value);
+        LOGV("video trackinfo: %s\n", buf);
+    }
+
+    if(info->has_audio) {
+        buf[0] = '\0';
+        for(i = 0; i < info->tracks.ast_num; i++) {
+            if(i > 0)
+                strcat(buf, "!#!");
+            sprintf(index, "%d", count++);
+            strcat(buf, index);
+            strcat(buf, ".");
+            strcat(buf, info->tracks.astreams[i]->language);
+        }
+
+        jbyteArray value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                              string_getBytes, string_encode);
+        env->CallVoidMethod(sparse, put, MEDIA_TRACK_TYPE_AUDIO, value);
+        LOGV("audio trackinfo: %s\n", buf);
+    }
+
+    if(info->has_sub) {
+        buf[0] = '\0';
+        for(i = 0; i < info->tracks.sst_num; i++) {
+            if(i > 0)
+                strcat(buf, "!#!");
+            sprintf(index, "%d", count++);
+            strcat(buf, index);
+            strcat(buf, ".");
+            strcat(buf, info->tracks.sstreams[i]->language);
+        }
+
+        jbyteArray value = (jbyteArray) env->CallObjectMethod(env->NewStringUTF(buf),
+                                                              string_getBytes, string_encode);
+        env->CallVoidMethod(sparse, put, MEDIA_TRACK_TYPE_SUBTITLE, value);
+        LOGV("sub trackinfo: %s\n", buf);
+    }
+
+    env->DeleteLocalRef(sparse_class);
+    env->DeleteLocalRef(string_class);
+
+    return true;
+}
+
+jstring jni_dttv_getTimedTextPath() {
+    return NULL;
 }
 
 static jboolean
@@ -363,7 +450,7 @@ jni_dttv_getMetadata(JNIEnv *env, jobject thiz, jobject meta) {
     //jclass clazz = env->FindClass("java/util/HashMap");
     jclass clazz = env->GetObjectClass(obj);
     jmethodID init = env->GetMethodID(clazz, "<init>", "()V");
-    jobject hashmap = env->NewObject(clazz, init);
+    //jobject hashmap = env->NewObject(clazz, init);
 
     jmethodID put = env->GetMethodID(
             clazz,
@@ -616,6 +703,8 @@ static JNINativeMethod g_Methods[] = {
         {"native_get_current_position", "()I",                                                         (void *) jni_dttv_get_current_position},
         {"native_get_duration",         "()I",                                                         (void *) jni_dttv_get_duration},
         {"native_getTrackInfo",         "(Landroid/util/SparseArray;)Z",                               (void *) jni_dttv_getTrackInfo},
+        {"getTimedTextPath",         "()Ljava/lang/String;",                               (void *) jni_dttv_getTimedTextPath},
+
         {"native_getMetadata",          "(Ljava/util/Map;)Z",                                          (void *) jni_dttv_getMetadata},
         {"addTimedTextSource",          "(Ljava/lang/String;)V",                                       (void *) jni_dttv_addTimedTextSource},
         {"selectOrDeselectTrack",       "(IZ)V",                                                       (void *) jni_dttv_selectOrDeselectTrack},

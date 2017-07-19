@@ -733,6 +733,7 @@ public class MediaPlayer {
                     mediaFormat = app.dttv.dttvlib.MediaFormat.createSubtitleFormat("", formats[1]);
                 }
                 trackSparse.put(trackNum, mediaFormat);
+                Log.e(TAG, "parseTrackInfo:" + trackNum + mediaFormat.toString());
             } catch (NumberFormatException e) {
             }
         }

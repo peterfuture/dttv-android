@@ -331,6 +331,7 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
             }
 
             Metadata meta =  mMediaPlayer.getMetadata();
+            MediaPlayer.TrackInfo[] track_info =  mMediaPlayer.getTrackInfo();
 
             startTimer();
             mTextViewDuration.setText(TimesUtil.getTime(mMediaPlayer.getDuration()));

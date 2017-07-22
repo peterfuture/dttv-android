@@ -148,7 +148,7 @@ namespace android {
         memset(&para, 0, sizeof(dtplayer_para_t));
         para.disable_audio = para.disable_video = para.disable_sub = -1;
         para.height = para.width = -1;
-        para.loop_mode = 0;
+        para.loop_mode = 1;
         para.audio_index = para.video_index = para.sub_index = -1;
         para.update_cb = NULL;
         para.disable_avsync = 0;

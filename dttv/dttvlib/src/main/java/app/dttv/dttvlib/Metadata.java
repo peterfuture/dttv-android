@@ -6,9 +6,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * See {@link package app.dttv.dttvlib.MediaPlayer#getMetadata()}
- */
 public class Metadata {
   public static final int ANY = 0;
   public static final int TITLE = 1; // String

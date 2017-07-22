@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion 23
@@ -37,6 +38,22 @@ android {
             path 'src/main/jni/CMakeLists.txt'
         }
     }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+    tasks.withType(Javadoc) {
+        options{ encoding "UTF-8"
+            charSet 'UTF-8'
+            links "http://docs.oracle.com/javase/7/docs/api"
+        }
+    }
 }
 
 dependencies {
@@ -47,4 +64,13 @@ dependencies {
     // and also uncommented out the one in settings.gradle
     // after lib is generated, just comment them out again
 //        compile project(':gen-libs')
+}
+
+publish {
+    userOrg = 'peterfuture'      //bintray注册的用户名
+    groupId = 'app.dttv'         //compile引用时的第1部分groupId
+    artifactId = 'dttvlib'     //compile引用时的第2部分项目名
+    publishVersion = '0.0.1'    //compile引用时的第3部分版本号
+    desc = 'android mediaplayer base on dtplayer'
+    website = 'https://github.com/peterfuture/dttv-android'
 }

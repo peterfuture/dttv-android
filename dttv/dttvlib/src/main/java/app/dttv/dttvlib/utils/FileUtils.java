@@ -734,13 +734,13 @@ public class FileUtils
      * If the destination directory did exist, then this method merges
      * the source with the destination, with the source taking precedence.
      *
-     * <h4>Example: Copy directories only</h4>
+     * Example: Copy directories only
      *  <pre>
      *  // only copy the directory structure
      *  FileUtils.copyDirectory(srcDir, destDir, DirectoryFileFilter.DIRECTORY);
      *  </pre>
      *
-     * <h4>Example: Copy directories and txt files</h4>
+     * Example: Copy directories and txt files
      *  <pre>
      *  // Create a filter for ".txt" files
      *  IOFileFilter txtSuffixFilter = FileFilterUtils.suffixFileFilter(".txt");
@@ -778,13 +778,13 @@ public class FileUtils
      * If the destination directory did exist, then this method merges
      * the source with the destination, with the source taking precedence.
      *
-     * <h4>Example: Copy directories only</h4>
+     * Example: Copy directories only
      *  <pre>
      *  // only copy the directory structure
      *  FileUtils.copyDirectory(srcDir, destDir, DirectoryFileFilter.DIRECTORY, false);
      *  </pre>
      *
-     * <h4>Example: Copy directories and txt files</h4>
+     * Example: Copy directories and txt files
      *  <pre>
      *  // Create a filter for ".txt" files
      *  IOFileFilter txtSuffixFilter = FileFilterUtils.suffixFileFilter(".txt");

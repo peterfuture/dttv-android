@@ -20,6 +20,10 @@ android {
             proguardFiles.add(file('proguard-android.txt'))
         }
     }
+    lintOptions {
+        abortOnError false
+    }
+
 }
 
 

@@ -181,8 +181,6 @@ public class MediaPlayer {
      * @param path the path of the file, or the http/rtsp URL of the stream you want
      *             to play
      * @throws IllegalStateException if it is called in an invalid state
-     *                               <p/>
-     *                               <p/>
      *                               When <code>path</code> refers to a local file, the file may
      *                               actually be opened by a process other than the calling
      *                               application. This implies that the pathname should be an absolute
@@ -322,7 +320,7 @@ public class MediaPlayer {
      * responsibility to close the file descriptor. It is safe to do so as soon as
      * this call returns.
      *
-     * @param fd the FileDescriptor for the file you want to play
+     * @param fileDescriptor the FileDescriptor for the file you want to play
      * @throws IllegalStateException if it is called in an invalid state
      */
     public native void native_set_datasource(FileDescriptor fileDescriptor, long offset, long length)
@@ -330,7 +328,7 @@ public class MediaPlayer {
 
     /**
      * Prepares the player for playback, synchronously.
-     * <p/>
+     *
      * After setting the datasource and the display surface, you need to either
      * call prepare() or prepareAsync(). For files, it is OK to call prepare(),
      * which blocks until MediaPlayer is ready for playback.
@@ -345,7 +343,7 @@ public class MediaPlayer {
 
     /**
      * Prepares the player for playback, asynchronously.
-     * <p/>
+     *
      * After setting the datasource and the display surface, you need to either
      * call prepare() or prepareAsync(). For streams, you should call
      * prepareAsync(), which returns immediately, rather than blocking until
@@ -413,7 +411,7 @@ public class MediaPlayer {
      * be used when the MediaPlayer is not playing through a SurfaceHolder set
      * with {@link #setDisplay(SurfaceHolder)} and thus can use the high-level
      * {@link #setScreenOnWhilePlaying(boolean)} feature.
-     * <p/>
+     *
      * This function has the MediaPlayer access the low-level power manager
      * service to control the device's power usage while playing is occurring. The
      * parameter is a combination of {@link android.os.PowerManager} wake flags.
@@ -976,12 +974,6 @@ public class MediaPlayer {
      */
     public native void setTimedTextEncoding(String encoding);
 
-    /**
-     * @return <ul>
-     * <li>{@link #SUBTITLE_EXTERNAL}
-     * <li>{@link #SUBTITLE_INTERNAL}
-     * </ul>
-     */
     public native int getTimedTextLocation();
 
     /**

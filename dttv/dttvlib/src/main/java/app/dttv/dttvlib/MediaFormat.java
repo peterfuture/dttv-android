@@ -11,52 +11,16 @@ import java.util.Map;
  *
  * Keys common to all audio/video formats, <b>all keys not marked optional are mandatory</b>:
  *
- * <table>
- * <tr><th>Name</th><th>Value Type</th><th>Description</th></tr>
- * <tr><td>{@link #KEY_MIME}</td><td>String</td><td>The type of the format.</td></tr>
- * <tr><td>{@link #KEY_MAX_INPUT_SIZE}</td><td>Integer</td><td>optional, maximum size of a buffer of input data</td></tr>
- * <tr><td>{@link #KEY_BIT_RATE}</td><td>Integer</td><td><b>encoder-only</b>, desired bitrate in bits/second</td></tr>
- * </table>
- *
  * Video formats have the following keys:
- * <table>
- * <tr><th>Name</th><th>Value Type</th><th>Description</th></tr>
- * <tr><td>{@link #KEY_WIDTH}</td><td>Integer</td><td></td></tr>
- * <tr><td>{@link #KEY_HEIGHT}</td><td>Integer</td><td></td></tr>
- * <tr><td>{@link #KEY_COLOR_FORMAT}</td><td>Integer</td><td>set by the user
- *         for encoders, readable in the output format of decoders</b></td></tr>
- * <tr><td>{@link #KEY_FRAME_RATE}</td><td>Integer or Float</td><td><b>encoder-only</b></td></tr>
- * <tr><td>{@link #KEY_I_FRAME_INTERVAL}</td><td>Integer</td><td><b>encoder-only</b></td></tr>
- * <tr><td>{@link #KEY_MAX_WIDTH}</td><td>Integer</td><td><b>decoder-only</b>, optional, max-resolution width</td></tr>
- * <tr><td>{@link #KEY_MAX_HEIGHT}</td><td>Integer</td><td><b>decoder-only</b>, optional, max-resolution height</td></tr>
- * <tr><td>{@link #KEY_REPEAT_PREVIOUS_FRAME_AFTER}</td><td>Long</td><td><b>video encoder in surface-mode only</b></td></tr>
- * <tr><td>{@link #KEY_PUSH_BLANK_BUFFERS_ON_STOP}</td><td>Integer(1)</td><td><b>video decoder rendering to a surface only</b></td></tr>
- * </table>
  * Specify both {@link #KEY_MAX_WIDTH} and {@link #KEY_MAX_HEIGHT} to enable
  * adaptive playback (seamless resolution change) for a video decoder that
- * supports it ({@link MediaCodecInfo.CodecCapabilities#FEATURE_AdaptivePlayback}).
+ * supports it
  * The values are used as hints for the codec: they are the maximum expected
  * resolution to prepare for.  Depending on codec support, preparing for larger
  * maximum resolution may require more memory even if that resolution is never
  * reached.  These fields have no effect for codecs that do not support adaptive
- * playback.<br /><br />
+ * playback.
  *
- * Audio formats have the following keys:
- * <table>
- * <tr><th>Name</th><th>Value Type</th><th>Description</th></tr>
- * <tr><td>{@link #KEY_CHANNEL_COUNT}</td><td>Integer</td><td></td></tr>
- * <tr><td>{@link #KEY_SAMPLE_RATE}</td><td>Integer</td><td></td></tr>
- * <tr><td>{@link #KEY_IS_ADTS}</td><td>Integer</td><td>optional, if <em>decoding</em> AAC audio content, setting this key to 1 indicates that each audio frame is prefixed by the ADTS header.</td></tr>
- * <tr><td>{@link #KEY_AAC_PROFILE}</td><td>Integer</td><td><b>encoder-only</b>, optional, if content is AAC audio, specifies the desired profile.</td></tr>
- * <tr><td>{@link #KEY_CHANNEL_MASK}</td><td>Integer</td><td>optional, a mask of audio channel assignments</td></tr>
- * <tr><td>{@link #KEY_FLAC_COMPRESSION_LEVEL}</td><td>Integer</td><td><b>encoder-only</b>, optional, if content is FLAC audio, specifies the desired compression level.</td></tr>
- * </table>
- *
- * Subtitle formats have the following keys:
- * <table>
- * <tr><td>{@link #KEY_MIME}</td><td>String</td><td>The type of the format.</td></tr>
- * <tr><td>{@link #KEY_LANGUAGE}</td><td>String</td><td>The language of the content.</td></tr>
- * </table>
  */
 public final class MediaFormat {
     private Map<String, Object> mMap;
@@ -152,13 +116,8 @@ public final class MediaFormat {
      */
     public static final String KEY_I_FRAME_INTERVAL = "i-frame-interval";
 
-    /**
-     * @hide
-     */
     public static final String KEY_STRIDE = "stride";
-    /**
-     * @hide
-     */
+
     public static final String KEY_SLICE_HEIGHT = "slice-height";
 
     /**
@@ -278,7 +237,6 @@ public final class MediaFormat {
     /**
      * Returns the value of an integer key, or the default value if the
      * key is missing or is for another type value.
-     * @hide
      */
     public final int getInteger(String name, int defaultValue) {
         try {

@@ -7,14 +7,20 @@ This program is free software: you can redistribute it and/or modify it under th
 ## Introduction
 
 dttv-android is a videoplayer for android platform.
-developed with  [dtplayer](https://github.com/peterfuture/dtplayer_c).
+based on [dtplayer](https://github.com/peterfuture/dtplayer_c).
 
-* streamer:     dtplayer streamer
-* demuxer:      dtplayer demuxer
-* decoder:      dtplayer software decoder
-* audio render: openal plugin
-* video render: opengl plugin
+## How to use
+```
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
 
+dependencies {
+    compile 'app.dttv:dttvlib:0.0.1'
+}
+```
 
 ## Build
 

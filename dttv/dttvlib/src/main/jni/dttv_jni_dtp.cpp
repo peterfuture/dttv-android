@@ -174,6 +174,9 @@ namespace android {
             goto FAILED;
         }
 
+        // default avoptions
+        dtplayer_set_option(NULL, 0, "protocol_whitelist", "file,http,hls,udp,rtp,rtsp,tcp");
+
         //reset var
         DTPlayer::status = 0;
         DTPlayer::mCurrentPosition = -1;

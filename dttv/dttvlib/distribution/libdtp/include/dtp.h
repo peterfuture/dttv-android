@@ -186,6 +186,17 @@ int dtplayer_get_parameter(void *handle, int cmd, unsigned long arg);
  * */
 int dtplayer_set_parameter(void *handle, int cmd, unsigned long arg);
 
+/*
+ * ffmpeg options set:
+ *
+ * @param handle - dtplayer handle
+ * @param name
+ * @param value
+ * @return void
+ *
+ * */
+void dtplayer_set_option(void *handle, int category, const char *name, const char *value);
+
 #ifdef  __cplusplus
 }
 #endif

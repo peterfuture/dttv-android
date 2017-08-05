@@ -23,6 +23,8 @@ typedef enum {
     DTP_CMD_SET_AODEVICE = 0x100,
     DTP_CMD_SET_VODEVICE,
     DTP_CMD_SET_SODEVICE,
+
+    DTP_CMD_SET_LOOPING = 0x200,
 } dtp_cmd_t;
 
 typedef struct {

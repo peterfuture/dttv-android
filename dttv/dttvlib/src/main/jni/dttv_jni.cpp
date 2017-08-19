@@ -368,7 +368,8 @@ jni_dttv_getTrackInfo(JNIEnv *env, jobject thiz, jobject sparse) {
 
     jclass string_class = env->FindClass("java/lang/String");
     jstring string_encode = env->NewStringUTF("utf-8");
-    jmethodID string_getBytes = env->GetMethodID(string_class, "getBytes", "(Ljava/lang/String;)[B");
+    jmethodID string_getBytes = env->GetMethodID(string_class, "getBytes",
+                                                 "(Ljava/lang/String;)[B");
 
     char *lang = "und";
     int i = 0;
@@ -376,10 +377,10 @@ jni_dttv_getTrackInfo(JNIEnv *env, jobject thiz, jobject sparse) {
     int count = 0;
 
 
-    if(info->has_video) {
+    if (info->has_video) {
         buf[0] = '\0';
-        for(i = 0; i < info->tracks.vst_num; i++) {
-            if(i > 0)
+        for (i = 0; i < info->tracks.vst_num; i++) {
+            if (i > 0)
                 strcat(buf, "!#!");
             sprintf(index, "%d", count++);
             strcat(buf, index);
@@ -393,10 +394,10 @@ jni_dttv_getTrackInfo(JNIEnv *env, jobject thiz, jobject sparse) {
         LOGV("video trackinfo: %s\n", buf);
     }
 
-    if(info->has_audio) {
+    if (info->has_audio) {
         buf[0] = '\0';
-        for(i = 0; i < info->tracks.ast_num; i++) {
-            if(i > 0)
+        for (i = 0; i < info->tracks.ast_num; i++) {
+            if (i > 0)
                 strcat(buf, "!#!");
             sprintf(index, "%d", count++);
             strcat(buf, index);
@@ -410,10 +411,10 @@ jni_dttv_getTrackInfo(JNIEnv *env, jobject thiz, jobject sparse) {
         LOGV("audio trackinfo: %s\n", buf);
     }
 
-    if(info->has_sub) {
+    if (info->has_sub) {
         buf[0] = '\0';
-        for(i = 0; i < info->tracks.sst_num; i++) {
-            if(i > 0)
+        for (i = 0; i < info->tracks.sst_num; i++) {
+            if (i > 0)
                 strcat(buf, "!#!");
             sprintf(index, "%d", count++);
             strcat(buf, index);
@@ -648,7 +649,7 @@ int jni_gl_surface_create(JNIEnv *env, jobject thiz) {
     }
     yuv_dttv_init();
     yuv_reg_player((void *) getMediaPlayer(env, thiz));
-
+    mp->setGLSurfaceView();
     return 0;
 }
 
@@ -659,7 +660,6 @@ int jni_gl_surface_change(JNIEnv *env, jobject thiz, int w, int h) {
         return 0;
     }
     yuv_setupGraphics(w, h);
-    mp->setGLSurfaceView();
     LOGV("on surface changed, w:%d h:%d \n", w, h);
     return 0;
 }
@@ -703,7 +703,7 @@ static JNINativeMethod g_Methods[] = {
         {"native_get_current_position", "()I",                                                         (void *) jni_dttv_get_current_position},
         {"native_get_duration",         "()I",                                                         (void *) jni_dttv_get_duration},
         {"native_getTrackInfo",         "(Landroid/util/SparseArray;)Z",                               (void *) jni_dttv_getTrackInfo},
-        {"getTimedTextPath",         "()Ljava/lang/String;",                               (void *) jni_dttv_getTimedTextPath},
+        {"getTimedTextPath",            "()Ljava/lang/String;",                                        (void *) jni_dttv_getTimedTextPath},
 
         {"native_getMetadata",          "(Ljava/util/Map;)Z",                                          (void *) jni_dttv_getMetadata},
         {"addTimedTextSource",          "(Ljava/lang/String;)V",                                       (void *) jni_dttv_addTimedTextSource},

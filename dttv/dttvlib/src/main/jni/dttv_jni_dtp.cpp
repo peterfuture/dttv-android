@@ -9,7 +9,7 @@
 
 #define TAG "NATIVE-DTP"
 
-extern vo_wrapper_t vo_android;
+extern vo_wrapper_t vo_android_opengl;
 extern vo_wrapper_t vo_android_surface;
 extern ao_wrapper_t ao_opensl_ops;
 
@@ -29,6 +29,7 @@ namespace android {
         lock_init(&dtp_mutex, NULL);
         mNativeWindow = -1;
         mSurface = -1;
+        mRenderType = 0;
         LOGV("dtplayer constructor ok \n");
     }
 
@@ -46,6 +47,7 @@ namespace android {
         mListenner = listenner;
         mNativeWindow = -1;
         mSurface = -1;
+        mRenderType = 0;
         LOGV("dtplayer constructor ok \n");
     }
 
@@ -71,17 +73,20 @@ namespace android {
         return 0;
     }
 
+    // Remove Later - Never used
     void DTPlayer::setNativeWindow(ANativeWindow *window) {
         mNativeWindow = (unsigned long) window;
+        mRenderType = 0;
     }
 
     void DTPlayer::setSurface(void *surface) {
         mSurface = (unsigned long) surface;
+        mRenderType = 0;
     }
 
     void DTPlayer::setGLSurfaceView() {
-        dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android);
         LOGV("Use GLSurfaceView. Register gl render \n");
+        mRenderType = 1;
     }
 
     int DTPlayer::supportMediaCodec() {
@@ -126,17 +131,14 @@ namespace android {
 
         // video render setup
         if (info.has_video) {
-            dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
-
-            dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mSurface);
-#if 0
-            if (mHWEnable == 0) {
-                dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mNativeWindow);
-                return;
+            if (mRenderType == 0) {
+                dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
+                dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mSurface);
+            } else if (mRenderType == 1) {
+                dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_opengl);
             }
-            dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE,
-                                   supportMediaCodec() ? mSurface : mNativeWindow);
-#endif
+
+            LOGI("setup render. use %s.\n", (mRenderType == 0) ? "surfaceview" : "opengl");
         }
         return;
     }
@@ -519,7 +521,8 @@ namespace android {
 
         // mediacodec support check
         if (state->cur_status == PLAYER_STATUS_PREPARE_START) {
-            LOGV("Check hw codec crated or not. vcodec type:%d. hw init:%d \n", state->vdec_type, state->vdec_type == DT_VDEC_TYPE_FFMPEG);
+            LOGV("Check hw codec crated or not. vcodec type:%d. hw init:%d \n", state->vdec_type,
+                 state->vdec_type == DT_VDEC_TYPE_FFMPEG);
             if (state->vdec_type == DT_VDEC_TYPE_FFMPEG) {
 #if 0
                 if (dtp->mHWEnable == 1 && dtp->supportMediaCodec()) {

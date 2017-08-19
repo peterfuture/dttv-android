@@ -74,7 +74,7 @@ static int vo_android_stop(vo_context_t *voc) {
     return 0;
 }
 
-vo_wrapper_t vo_android = {
+vo_wrapper_t vo_android_opengl = {
     .id = 0x100,//VO_ID_ANDROID,
     .name = "vo android",
     .init = vo_android_init,

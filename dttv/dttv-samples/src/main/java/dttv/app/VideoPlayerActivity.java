@@ -167,20 +167,13 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         mHWCodecEnable = mSettingUtil.isHWCodecEnable();
         Log.i(TAG, "getDisplaymode: " + mDisplayMode + " HWCodec Enable:" + mHWCodecEnable);
 
-        mMediaPlayer = new MediaPlayer(this, mHWCodecEnable!=0);
+        mMediaPlayer = new MediaPlayer(this, mHWCodecEnable != 0);
 
         getWindow().setBackgroundDrawableResource(R.color.videoplayer_background);
         initView();
         initDisplay();
-        /*new Thread(new Runnable() {
-            @Override
-            public void run() {
 
-            }
-        }).start();*/
         setDataSource();
-
-        prepare();
         initListener();
     }
 
@@ -368,7 +361,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     class FreshVideo implements OnFreshVideo {
         @Override
         public void onFresh(MediaPlayer mp) {
-            if(mSurfaceDestroyed == 0) {
+            if (mSurfaceDestroyed == 0) {
                 Log.i(TAG, "enter request render");
                 mGLSurfaceView.requestRender();
                 Log.i(TAG, "exit request render");
@@ -508,7 +501,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         Log.i(TAG, "enterStop");
         mState = PLAYER_STOP;
         //mMediaPlayer.release();
-        if(mMediaPlayer != null)
+        if (mMediaPlayer != null)
             mMediaPlayer.stop();
         super.onStop();
     }
@@ -626,7 +619,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     @Override
     protected void onDestroy() {
         Log.i(TAG, "enter onDestroy");
-        if(mMediaPlayer != null) {
+        if (mMediaPlayer != null) {
             mMediaPlayer.stop();
             mMediaPlayer.release();
             mMediaPlayer = null;
@@ -686,7 +679,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             //gl.glClearColor(0.0f, 0f, 1f, 0.5f); // display blue at first
             //gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
             mMediaPlayer.onSurfaceCreated();
-
         }
 
         @Override
@@ -697,8 +689,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             mMediaPlayer.onSurfaceChanged(width, height);
             mSurfaceWidth = width;
             mSurfaceHeight = height;
-
             lock.unlock();
+            prepare();
         }
 
         @Override
@@ -733,7 +725,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             Log.i(TAG, "SurfaceHolder destroy");
             mSurfaceDestroyed = 1;
         }
-
     };
 
 

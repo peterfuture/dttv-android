@@ -123,6 +123,7 @@ namespace android {
 
         unsigned long mNativeWindow;
         unsigned long mSurface;
+        int mRenderType; // 0 surface view 1 GLSurfaceView
 
         ao_wrapper_t ao;
         vo_wrapper_t vo;

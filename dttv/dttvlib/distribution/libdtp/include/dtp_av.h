@@ -343,6 +343,7 @@ typedef enum _AO_ID_ {
     AO_ID_EX,                   // ex ao set to 0 default
     AO_ID_ALSA,                 // 0 default
     AO_ID_SDL,
+    AO_ID_SDL2,
     AO_ID_OSS,
     AO_ID_DSOUND,
     AO_ID_ANDROID = 0x100,
@@ -358,6 +359,13 @@ typedef enum {
     DT_SUB_FORMAT_DVB_SUB,
     DT_SUB_FORMAT_UNKOWN,
 } dtsub_format_t;
+
+typedef enum _so_ID_ {
+    SO_ID_INVALID = -1,
+    SO_ID_NULL    = 0,
+    SO_ID_SDL2,
+    SO_ID_ANDROID,
+} dt_so_t;
 
 typedef enum dtav_sub_type {
     DT_SUBTITLE_NONE,
@@ -376,7 +384,6 @@ typedef enum dtav_sub_type {
      */
     DT_SUBTITLE_ASS,
 } dtav_sub_type_t;
-
 
 typedef struct dt_sub_Rect {
     int x;         ///< top left corner  of pict, undefined when pict is not set

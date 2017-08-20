@@ -12,6 +12,7 @@
 extern vo_wrapper_t vo_android_opengl;
 extern vo_wrapper_t vo_android_surface;
 extern ao_wrapper_t ao_opensl_ops;
+extern so_wrapper_t so_android_ops;
 
 namespace android {
 
@@ -140,6 +141,13 @@ namespace android {
 
             LOGI("setup render. use %s.\n", (mRenderType == 0) ? "surfaceview" : "opengl");
         }
+
+        // sub render setup
+        if(info.has_sub) {
+            dtplayer_register_plugin(DTP_PLUGIN_TYPE_SO, &so_android_ops);
+            LOGI("register android vo.\n");
+        }
+
         return;
     }
 
@@ -162,7 +170,7 @@ namespace android {
         para.update_cb = notify;
         //para.disable_audio=1;
         //para.disable_video=1;
-        para.disable_sub = 1;
+        //para.disable_sub = 1;
         if (!mHWEnable) {
             para.disable_hw_vcodec = 1;
             LOGV("disable hw codec\n");

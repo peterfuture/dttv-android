@@ -124,10 +124,10 @@ static int vo_surface_stop(vo_context_t *voc) {
 }
 
 vo_wrapper_t vo_android_surface = {
-        .id = 0x101,//VO_ID_ANDROID_SURFACE,
-        .name = "vo surface",
-        .init = vo_surface_init,
-        .stop = vo_surface_stop,
-        .render = vo_surface_render,
-        .private_data_size = sizeof(struct surface_context),
+    .id = 0x101,//VO_ID_ANDROID_SURFACE,
+    .name = "vo surface",
+    .init = vo_surface_init,
+    .stop = vo_surface_stop,
+    .render = vo_surface_render,
+    .private_data_size = sizeof(struct surface_context),
 };

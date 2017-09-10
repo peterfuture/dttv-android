@@ -29,6 +29,11 @@
         android:visibility="visible"
         android:gravity="left" />
 
+    <ImageView
+        android:id="@+id/iv_sub"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
     <LinearLayout
         android:id="@+id/control_panel"
         android:layout_width="match_parent"

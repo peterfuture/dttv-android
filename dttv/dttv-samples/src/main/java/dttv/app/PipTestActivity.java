@@ -15,6 +15,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -53,6 +54,7 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
     private TextView mTextViewCurTime;
     private TextView mTextViewDuration;
     private TextView mTextViewInfo;
+    private ImageView mImageViewSub;
 
     private SettingUtil mSettingUtil;
     private int mHWCodecEnable = 1;
@@ -134,6 +136,8 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
         mTextViewCurTime = (TextView) findViewById(R.id.txt_cur);
         mTextViewDuration = (TextView) findViewById(R.id.txt_dur);
         mTextViewInfo = (TextView) findViewById(R.id.txt_info);
+        mImageViewSub = (ImageView) findViewById(R.id.iv_sub);
+        mImageViewSub.setVisibility(View.VISIBLE);
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);

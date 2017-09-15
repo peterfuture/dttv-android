@@ -7,15 +7,17 @@
 #include "dtp_av.h"
 #include "dtp_plugin.h"
 #include "dtp_vf.h"
-#include "gl_yuv.h"
-#include "../dttv_jni_utils.h"
-#include "../dttv_jni_log.h"
+#include "gl_render.h"
+#include "dttv_jni_utils.h"
+#include "dttv_jni_log.h"
 
 struct vo_info {
     lock_t mutex;
 };
 
 static dtvideo_filter_t glvf;
+
+static int pix_fmt = DTAV_PIX_FMT_YUV420P;
 
 static void dump_frame(dt_av_frame_t *pFrame, int width, int height, int iFrame) {
     FILE *pFile;
@@ -49,20 +51,22 @@ static int vo_android_render(vo_context_t *voc, dt_av_frame_t *frame) {
     struct vo_info *info = (struct vo_info *) voc->private_data;
     // reset vf and window size
     dtvideo_filter_t *vf = &glvf;
-
-    if (frame->pixfmt != DTAV_PIX_FMT_YUV420P)
-    {
+    if (vf->para.d_width != frame->width
+        || vf->para.d_height != frame->height
+        || vf->para.d_pixfmt != pix_fmt) {
+        vf->para.d_width = frame->height;
+        vf->para.d_height = frame->height;
         vf->para.s_width = frame->width;
         vf->para.s_height = frame->height;
-        vf->para.d_width = frame->width;
-        vf->para.d_height = frame->height;
         vf->para.s_pixfmt = frame->pixfmt;
-        vf->para.d_pixfmt = DTAV_PIX_FMT_YUV420P;
+        vf->para.d_pixfmt = pix_fmt;
+        LOGV("Need to Update Video Filter Parameter. w:%d->%d h:%d->%d pixfmt:%d->%d \n",
+             vf->para.s_width, vf->para.d_width, vf->para.s_height, vf->para.d_height,
+             vf->para.s_pixfmt, vf->para.d_pixfmt);
         video_filter_update(vf);
-        LOGV("Need to Update Video Filter Parameter.\n");
     }
     video_filter_process(vf, frame);
-    yuv_update_frame(frame);
+    gl_update_frame(frame);
     frame->data[0] = NULL;
     return 0;
 }

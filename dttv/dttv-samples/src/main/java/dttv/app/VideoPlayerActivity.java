@@ -68,6 +68,7 @@ import dttv.app.widget.OnTouchMoveListener;
 public class VideoPlayerActivity extends Activity implements OnClickListener, OnTouchListener {
 
     private String TAG = "VideoPlayerActivity";
+    private String SAMPLE;
 
     /*MACRO*/
     private static final int PLAYER_IDLE = 0x0;
@@ -159,6 +160,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             return;
         }
 
+        Intent intent = getIntent();
+        SAMPLE = intent.getStringExtra(Constant.FILE_MSG);
+
         /*mMediaPlayer need to init prior to mGLSurfaceView*/
         mState = PLAYER_IDLE;
 
@@ -168,12 +172,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         Log.i(TAG, "getDisplaymode: " + mDisplayMode + " HWCodec Enable:" + mHWCodecEnable);
 
         mMediaPlayer = new MediaPlayer(this, mHWCodecEnable != 0);
-
         getWindow().setBackgroundDrawableResource(R.color.videoplayer_background);
         initView();
         initDisplay();
-
-        setDataSource();
         initListener();
     }
 
@@ -500,9 +501,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     protected void onStop() {
         Log.i(TAG, "enterStop");
         mState = PLAYER_STOP;
-        //mMediaPlayer.release();
-        if (mMediaPlayer != null)
-            mMediaPlayer.stop();
         super.onStop();
     }
 
@@ -619,11 +617,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     @Override
     protected void onDestroy() {
         Log.i(TAG, "enter onDestroy");
-        if (mMediaPlayer != null) {
-            mMediaPlayer.stop();
-            mMediaPlayer.release();
-            mMediaPlayer = null;
-        }
         super.onDestroy();
     }
 
@@ -678,6 +671,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             Log.i(TAG, "gl create enter");
             //gl.glClearColor(0.0f, 0f, 1f, 0.5f); // display blue at first
             //gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+            try {
+                mMediaPlayer.setDataSource(SAMPLE);
+            }catch (IOException io) {}
             mMediaPlayer.onSurfaceCreated();
         }
 
@@ -686,11 +682,19 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             //other case
             lock.lock();
             Log.i(TAG, "gl surface change enter, width:" + width + " height:" + height);
-            mMediaPlayer.onSurfaceChanged(width, height);
+
+
+            if (mMediaPlayer.isPlaying() == false) {
+                try {
+                    mMediaPlayer.onSurfaceChanged(width, height);
+                    mMediaPlayer.prepare();
+                }catch (IOException io) {}
+            }
+            else
+                mMediaPlayer.onSurfaceChanged(width, height);
             mSurfaceWidth = width;
             mSurfaceHeight = height;
             lock.unlock();
-            prepare();
         }
 
         @Override
@@ -723,6 +727,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         @Override
         public void surfaceDestroyed(SurfaceHolder holder) {
             Log.i(TAG, "SurfaceHolder destroy");
+            if (mMediaPlayer != null)
+                mMediaPlayer.stop();
             mSurfaceDestroyed = 1;
         }
     };

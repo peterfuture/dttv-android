@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <unistd.h>
 
-#include <plugin/gl_yuv.h>
+#include <gl_render.h>
 #include <dtp_state.h>
 #include "dttv_jni_dtp.h"
 #include "dttv_jni_surface.h"
@@ -647,8 +647,7 @@ int jni_gl_surface_create(JNIEnv *env, jobject thiz) {
         LOGV("set parameter failed.mp == null.");
         return 0;
     }
-    yuv_dttv_init();
-    yuv_reg_player((void *) getMediaPlayer(env, thiz));
+    gl_create((void *) getMediaPlayer(env, thiz), DTAV_PIX_FMT_YUV420P);
     mp->setGLSurfaceView();
     return 0;
 }
@@ -659,14 +658,14 @@ int jni_gl_surface_change(JNIEnv *env, jobject thiz, int w, int h) {
         LOGV("set parameter failed.mp == null.");
         return 0;
     }
-    yuv_setupGraphics(w, h);
+    gl_setup(w, h);
     LOGV("on surface changed, w:%d h:%d \n", w, h);
     return 0;
 }
 
 
 int jni_gl_draw_frame(JNIEnv *env, jobject thiz) {
-    yuv_renderFrame();
+    gl_render();
     return 0;
 }
 

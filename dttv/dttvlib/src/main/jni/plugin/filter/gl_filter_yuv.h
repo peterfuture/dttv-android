@@ -1,7 +1,7 @@
 #ifndef GL_FILTER_NONE
 #define GL_FILTER_NONE
 
-const char vertex_shader_none[] = {
+const char vertex_shader_yuv[] = {
         "attribute vec4 aPosition;\n"
         "attribute vec2 aTextureCoord;\n"
         "varying vec2 vTextureCoord;\n"
@@ -13,13 +13,12 @@ const char vertex_shader_none[] = {
 
 // The fragment shader.
 // Do YUV to RGB565 conversion.
-static const char frame_shader_none[] = {
+static const char frame_shader_yuv[] = {
         "precision mediump float;\n"
         "uniform sampler2D Ytex, Utex, Vtex;\n"
         "varying vec2 vTextureCoord;\n"
         "void main(void) {\n"
         "  float nx,ny,r,g,b,y,u,v;\n"
-        "  mediump vec4 txl,ux,vx;"
         "  nx=vTextureCoord[0];\n"
         "  ny=vTextureCoord[1];\n"
         "  y=texture2D(Ytex,vec2(nx,ny)).r;\n"

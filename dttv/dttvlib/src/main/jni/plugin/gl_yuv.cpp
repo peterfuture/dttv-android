@@ -6,10 +6,16 @@
 #include "gl_yuv.h"
 #include "dttv_jni_dtp.h"
 
+#include <filter/gl_filter.h>
+#include <plugin/filter/gl_filter.h>
+#include <plugin/filter/gl_filter_none.h>
+
 #define  TAG  "gl2_yuv"
 
 using namespace android;
 
+
+static gl_filter_type type = GL_FILTER_TYPE_NONE;
 
 void checkGlError(const char *op) {
     for (GLint error = glGetError(); error; error
@@ -88,44 +94,6 @@ static void printGLString(const char *name, GLenum s) {
     const char *v = (const char *) glGetString(s);
     LOGV("GL %s = %s\n", name, v);
 }
-
-const char gVertextShader[] = {
-        "attribute vec4 aPosition;\n"
-                "attribute vec2 aTextureCoord;\n"
-                "varying vec2 vTextureCoord;\n"
-                "void main() {\n"
-                "  gl_Position = aPosition;\n"
-                "  vTextureCoord = aTextureCoord;\n"
-                "}\n"
-};
-
-// The fragment shader.
-// Do YUV to RGB565 conversion.
-static const char gFragmentShader[] = {
-        "precision mediump float;\n"
-                "uniform sampler2D Ytex;\n"
-                "uniform sampler2D Utex,Vtex;\n"
-                "varying vec2 vTextureCoord;\n"
-                "void main(void) {\n"
-                "  float nx,ny,r,g,b,y,u,v;\n"
-                "  mediump vec4 txl,ux,vx;"
-                "  nx=vTextureCoord[0];\n"
-                "  ny=vTextureCoord[1];\n"
-                "  y=texture2D(Ytex,vec2(nx,ny)).r;\n"
-                "  u=texture2D(Utex,vec2(nx,ny)).r;\n"
-                "  v=texture2D(Vtex,vec2(nx,ny)).r;\n"
-
-                //"  y = v;\n"+
-                "  y=1.1643*(y-0.0625);\n"
-                "  u=u-0.5;\n"
-                "  v=v-0.5;\n"
-
-                "  r=y+1.5958*v;\n"
-                "  g=y-0.39173*u-0.81290*v;\n"
-                "  b=y+2.017*u;\n"
-                "  gl_FragColor=vec4(r,g,b,1.0);\n"
-                "}\n"
-};
 
 static GLuint gProgram;
 static GLuint positionHandle;
@@ -242,7 +210,10 @@ bool yuv_setupGraphics(int w, int h) {
     LOGV("%s: number of textures %d, size %d", __FUNCTION__, (int) maxTextureImageUnits[0],
          (int) maxTextureSize[0]);
 
-    gProgram = createProgram(gVertextShader, gFragmentShader);
+    if(type == GL_FILTER_TYPE_NONE) {
+        gProgram = createProgram(vertex_shader_none, frame_shader_none);
+    }
+
     if (!gProgram) {
         LOGV("Could not create program.");
         return false;

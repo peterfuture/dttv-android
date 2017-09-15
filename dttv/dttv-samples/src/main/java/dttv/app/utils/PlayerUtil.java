@@ -30,11 +30,11 @@ public class PlayerUtil {
         // Fixme: select videoplayer - Android MediaPlayer | dtplayer(with glsurfaceview) | dtplayer(with surfaceview)
 
         // use VideoPlayerActivity
-        // intent.setClass(cr, VideoPlayerActivity.class);
-        // cr.startActivity(intent);
+         intent.setClass(cr, VideoPlayerActivity.class);
+         cr.startActivity(intent);
 
         // use PipTestActivity
-        intent.setClass(cr, PipTestActivity.class);
-        cr.startActivity(intent);
+        //intent.setClass(cr, PipTestActivity.class);
+        //cr.startActivity(intent);
     }
 }

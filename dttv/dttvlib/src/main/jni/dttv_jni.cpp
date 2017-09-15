@@ -647,7 +647,7 @@ int jni_gl_surface_create(JNIEnv *env, jobject thiz) {
         LOGV("set parameter failed.mp == null.");
         return 0;
     }
-    gl_create((void *) getMediaPlayer(env, thiz), DTAV_PIX_FMT_YUV420P);
+    gl_create((void *) getMediaPlayer(env, thiz), DTAV_PIX_FMT_RGBA);
     mp->setGLSurfaceView();
     return 0;
 }

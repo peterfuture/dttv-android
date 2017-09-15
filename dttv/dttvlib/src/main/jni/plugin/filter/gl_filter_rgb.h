@@ -1,5 +1,5 @@
-#ifndef GL_FILTER_BLUR
-#define GL_FILTER_BLUR
+#ifndef GL_FILTER_RGB
+#define GL_FILTER_RGB
 
 const char vertex_shader_rgb[] = {
         "attribute vec4 aPosition;\n"

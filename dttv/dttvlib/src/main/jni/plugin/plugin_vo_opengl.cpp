@@ -17,7 +17,7 @@ struct vo_info {
 
 static dtvideo_filter_t glvf;
 
-static int pix_fmt = DTAV_PIX_FMT_YUV420P;
+static int pix_fmt = DTAV_PIX_FMT_RGBA;
 
 static void dump_frame(dt_av_frame_t *pFrame, int width, int height, int iFrame) {
     FILE *pFile;

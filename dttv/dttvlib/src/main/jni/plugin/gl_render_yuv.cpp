@@ -131,11 +131,7 @@ bool yuv_setupGraphics(int w, int h) {
     LOGV("%s: number of textures %d, size %d", __FUNCTION__, (int) maxTextureImageUnits[0],
          (int) maxTextureSize[0]);
 
-    if (type == GL_FILTER_TYPE_YUV) {
-        gProgram = createProgram(vertex_shader_yuv, frame_shader_yuv);
-    } else if(type == GL_FILTER_TYPE_RGB) {
-        gProgram = createProgram(vertex_shader_rgb, frame_shader_rgb);
-    }
+    gProgram = createProgram(vertex_shader_yuv, frame_shader_yuv);
 
     if (!gProgram) {
         LOGV("Could not create program.");

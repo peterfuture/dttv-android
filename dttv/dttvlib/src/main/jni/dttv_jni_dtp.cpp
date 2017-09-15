@@ -136,6 +136,7 @@ namespace android {
                 dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mSurface);
             } else if (mRenderType == 1) {
                 dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_opengl);
+                dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, 0);
             }
 
             LOGI("setup render. use %s.\n", (mRenderType == 0) ? "surfaceview" : "opengl");

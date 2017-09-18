@@ -118,6 +118,17 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private ProgressBar mProgressBarBright, mProgressBarVolume;
     private GlVideoView mGLSurfaceView;
 
+    // contrl
+    private int mPaused = 0;
+    private int mStopped = 0;
+    private int mSeeking = 0;
+    private int mSeekPosition = -1;
+    private int mSeekCurPosition = -1;
+    private int mRatio = 0; // 0 full 1 normal
+    private int mResumePosition = -1;
+
+    private Timer mTimer;
+
     /*varibles*/
 
     private MediaPlayer mMediaPlayer;
@@ -178,24 +189,11 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         initListener();
     }
 
-    private boolean isProbablyEmulator() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1
-                && (Build.FINGERPRINT.startsWith("generic")
-                || Build.FINGERPRINT.startsWith("unknown")
-                || Build.MODEL.contains("google_sdk")
-                || Build.MODEL.contains("Emulator")
-                || Build.MODEL.contains("Android SDK built for x86"));
-    }
-
     private int GLES2Support() {
         ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
-
-        boolean supportsEs2 = configurationInfo.reqGlEsVersion >= 0x20000 || isProbablyEmulator();
-        if (supportsEs2)
-            return 1;
-        else
-            return 0;
+        int supportsEs2 = ((configurationInfo.reqGlEsVersion >= 0x20000) == true)?1:0;
+        return supportsEs2;
     }
 
     private void initView() {
@@ -250,85 +248,12 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         }
     }
 
-    private void updateSettingPanel(int hasaudio, int hasvideo, int hassub) {
-        return;
-    }
-
-    @SuppressLint("ShowToast")
-    private void setDataSource() {
-        Intent intent = getIntent();
-        mPath = intent.getStringExtra(Constant.FILE_MSG);
-        String mediaName = intent.getStringExtra(Constant.MEIDA_NAME_STR);
-        mTextViewUrl.setText(mediaName);
-
-        //----------------------add type--------------------------------------
-        //Toast.makeText(this, "playing:" + mPath, 1).show();
-        try {
-            mState = PLAYER_INIT_START;
-            mMediaPlayer.setDataSource(mPath);
-            mState = PLAYER_INITED;
-
-            //setup video size
-            int width = mMediaPlayer.getVideoWidth();
-            int height = mMediaPlayer.getVideoHeight();
-            if (mDisplayMode == VIDEOPLAYER_DISPLAY_FULLSCREEN) {
-                width = mScreenWidth;
-                height = mScreenHeight;
-            }
-
-            Log.d(TAG, "--width:" + width + "  height:" + height);
-            if (width > 0 && height > 0 && width <= 1920 && height <= 1088) {
-                ViewGroup.LayoutParams layoutParams = mGLSurfaceView.getLayoutParams();
-                layoutParams.width = width;
-                layoutParams.height = height;
-                mGLSurfaceView.setLayoutParams(layoutParams);
-            }
-        } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        mCurrentLightness = ControlLightness.getInstance().getLightness(this);
-        if (mCurrentLightness >= 255) {
-            mCurrentLightness = 255;
-        } else if (mCurrentLightness <= 0) {
-            mCurrentLightness = 0;
-        }
-    }
-
-    private void prepare() {
-        try {
-            mState = PLAYER_PREPAR;
-            mMediaPlayer.prepareAsync();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
     private void initListener() {
         mMediaPlayer.setOnPreparedListener(new PrePareListener());
         mMediaPlayer.setOnFreshVideo(new FreshVideo());
         mMediaPlayer.setOnCompletionListener(new OnCompleteListener());
 
         mSeekBarProgress.setOnSeekBarChangeListener(new OnSeekChangeListener());
-/*
-        mButtonPre.setOnClickListener(this);
-        mButtonNext.setOnClickListener(this);
-        mButtonRatio.setOnClickListener(this);
-        mButtonAudioEffect.setOnClickListener(this);
-        mButtonRatio.setOnClickListener(this);
-        mButtonRotate.setOnClickListener(this);
-        mButtonRotate.setOnTouchListener(this);
-*/
         mButtonBack.setOnClickListener(this);
         mButtonSetting.setOnClickListener(this);
         mButtonPause.setOnClickListener(this);
@@ -344,7 +269,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     class PrePareListener implements OnPreparedListener {
         @Override
         public void onPrepared(MediaPlayer mp) {
-            // TODO Auto-generated method stub
             Log.i(TAG, "enter onPrepared");
             mState = PLAYER_PREPARED;
             mMediaPlayer.start();
@@ -354,18 +278,15 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 mTextViewDuration.setText(TimesUtil.getTime(duration));
                 mSeekBarProgress.setMax(duration);
             }
-            startTimerTask();
-            //setVideoScale(1);
+            startTimer();
         }
     }
 
     class FreshVideo implements OnFreshVideo {
         @Override
         public void onFresh(MediaPlayer mp) {
-            if (mSurfaceDestroyed == 0) {
-                Log.i(TAG, "enter request render");
+            if (mStopped == 0) {
                 mGLSurfaceView.requestRender();
-                Log.i(TAG, "exit request render");
             }
         }
     }
@@ -373,7 +294,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     class OnCompleteListener implements OnCompletionListener {
         @Override
         public void onCompletion(MediaPlayer mp) {
-            // TODO Auto-generated method stub
             mState = PLAYER_EXIT;
             finish();
         }
@@ -384,7 +304,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress,
                                       boolean fromUser) {
-            // TODO Auto-generated method stub
             if (mSeekFlag == 1) {
                 //int currentTime = seekBar.getProgress();
                 //mMediaPlayer.seekTo(currentTime);
@@ -418,8 +337,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         }
     }
 
-    ;
-
     Handler doActionHandler = new Handler(Looper.getMainLooper()) {
         public void handleMessage(android.os.Message msg) {
             int msgId = msg.what;
@@ -436,7 +353,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                     mSeekBarProgress.setProgress(currentTime);
                     break;
                 case Constant.BEGIN_MEDIA_MSG:
-                    //startTimerTask();
+                    //startTimer();
                     break;
                 case Constant.HIDE_OPREATE_BAR_MSG:
                     //mLinearLayoutControlPanel.setVisibility(View.GONE);
@@ -452,9 +369,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         ;
     };
 
-    private Timer mTimer;
-
-    private void startTimerTask() {
+    private void startTimer() {
         mTimer = new Timer();
         mTimer.schedule(new TimerTask() {
 
@@ -466,7 +381,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         }, Constant.REFRESH_TIME, Constant.REFRESH_TIME);
     }
 
-    private void releaseTimerAndHandler() {
+    private void stopTimer() {
         //isEnableTime = false;
         if (mTimer != null)
             mTimer.cancel();
@@ -475,35 +390,66 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
     @Override
     public void onPause() {
-        releaseTimerAndHandler();
-        mGLSurfaceView.onPause();
         mMediaPlayer.pause();
         super.onPause();
-        if (mState == PLAYER_PAUSED)
-            mState = PLAYER_RUNNING;
-        if (mState == PLAYER_RUNNING)
-            mState = PLAYER_PAUSED;
-        Log.d(TAG, "--PAUSE--");
+        Log.d(TAG, "pause activity");
     }
 
     @Override
     protected void onResume() {
-        super.onResume();
-        //mGLSurfaceView.onResume();
-        Log.i(TAG, "enter onResume mMediaPlayer is:" + mMediaPlayer);
-        if (mMediaPlayer != null) {
-            mMediaPlayer.seekTo(mCurrentPosition);
+        Log.i(TAG, "resume activity");
+        if (mStopped == 0) {
+            mMediaPlayer.seekTo(mResumePosition);
             mMediaPlayer.start();
         }
+        // else do nothing - resume play in surface create
+        super.onResume();
     }
 
     @Override
     protected void onStop() {
-        Log.i(TAG, "enterStop");
-        mState = PLAYER_STOP;
+        Log.i(TAG, "stop activity");
+        stopMediaPlayer();
         super.onStop();
     }
 
+    private void handlePause() {
+        if (mPaused == 0) {
+            mMediaPlayer.pause();
+            mButtonPause.setBackgroundResource(R.drawable.videoplayer_button_pause);
+            mPaused = 1;
+        } else {
+            mMediaPlayer.start();
+            mButtonPause.setBackgroundResource(R.drawable.videoplayer_button_play);
+            mPaused = 0;
+        }
+    }
+
+    private void handleBack() {
+        super.finish();
+    }
+
+    private void handleRatioChange() {
+        try {
+            ViewGroup.LayoutParams layoutParams = mGLSurfaceView.getLayoutParams();
+            if (mDisplayMode == VIDEOPLAYER_DISPLAY_ORIGINAL) {
+                mDisplayMode = VIDEOPLAYER_DISPLAY_FULLSCREEN;
+                mButtonRatio.setBackgroundResource(R.drawable.videoplayer_button_ratio_fullscreen);
+                layoutParams.width = mScreenWidth;
+                layoutParams.height = mSurfaceHeight;
+            } else {
+                mDisplayMode = VIDEOPLAYER_DISPLAY_ORIGINAL;
+                mButtonRatio.setBackgroundResource(R.drawable.videoplayer_button_ratio_normal);
+                layoutParams.width = mMediaPlayer.getVideoWidth();
+                layoutParams.height = mMediaPlayer.getVideoHeight();
+            }
+
+            mGLSurfaceView.setLayoutParams(layoutParams);
+
+        } catch (IllegalStateException e) {
+        } catch (Exception e) {
+        }
+    }
 
     @Override
     public void onClick(View v) {
@@ -513,12 +459,41 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             handleBack();
 
         } else if (i == R.id.videoplayer_button_pause) {
-            handlePausePlay();
+            handlePause();
 
         } else if (i == R.id.videoplayer_button_ratio) {//setVideoScale(temp_flag);
             handleRatioChange();
 
         }
+    }
+
+    private void startMediaPlayer() {
+        try {
+            if (mMediaPlayer == null)
+                return;
+            if (mMediaPlayer.isPlaying())
+                return;
+            mMediaPlayer.setDataSource(SAMPLE);
+            mMediaPlayer.prepare();
+            if (mResumePosition > 0) {
+                mMediaPlayer.seekTo(mResumePosition);
+                mResumePosition = -1;
+            }
+            startTimer();
+            mTextViewDuration.setText(TimesUtil.getTime(mMediaPlayer.getDuration()));
+            mSeekBarProgress.setMax(mMediaPlayer.getDuration());
+            mStopped = 0;
+        } catch (IOException ex) {
+        }
+    }
+
+    private void stopMediaPlayer() {
+        if (mStopped == 1)
+            return;
+        mResumePosition = mMediaPlayer.getCurrentPosition();
+        stopTimer();
+        mMediaPlayer.stop();
+        mStopped = 1;
     }
 
     private PopWindowCompnent audioCompnent;
@@ -566,52 +541,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private void showProgressBar(boolean isShow) {
         mProgressBarBright.setVisibility(isShow == true ? View.VISIBLE : View.GONE);
         mProgressBarVolume.setVisibility(isShow == true ? View.VISIBLE : View.GONE);
-    }
-
-    private void handleBack() {
-        try {
-            super.finish();
-        } catch (IllegalStateException e) {
-        } catch (Exception e) {
-        }
-    }
-
-    private void handlePausePlay() {
-        try {
-            if (mMediaPlayer.isPlaying()) {
-                mMediaPlayer.pause();
-                mButtonPause.setBackgroundResource(R.drawable.videoplayer_button_pause);
-            } else {
-                mMediaPlayer.start();
-                mButtonPause.setBackgroundResource(R.drawable.videoplayer_button_play);
-            }
-        } catch (IllegalStateException e) {
-            // TODO: handle exception
-        } catch (Exception e) {
-            // TODO: handle exception
-        }
-    }
-
-    private void handleRatioChange() {
-        try {
-            ViewGroup.LayoutParams layoutParams = mGLSurfaceView.getLayoutParams();
-            if (mDisplayMode == VIDEOPLAYER_DISPLAY_ORIGINAL) {
-                mDisplayMode = VIDEOPLAYER_DISPLAY_FULLSCREEN;
-                mButtonRatio.setBackgroundResource(R.drawable.videoplayer_button_ratio_fullscreen);
-                layoutParams.width = mScreenWidth;
-                layoutParams.height = mSurfaceHeight;
-            } else {
-                mDisplayMode = VIDEOPLAYER_DISPLAY_ORIGINAL;
-                mButtonRatio.setBackgroundResource(R.drawable.videoplayer_button_ratio_normal);
-                layoutParams.width = mMediaPlayer.getVideoWidth();
-                layoutParams.height = mMediaPlayer.getVideoHeight();
-            }
-
-            mGLSurfaceView.setLayoutParams(layoutParams);
-
-        } catch (IllegalStateException e) {
-        } catch (Exception e) {
-        }
     }
 
     @Override
@@ -667,13 +596,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         @Override
         public void onSurfaceCreated(GL10 gl,
                                      javax.microedition.khronos.egl.EGLConfig config) {
-            // TODO Auto-generated method stub
             Log.i(TAG, "gl create enter");
-            //gl.glClearColor(0.0f, 0f, 1f, 0.5f); // display blue at first
-            //gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-            try {
-                mMediaPlayer.setDataSource(SAMPLE);
-            }catch (IOException io) {}
             mMediaPlayer.onSurfaceCreated();
         }
 
@@ -682,33 +605,18 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             //other case
             lock.lock();
             Log.i(TAG, "gl surface change enter, width:" + width + " height:" + height);
-
-
-            if (mMediaPlayer.isPlaying() == false) {
-                try {
-                    mMediaPlayer.onSurfaceChanged(width, height);
-                    mMediaPlayer.prepare();
-                }catch (IOException io) {}
-            }
-            else
-                mMediaPlayer.onSurfaceChanged(width, height);
-            mSurfaceWidth = width;
-            mSurfaceHeight = height;
+            mMediaPlayer.onSurfaceChanged(width, height);
+            startMediaPlayer();
             lock.unlock();
         }
 
         @Override
         public void onDrawFrame(GL10 gl) {
-            //Log.i(TAG, "onDrawFrame");  
-            // 清除屏幕和深度缓存(如果不调用该代码, 将不显示glClearColor设置的颜色)  
-            // 同样如果将该代码放到 onSurfaceCreated 中屏幕会一直闪动  
-            //gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-            //Log.i(TAG, "draw enter");
+            //Log.i(TAG, "onDrawFrame");
             lock.lock();
             mMediaPlayer.onDrawFrame();
             lock.unlock();
         }
-
     }
 
     private SurfaceHolder.Callback callback = new SurfaceHolder.Callback() {
@@ -727,9 +635,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         @Override
         public void surfaceDestroyed(SurfaceHolder holder) {
             Log.i(TAG, "SurfaceHolder destroy");
-            if (mMediaPlayer != null)
-                mMediaPlayer.stop();
-            mSurfaceDestroyed = 1;
+            stopMediaPlayer();
         }
     };
 

@@ -25,9 +25,7 @@ dependencies {
 ## Build
 
 >
-* build [ffmpeg](https://github.com/peterfuture/ffmpeg_android)
-* build [dtplayer](https://github.com/peterfuture/dtplayer_c)
-* download dtplayer so zip [here](https://sourceforge.net/projects/dttv/files/latest/download) and unzip to dttv/dttvlib/distribution/libdtp/
+* download dtplayer so zip [here](https://sourceforge.net/projects/dttv/files/lib.zip/download) and unzip to dttv/dttvlib/distribution/libdtp/
 * build dttv with android studio
 * apk: dttv/dttv-samples/build/outputs/apk/dttv-samples-debug.apk.
 * Get prebuild [here](https://sourceforge.net/projects/dttv/files/dttv-samples-debug.apk/download)

@@ -349,8 +349,7 @@ namespace android {
 
         status = PLAYER_STOPPED;
         ret = dtplayer_stop(handle);
-        //mDtpHandle = NULL;
-
+        mDtpHandle = NULL;
         END:
         return ret;
     }

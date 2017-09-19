@@ -473,12 +473,14 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 return;
             if (mMediaPlayer.isPlaying())
                 return;
+
             mMediaPlayer.setDataSource(SAMPLE);
             mMediaPlayer.prepare();
             if (mResumePosition > 0) {
                 mMediaPlayer.seekTo(mResumePosition);
                 mResumePosition = -1;
             }
+
             startTimer();
             mTextViewDuration.setText(TimesUtil.getTime(mMediaPlayer.getDuration()));
             mSeekBarProgress.setMax(mMediaPlayer.getDuration());

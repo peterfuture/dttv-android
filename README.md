@@ -27,9 +27,10 @@ dependencies {
 >
 * build [ffmpeg](https://github.com/peterfuture/ffmpeg_android)
 * build [dtplayer](https://github.com/peterfuture/dtplayer_c)
-* copy libdtp.so to dttv/dttvlib/distribution/libdtp/lib/armeabi-v7a/
+* download [so](https://sourceforge.net/projects/dttv/files/dttv-samples-debug.apk/download) and unzip to dttv/dttvlib/distribution/libdtp/lib
 * build dttv with android studio
-* apk: dttv/dttv-samples/build/outputs/apk/dttv-samples-debug.apk
+* apk: dttv/dttv-samples/build/outputs/apk/dttv-samples-debug.apk.
+* Get prebuild [here](https://sourceforge.net/projects/dttv/files/dttv-samples-debug.apk/download)
 
 More [details](https://github.com/peterfuture/dttv-android/wiki/2-%E7%BC%96%E8%AF%91dttv-android)
 

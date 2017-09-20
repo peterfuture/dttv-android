@@ -15,7 +15,7 @@ const char vertex_shader_saturation[] = {
 static const char frame_shader_saturation[] = {
         "varying highp vec2 vTextureCoord;\n"
         "uniform sampler2D sTexture;\n"
-        "uniform lowp float saturation = 0.0;\n"
+        "uniform lowp float saturation;\n"
         "const mediump vec3 luminanceWeighting = vec3(0.2125, 0.7154, 0.0721);\n"
 
         "void main() {\n"

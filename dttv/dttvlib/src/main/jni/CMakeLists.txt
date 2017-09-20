@@ -42,8 +42,6 @@ set (SOURCE
     ${PLUGINSOURCES}
 )
 
-
-
 add_library(dttv_jni SHARED
             ${SOURCE})
 

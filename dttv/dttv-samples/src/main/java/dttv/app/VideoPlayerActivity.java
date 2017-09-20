@@ -120,7 +120,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private GlVideoView mGLSurfaceView;
 
     // GLFilter
-    private int mCurrentGlFilter = MediaPlayer.GL_FILTER_RGB;
+    private int mCurrentGlFilter = MediaPlayer.GL_FILTER_SATURATION;
 
     // contrl
     private int mPaused = 0;
@@ -604,7 +604,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                                      javax.microedition.khronos.egl.EGLConfig config) {
             Log.i(TAG, "gl create enter");
             mMediaPlayer.onSurfaceCreated();
-            //mMediaPlayer.setGlFilter(mCurrentGlFilter, 1);
+            mMediaPlayer.setGlFilter(mCurrentGlFilter, 1);
         }
 
         @Override
@@ -622,7 +622,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             //Log.i(TAG, "onDrawFrame");
             lock.lock();
             mMediaPlayer.onDrawFrame();
-            //mMediaPlayer.setGlFilter(mCurrentGlFilter, (value+1)%10);
+            mMediaPlayer.setGlFilter(mCurrentGlFilter, (value++)%100);
             lock.unlock();
         }
     }

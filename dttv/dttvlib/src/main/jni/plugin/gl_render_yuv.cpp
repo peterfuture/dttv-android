@@ -174,6 +174,10 @@ static int yuv_dttv_init() {
     return 0;
 }
 
+static int yuv_set_parameter(int cmd, unsigned long arg) {
+    return 0;
+}
+
 static int yuv_update_frame(dt_av_frame_t *frame) {
     if (g_inited == 0) {
         if (frame->data[0]) {
@@ -232,6 +236,7 @@ static int yuv_renderFrame() {
 gl_ops_t gl_ops_yuv = {
     .init = yuv_dttv_init,
     .setup = yuv_setupGraphics,
+    .set_parameter = yuv_set_parameter,
     .update = yuv_update_frame,
     .render = yuv_renderFrame
 };

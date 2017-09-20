@@ -2,13 +2,16 @@
 #include <gl_ops.h>
 #include <dttv_jni_utils.h>
 #include <dttv_jni_log.h>
+#include <plugin/filter/gl_filter_saturation.h>
 
-struct rgb_ctx {
+struct rgb_saturation_ctx {
     lock_t mutex;
     int texture_width;
     int texture_height;
     int window_width;
     int window_height;
+
+    float saturation;
 
     GLuint program;
     GLuint texture[1];
@@ -17,7 +20,7 @@ struct rgb_ctx {
     int inited;
 };
 
-static rgb_ctx ctx;
+static rgb_saturation_ctx ctx;
 
 static int FLOAT_SIZE_BYTES = 4;
 static int VERTICES_DATA_POS_SIZE = 3;
@@ -39,17 +42,17 @@ const static GLfloat vertices[20] = {
         -1, 1, 0, 0, 0 //Top Left
 };
 
-#define TAG "RGB-GL"
+#define TAG "RGB-SATURATION-GL"
 
-static int rgb_init() {
+static int rgb_saturation_init() {
     ctx = {0};
     lock_init(&ctx.mutex, NULL);
     ctx.inited = 1;
-    LOGV("rgb init ok");
+    LOGV("rgb saturation init ok");
     return 0;
 }
 
-static int rgb_setup(int w, int h) {
+static int rgb_saturation_setup(int w, int h) {
     ctx.window_width = w;
     ctx.window_height = h;
 
@@ -60,7 +63,7 @@ static int rgb_setup(int w, int h) {
     LOGV("%s: number of textures %d, size %d", __FUNCTION__, (int) maxTextureImageUnits[0],
          (int) maxTextureSize[0]);
 
-    ctx.program = createProgram(vertex_shader_rgb, frame_shader_rgb);
+    ctx.program = createProgram(vertex_shader_saturation, frame_shader_saturation);
 
     glEnableVertexAttribArray(getHandle(ctx.program, "aPosition"));
     glVertexAttribPointer(getHandle(ctx.program, "aPosition"), VERTICES_DATA_POS_SIZE, GL_FLOAT, false, VERTICES_DATA_STRIDE_BYTES, vertices);
@@ -70,16 +73,24 @@ static int rgb_setup(int w, int h) {
     glUseProgram(ctx.program);
     glUniform1i(getHandle(ctx.program, "sTexture"), 0);
 
+    ctx.saturation = 0.0f;
+    glUniform1f(getHandle(ctx.program, "saturation"), ctx.saturation);
+
     glViewport(0, 0, w, h);
-    LOGV("rgb setup ok. w:%d h:%d \n", w, h);
+    LOGV("rgb saturation setup ok. w:%d h:%d \n", w, h);
     return 0;
 }
 
-static int rgb_set_parameter(int cmd, unsigned long arg) {
+static int rgb_saturation_set_parameter(int cmd, unsigned long arg) {
+    if (ctx.inited == 0) {
+        return -1;
+    }
+    ctx.saturation = ((float)arg/100);
+    glUniform1f(getHandle(ctx.program, "saturation"), ctx.saturation);
     return 0;
 }
 
-static int rgb_update_frame(dt_av_frame_t *frame) {
+static int rgb_saturation_update_frame(dt_av_frame_t *frame) {
     if (ctx.inited == 0) {
         if (frame->data[0]) {
             free(frame->data[0]);
@@ -98,7 +109,6 @@ static int rgb_update_frame(dt_av_frame_t *frame) {
     unlock(&ctx.mutex);
 
     gl_notify();
-    LOGV("rgb update frame\n");
     return 0;
 }
 
@@ -121,10 +131,10 @@ static int setupTextures(uint8_t *data, GLsizei width, GLsizei height, int gen) 
     return 0;
 }
 
-static int rgb_render() {
+static int rgb_saturation_render() {
 
     if (ctx.frame_valid != 1) {
-        LOGV("rgb render failed. no valid frame.\n");
+        LOGV("rgb saturation render failed. no valid frame.\n");
         return -1;
     }
     lock(&ctx.mutex);
@@ -143,10 +153,8 @@ static int rgb_render() {
     } else {
         setupTextures(data, width, height, 0);
     }
-    LOGV("Enter glDrawElements \n");
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
     checkGlError("glDrawArrays");
-    LOGV("Exit glDrawElements \n");
     free(data);
     ctx.frame_valid = 0;
     memset(&ctx.frame, 0, sizeof(dt_av_frame_t));
@@ -154,10 +162,10 @@ static int rgb_render() {
     return 0;
 }
 
-gl_ops_t gl_ops_rgb = {
-    .init = rgb_init,
-    .setup = rgb_setup,
-    .set_parameter = rgb_set_parameter,
-    .update = rgb_update_frame,
-    .render = rgb_render
+gl_ops_t gl_ops_saturation = {
+    .init = rgb_saturation_init,
+    .setup = rgb_saturation_setup,
+    .set_parameter = rgb_saturation_set_parameter,
+    .update = rgb_saturation_update_frame,
+    .render = rgb_saturation_render
 };

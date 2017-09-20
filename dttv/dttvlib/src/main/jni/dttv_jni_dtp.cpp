@@ -4,7 +4,6 @@
 #include <dtp_state.h>
 #include <dtp_audio_plugin.h>
 #include <dtp_video_plugin.h>
-#include <gl_render_yuv.h>
 #include "dttv_jni_dtp.h"
 
 #define TAG "NATIVE-DTP"

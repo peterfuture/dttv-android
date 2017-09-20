@@ -1,35 +1,35 @@
 #include <dtp_av.h>
 
 #include <gl_render.h>
-#include <gl_render_yuv.h>
-#include <gl_render_rgb.h>
 #include <dttv_jni_dtp.h>
+#include "gl_ops.h"
 
 struct gl_ctx {
     int width;
     int height;
     int pixfmt;
+    int filter;
+    long arg;
 
+    gl_ops_t *ops;
     lock_t mutex;
     void *handle;
 };
 
 static gl_ctx ctx;
 
+extern gl_ops_t gl_ops_yuv;
+extern gl_ops_t gl_ops_rgb;
+
 using namespace android;
 
 #define TAG "GL-RENDER"
 
-int gl_create(void *h, int pixfmt)
+int gl_create(void *h)
 {
     ctx = {0};
     ctx.handle = h;
-    ctx.pixfmt = pixfmt;
     lock_init(&ctx.mutex, NULL);
-    if(pixfmt == DTAV_PIX_FMT_YUV420P)
-        yuv_dttv_init();
-    else if(pixfmt == DTAV_PIX_FMT_RGBA)
-        rgb_init();
     return 0;
 }
 
@@ -37,11 +37,28 @@ int gl_setup(int w, int h)
 {
     ctx.width = w;
     ctx.height = h;
+    if(ctx.ops == 0) {
+        ctx.ops = &gl_ops_rgb;
+        ctx.pixfmt = DTAV_PIX_FMT_RGBA;
+    }
+    ctx.ops->init();
+    ctx.ops->setup(w, h);
+    return 0;
+}
 
-    if(ctx.pixfmt == DTAV_PIX_FMT_YUV420P)
-        yuv_setupGraphics(w, h);
-    else if(ctx.pixfmt == DTAV_PIX_FMT_RGBA)
-        rgb_setup(w, h);
+int gl_set_parameter(long type, long arg)
+{
+    ctx.filter = (int)type;
+    switch (ctx.filter) {
+        case GL_FILTER_TYPE_YUV:
+            ctx.pixfmt = DTAV_PIX_FMT_YUV420P;
+            ctx.ops = &gl_ops_yuv;
+            break;
+        case GL_FILTER_TYPE_RGB:
+            ctx.ops = &gl_ops_rgb;
+            ctx.pixfmt = DTAV_PIX_FMT_RGBA;
+            break;
+    }
     return 0;
 }
 
@@ -61,19 +78,15 @@ int gl_update_frame(dt_av_frame_t *frame)
         LOGV("update gl frame failed. handle == 0\n");
         return 0;
     }
-    LOGV("update gl frame pix:%d n", ctx.pixfmt);
-    if(ctx.pixfmt == DTAV_PIX_FMT_YUV420P)
-        yuv_update_frame(frame);
-    else if(ctx.pixfmt == DTAV_PIX_FMT_RGBA)
-        rgb_update_frame(frame);
+    LOGV("update gl frame pix:%d \n", ctx.pixfmt);
+    ctx.ops->update(frame);
     return 0;
 }
 
 int gl_render()
 {
-    if(ctx.pixfmt == DTAV_PIX_FMT_YUV420P)
-        yuv_renderFrame();
-    else if(ctx.pixfmt == DTAV_PIX_FMT_RGBA)
-        rgb_render();
+    LOGV("Enter render frame \n");
+    ctx.ops->render();
+    LOGV("Exit render frame \n");
     return 0;
 }

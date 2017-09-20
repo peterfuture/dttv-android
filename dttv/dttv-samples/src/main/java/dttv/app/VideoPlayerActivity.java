@@ -21,6 +21,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -117,6 +118,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private SeekBar mSeekBarProgress;
     private ProgressBar mProgressBarBright, mProgressBarVolume;
     private GlVideoView mGLSurfaceView;
+
+    // GLFilter
+    private int mCurrentGlFilter = MediaPlayer.GL_FILTER_RGB;
 
     // contrl
     private int mPaused = 0;
@@ -594,12 +598,13 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     class MyGLSurfaceViewRender implements GLSurfaceView.Renderer {
 
         private Lock lock = new ReentrantLock();
-
+        private long value = 0;
         @Override
         public void onSurfaceCreated(GL10 gl,
                                      javax.microedition.khronos.egl.EGLConfig config) {
             Log.i(TAG, "gl create enter");
             mMediaPlayer.onSurfaceCreated();
+            //mMediaPlayer.setGlFilter(mCurrentGlFilter, 1);
         }
 
         @Override
@@ -617,6 +622,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             //Log.i(TAG, "onDrawFrame");
             lock.lock();
             mMediaPlayer.onDrawFrame();
+            //mMediaPlayer.setGlFilter(mCurrentGlFilter, (value+1)%10);
             lock.unlock();
         }
     }

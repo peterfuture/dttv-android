@@ -14,6 +14,7 @@ using namespace android;
 
 enum {
     KEY_PARAMETER_USEHWCODEC = 0x0,
+    KEY_PARAMETER_SET_GLFILTER = 0x1,
     KEY_PARAMETER_MAX
 };
 
@@ -601,6 +602,15 @@ jni_dttv_selectOrDeselectTrack(JNIEnv *env, jobject thiz, jint index, jboolean s
     return;
 }
 
+int jni_dttv_get_parameter(JNIEnv *env, jobject thiz, int cmd, jlong arg1, jlong arg2) {
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if (mp == NULL) {
+        LOGV("set parameter failed.mp == null.");
+        return -1;
+    }
+    return 0;
+}
+
 int jni_dttv_set_parameter(JNIEnv *env, jobject thiz, int cmd, jlong arg1, jlong arg2) {
     DTPlayer *mp = getMediaPlayer(env, thiz);
     if (mp == NULL) {
@@ -611,6 +621,9 @@ int jni_dttv_set_parameter(JNIEnv *env, jobject thiz, int cmd, jlong arg1, jlong
     switch (cmd) {
         case KEY_PARAMETER_USEHWCODEC:
             mp->setHWEnable(arg1);
+            break;
+        case KEY_PARAMETER_SET_GLFILTER:
+            gl_set_parameter(arg1, arg2);
             break;
         default:
             break;
@@ -647,7 +660,7 @@ int jni_gl_surface_create(JNIEnv *env, jobject thiz) {
         LOGV("set parameter failed.mp == null.");
         return 0;
     }
-    gl_create((void *) getMediaPlayer(env, thiz), DTAV_PIX_FMT_RGBA);
+    gl_create((void *) getMediaPlayer(env, thiz));
     mp->setGLSurfaceView();
     return 0;
 }
@@ -707,7 +720,7 @@ static JNINativeMethod g_Methods[] = {
         {"native_getMetadata",          "(Ljava/util/Map;)Z",                                          (void *) jni_dttv_getMetadata},
         {"addTimedTextSource",          "(Ljava/lang/String;)V",                                       (void *) jni_dttv_addTimedTextSource},
         {"selectOrDeselectTrack",       "(IZ)V",                                                       (void *) jni_dttv_selectOrDeselectTrack},
-        {"native_set_parameter",        "(IJJ)I",                                                      (void *) jni_dttv_set_parameter},
+        {"native_get_parameter",        "(IJJ)I",                                                      (void *) jni_dttv_get_parameter},
         {"native_set_parameter",        "(IJJ)I",                                                      (void *) jni_dttv_set_parameter},
         {"getMetaEncoding",             "()Ljava/lang/String;",                                        (void *) jni_dttv_getMetaEncoding},
         {"setMetaEncoding",             "(Ljava/lang/String;)V",                                       (void *) jni_dttv_setMetaEncoding},

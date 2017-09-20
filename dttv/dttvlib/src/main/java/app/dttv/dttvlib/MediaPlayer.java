@@ -59,6 +59,12 @@ public class MediaPlayer {
     private static final int SUBTITLE_BITMAP = 1;
 
     public static final int KEY_PARAMETER_USEHWCODEC = 0x0;
+    public static final int KEY_PARAMETER_SET_GLFILTER = 0x1;
+
+    // GL Filter Parameter
+    public static final int GL_FILTER_YUV=0;
+    public static final int GL_FILTER_RGB=1;
+    public static final int GL_FILTER_SATURATION=2;
 
     private Context mContext;
     private long mNativeContext; // accessed by native methods
@@ -1103,10 +1109,17 @@ public class MediaPlayer {
         return 0;
     }
 
+    // private api = set glfilter
+    public int setGlFilter(long arg1, long arg2) {
+        native_set_parameter(KEY_PARAMETER_SET_GLFILTER, arg1, arg2);
+        return 0;
+    }
 
     public native int native_setup(Object thiz);
 
     public native int native_is_playing();
+
+    public native int native_get_parameter(int cmd, long arg1, long arg2);
 
     public native int native_set_parameter(int cmd, long arg1, long arg2);
 

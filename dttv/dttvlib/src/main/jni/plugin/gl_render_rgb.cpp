@@ -1,8 +1,8 @@
 #include <gl_render.h>
-#include <gl_render_rgb.h>
 #include <gl_ops.h>
 #include <dttv_jni_utils.h>
 #include <dttv_jni_log.h>
+#include <plugin/filter/gl_filter_saturation.h>
 
 struct rgb_ctx {
     lock_t mutex;
@@ -42,13 +42,14 @@ const GLfloat vertices[20] = {
 
 #define TAG "RGB-GL"
 
-void rgb_init() {
+static int rgb_init() {
     ctx = {0};
     lock_init(&ctx.mutex, NULL);
     ctx.inited = 1;
+    return 0;
 }
 
-int rgb_setup(int w, int h) {
+static int rgb_setup(int w, int h) {
     ctx.window_width = w;
     ctx.window_height = h;
 
@@ -71,16 +72,16 @@ int rgb_setup(int w, int h) {
 
     glViewport(0, 0, w, h);
     LOGV("rgb setup ok");
-    return true;
+    return 0;
 }
 
-int rgb_update_frame(dt_av_frame_t *frame) {
+static int rgb_update_frame(dt_av_frame_t *frame) {
     if (ctx.inited == 0) {
         if (frame->data[0]) {
             free(frame->data[0]);
         }
         LOGV("Not inited yet");
-        return 0;
+        return -1;
     }
 
     lock(&ctx.mutex);
@@ -97,7 +98,7 @@ int rgb_update_frame(dt_av_frame_t *frame) {
     return 0;
 }
 
-static void setupTextures(uint8_t *data, GLsizei width, GLsizei height, int gen) {
+static int setupTextures(uint8_t *data, GLsizei width, GLsizei height, int gen) {
     if(gen)
         glGenTextures(1, ctx.texture);
     glActiveTexture(GL_TEXTURE0);
@@ -115,10 +116,10 @@ static void setupTextures(uint8_t *data, GLsizei width, GLsizei height, int gen)
     LOGV("setupTextures ok");
 }
 
-void rgb_render() {
+static int rgb_render() {
 
     if (ctx.frame_valid != 1) {
-        return;
+        return -1;
     }
     lock(&ctx.mutex);
     uint8_t *data = (uint8_t *) (ctx.frame.data[0]);
@@ -136,11 +137,19 @@ void rgb_render() {
     } else {
         setupTextures(data, width, height, 0);
     }
-
+    LOGV("Enter glDrawElements \n");
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
     checkGlError("glDrawArrays");
     free(data);
     ctx.frame_valid = 0;
     memset(&ctx.frame, 0, sizeof(dt_av_frame_t));
     unlock(&ctx.mutex);
+    return 0;
 }
+
+gl_ops_t gl_ops_rgb = {
+    .init = rgb_init,
+    .setup = rgb_setup,
+    .update = rgb_update_frame,
+    .render = rgb_render
+};

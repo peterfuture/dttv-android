@@ -119,7 +119,7 @@ static void version()
     printGLString("Extensions", GL_EXTENSIONS);
 }
 
-bool yuv_setupGraphics(int w, int h) {
+static int yuv_setupGraphics(int w, int h) {
     LOGV("setupGraphics(%d, %d)", w, h);
 
     g_windowWidth = (GLuint) w;
@@ -135,7 +135,7 @@ bool yuv_setupGraphics(int w, int h) {
 
     if (!gProgram) {
         LOGV("Could not create program.");
-        return false;
+        return -1;
     }
 
     glEnableVertexAttribArray(getHandle(gProgram, "aPosition"));
@@ -152,7 +152,7 @@ bool yuv_setupGraphics(int w, int h) {
     glViewport(0, 0, w, h);
 
     LOGV("YUV setup graphics ok");
-    return true;
+    return 0;
 }
 
 static dt_av_frame_t g_frame;
@@ -160,7 +160,7 @@ static lock_t mutex;
 static int frame_valid = 0;
 static int g_inited = 0;
 
-void yuv_dttv_init() {
+static int yuv_dttv_init() {
     lock_init(&mutex, NULL);
     memset(&g_frame, 0, sizeof(dt_av_frame_t));
     frame_valid = 0;
@@ -171,15 +171,16 @@ void yuv_dttv_init() {
     g_textureHeight = g_textureWidth = 0;
 
     version();
+    return 0;
 }
 
-int yuv_update_frame(dt_av_frame_t *frame) {
+static int yuv_update_frame(dt_av_frame_t *frame) {
     if (g_inited == 0) {
         if (frame->data[0]) {
             free(frame->data[0]);
         }
         LOGV("Not inited yet");
-        return 0;
+        return -1;
     }
 
     lock(&mutex);
@@ -197,9 +198,9 @@ int yuv_update_frame(dt_av_frame_t *frame) {
 }
 
 
-void yuv_renderFrame() {
+static int yuv_renderFrame() {
     if (frame_valid != 1) {
-        return;
+        return -1;
     }
     lock(&mutex);
     uint8_t *data = (uint8_t *) (g_frame.data[0]);
@@ -225,4 +226,12 @@ void yuv_renderFrame() {
     frame_valid = 0;
     memset(&g_frame, 0, sizeof(dt_av_frame_t));
     unlock(&mutex);
+    return 0;
 }
+
+gl_ops_t gl_ops_yuv = {
+    .init = yuv_dttv_init,
+    .setup = yuv_setupGraphics,
+    .update = yuv_update_frame,
+    .render = yuv_renderFrame
+};

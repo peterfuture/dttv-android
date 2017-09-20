@@ -185,7 +185,7 @@ static int yuv_update_frame(dt_av_frame_t *frame) {
 
     lock(&mutex);
     // check frame not displayed
-    if (frame_valid == 1 && g_frame.data) {
+    if (frame_valid == 1 && g_frame.data != NULL) {
         free(g_frame.data[0]);
     }
     memcpy(&g_frame, frame, sizeof(dt_av_frame_t));

@@ -37,7 +37,7 @@ int gl_setup(int w, int h)
 {
     ctx.width = w;
     ctx.height = h;
-    if(ctx.ops == 0) {
+    if(ctx.ops == NULL) {
         ctx.ops = &gl_ops_rgb;
         ctx.pixfmt = DTAV_PIX_FMT_RGBA;
     }
@@ -46,9 +46,9 @@ int gl_setup(int w, int h)
     return 0;
 }
 
-int gl_set_parameter(long type, long arg)
+int gl_set_parameter(long arg1, long arg2)
 {
-    ctx.filter = (int)type;
+    ctx.filter = (int)arg1;
     switch (ctx.filter) {
         case GL_FILTER_TYPE_YUV:
             ctx.pixfmt = DTAV_PIX_FMT_YUV420P;

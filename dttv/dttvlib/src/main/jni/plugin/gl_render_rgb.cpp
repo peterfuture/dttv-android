@@ -2,7 +2,6 @@
 #include <gl_ops.h>
 #include <dttv_jni_utils.h>
 #include <dttv_jni_log.h>
-#include <plugin/filter/gl_filter_saturation.h>
 
 struct rgb_ctx {
     lock_t mutex;
@@ -27,12 +26,12 @@ static int VERTICES_DATA_STRIDE_BYTES = (VERTICES_DATA_POS_SIZE + VERTICES_DATA_
 static int VERTICES_DATA_POS_OFFSET = 0 * FLOAT_SIZE_BYTES;
 static int VERTICES_DATA_UV_OFFSET = VERTICES_DATA_POS_OFFSET + VERTICES_DATA_POS_SIZE * FLOAT_SIZE_BYTES;
 
-const char indices[] = {
+const static char indices[] = {
         0, 3, 2, // first triangle
         0, 2, 1  // second triangle
 };
 
-const GLfloat vertices[20] = {
+const static GLfloat vertices[20] = {
         // X, Y, Z, U, V
         -1, -1, 0, 0, 1, // Bottom Left
         1, -1, 0, 1, 1, //Bottom Right
@@ -46,6 +45,7 @@ static int rgb_init() {
     ctx = {0};
     lock_init(&ctx.mutex, NULL);
     ctx.inited = 1;
+    LOGV("rgb init ok");
     return 0;
 }
 
@@ -71,7 +71,7 @@ static int rgb_setup(int w, int h) {
     glUniform1i(getHandle(ctx.program, "sTexture"), 0);
 
     glViewport(0, 0, w, h);
-    LOGV("rgb setup ok");
+    LOGV("rgb setup ok. w:%d h:%d \n", w, h);
     return 0;
 }
 
@@ -86,7 +86,7 @@ static int rgb_update_frame(dt_av_frame_t *frame) {
 
     lock(&ctx.mutex);
     // check frame not displayed
-    if (ctx.frame_valid == 1 && ctx.frame.data) {
+    if (ctx.frame_valid == 1 && ctx.frame.data != NULL) {
         free(ctx.frame.data[0]);
     }
     memcpy(&ctx.frame, frame, sizeof(dt_av_frame_t));
@@ -114,11 +114,13 @@ static int setupTextures(uint8_t *data, GLsizei width, GLsizei height, int gen) 
                  (const GLvoid *) data);
 
     LOGV("setupTextures ok");
+    return 0;
 }
 
 static int rgb_render() {
 
     if (ctx.frame_valid != 1) {
+        LOGV("rgb render failed. no valid frame.\n");
         return -1;
     }
     lock(&ctx.mutex);
@@ -140,6 +142,7 @@ static int rgb_render() {
     LOGV("Enter glDrawElements \n");
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
     checkGlError("glDrawArrays");
+    LOGV("Exit glDrawElements \n");
     free(data);
     ctx.frame_valid = 0;
     memset(&ctx.frame, 0, sizeof(dt_av_frame_t));

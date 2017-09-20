@@ -67,7 +67,7 @@ namespace android {
     }
 
     int DTPlayer::setListenner(dttvListenner *listenner) {
-        LOGV("[%d:%p] [%d:%p]", sizeof(mListenner), this->mListenner, sizeof(listenner), listenner);
+        LOGV("[%u:%p] [%u:%p]", sizeof(mListenner), this->mListenner, sizeof(listenner), listenner);
         this->mListenner = listenner;
         return 0;
     }

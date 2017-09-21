@@ -49,9 +49,33 @@ int gl_setup(int w, int h)
     return 0;
 }
 
-int gl_set_parameter(long arg1, long arg2)
+int gl_get_parameter(int cmd, unsigned long arg)
+{
+    if(ctx.filter == -1)
+        return -1;
+    switch (cmd) {
+        case KEY_PARAMETER_GLRENDER_GET_PIXFMT:
+        {
+            if(ctx.filter == GL_FILTER_TYPE_YUV)
+                *(int *)(arg) = DTAV_PIX_FMT_YUV420P;
+            else
+                *(int *)(arg) = DTAV_PIX_FMT_RGBA;
+            break;
+        }
+        default:
+            break;
+    }
+
+    return 0;
+}
+
+int gl_set_parameter(int cmd, unsigned long arg1, unsigned long arg2)
 {
     if(ctx.filter == -1) {
+        if(cmd != KEY_PARAMETER_SET_GLFILTER) {
+            LOGV("Need set filter type first.\n");
+            return -1;
+        }
         ctx.filter = (int)arg1;
         switch (ctx.filter) {
             case GL_FILTER_TYPE_YUV:
@@ -67,16 +91,20 @@ int gl_set_parameter(long arg1, long arg2)
                 ctx.pixfmt = DTAV_PIX_FMT_RGBA;
                 ctx.arg = arg2;
                 break;
+            default:
+                LOGV("Filter not supported.\n");
+                break;
         }
-    }
-
-    if(ctx.filter != (int)arg1) {
-        LOGV("Filter already set to %d. need to set filter in surfaceCreated \n", ctx.filter);
         return 0;
     }
 
-    // update filter parameter
-    ctx.ops->set_parameter(0, arg2);
+    switch (cmd) {
+        case KEY_PARAMETER_GLRENDER_SET_FILTER_PARAMETER:
+            ctx.ops->set_parameter(KEY_PARAMETER_GLRENDER_SET_FILTER_PARAMETER, arg1, arg2);
+            break;
+        default:
+            break;
+    }
     return 0;
 }
 

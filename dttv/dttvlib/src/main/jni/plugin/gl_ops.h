@@ -10,7 +10,7 @@
 
 typedef int (*gl_ops_init)();
 typedef int (*gl_ops_setup)(int w, int h);
-typedef int (*gl_ops_set_parameter)(int cmd, unsigned long arg);
+typedef int (*gl_ops_set_parameter)(int cmd, unsigned long arg1, unsigned long arg2);
 typedef int (*gl_ops_update_frame)(dt_av_frame_t *frame);
 typedef int (*gl_ops_render)();
 

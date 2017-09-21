@@ -58,8 +58,11 @@ public class MediaPlayer {
     private static final int SUBTITLE_TEXT = 0;
     private static final int SUBTITLE_BITMAP = 1;
 
+    // set parameter cmd. match c definitions
     public static final int KEY_PARAMETER_USEHWCODEC = 0x0;
     public static final int KEY_PARAMETER_SET_GLFILTER = 0x1;
+    public static final int KEY_PARAMETER_GLRENDER_GET_PIXFMT = 0x100;
+    public static final int KEY_PARAMETER_GLRENDER_SET_FILTER_PARAMETER = 0x101;
 
     // GL Filter Parameter
     public static final int GL_FILTER_YUV=0;
@@ -1112,6 +1115,11 @@ public class MediaPlayer {
     // private api = set glfilter
     public int setGlFilter(long arg1, long arg2) {
         native_set_parameter(KEY_PARAMETER_SET_GLFILTER, arg1, arg2);
+        return 0;
+    }
+
+    public int setGlFilterParameter(long arg1, long arg2) {
+        native_set_parameter(KEY_PARAMETER_GLRENDER_SET_FILTER_PARAMETER, arg1, arg2);
         return 0;
     }
 

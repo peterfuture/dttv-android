@@ -622,7 +622,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             //Log.i(TAG, "onDrawFrame");
             lock.lock();
             mMediaPlayer.onDrawFrame();
-            mMediaPlayer.setGlFilter(mCurrentGlFilter, (value++)%100);
+            mMediaPlayer.setGlFilterParameter((value++)%100, 0);
             lock.unlock();
         }
     }

@@ -75,7 +75,7 @@ static int rgb_setup(int w, int h) {
     return 0;
 }
 
-static int rgb_set_parameter(int cmd, unsigned long arg) {
+static int rgb_set_parameter(int cmd, unsigned long arg1, unsigned long arg2) {
     return 0;
 }
 

@@ -7,16 +7,11 @@
 #include <dtp_state.h>
 #include "dttv_jni_dtp.h"
 #include "dttv_jni_surface.h"
+#include <dttv_jni_cmd.h>
 
 #define TAG "DTTV-JNI"
 
 using namespace android;
-
-enum {
-    KEY_PARAMETER_USEHWCODEC = 0x0,
-    KEY_PARAMETER_SET_GLFILTER = 0x1,
-    KEY_PARAMETER_MAX
-};
 
 struct fields_t {
     jfieldID context;
@@ -623,7 +618,10 @@ int jni_dttv_set_parameter(JNIEnv *env, jobject thiz, int cmd, jlong arg1, jlong
             mp->setHWEnable(arg1);
             break;
         case KEY_PARAMETER_SET_GLFILTER:
-            gl_set_parameter(arg1, arg2);
+            gl_set_parameter(KEY_PARAMETER_SET_GLFILTER, arg1, arg2);
+            break;
+        case KEY_PARAMETER_GLRENDER_SET_FILTER_PARAMETER:
+            gl_set_parameter(KEY_PARAMETER_GLRENDER_SET_FILTER_PARAMETER, arg1, arg2);
             break;
         default:
             break;

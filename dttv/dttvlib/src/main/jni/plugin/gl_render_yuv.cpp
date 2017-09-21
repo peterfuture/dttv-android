@@ -174,7 +174,7 @@ static int yuv_dttv_init() {
     return 0;
 }
 
-static int yuv_set_parameter(int cmd, unsigned long arg) {
+static int yuv_set_parameter(int cmd, unsigned long arg1, unsigned long arg2) {
     return 0;
 }
 

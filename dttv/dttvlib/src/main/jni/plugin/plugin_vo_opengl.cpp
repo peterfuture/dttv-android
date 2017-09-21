@@ -4,7 +4,6 @@
 #include <android/log.h>
 #include <dtp_av.h>
 
-#include "dtp_av.h"
 #include "dtp_plugin.h"
 #include "dtp_vf.h"
 #include "gl_render.h"
@@ -17,7 +16,7 @@ struct vo_info {
 
 static dtvideo_filter_t glvf;
 
-static int pix_fmt = DTAV_PIX_FMT_RGBA;
+static int pix_fmt = -1;
 
 static void dump_frame(dt_av_frame_t *pFrame, int width, int height, int iFrame) {
     FILE *pFile;
@@ -49,6 +48,14 @@ static int vo_android_init(vo_context_t *voc) {
 
 static int vo_android_render(vo_context_t *voc, dt_av_frame_t *frame) {
     struct vo_info *info = (struct vo_info *) voc->private_data;
+
+    if(pix_fmt == -1) {
+        int ret = gl_get_parameter(KEY_PARAMETER_GLRENDER_GET_PIXFMT, (unsigned long) (&pix_fmt));
+        if (ret < 0) {
+            dtp_frame_free(frame, 0);
+            return 0;
+        }
+    }
     // reset vf and window size
     dtvideo_filter_t *vf = &glvf;
     if (vf->para.d_width != frame->width
@@ -74,6 +81,7 @@ static int vo_android_render(vo_context_t *voc, dt_av_frame_t *frame) {
 static int vo_android_stop(vo_context_t *voc) {
     struct vo_info *info = (struct vo_info *) voc->private_data;
     video_filter_stop(&glvf);
+    pix_fmt = -1;
     LOGV("stop vo android\n");
     return 0;
 }

@@ -85,7 +85,10 @@ static int rgb_saturation_set_parameter(int cmd, unsigned long arg1, unsigned lo
     if (ctx.inited == 0) {
         return -1;
     }
-    ctx.saturation = ((float)arg1/100);
+
+    int *arr = (int *)arg1;
+
+    ctx.saturation = ((float)arr[0]/100);
     glUniform1f(getHandle(ctx.program, "saturation"), ctx.saturation);
     return 0;
 }

@@ -598,7 +598,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     class MyGLSurfaceViewRender implements GLSurfaceView.Renderer {
 
         private Lock lock = new ReentrantLock();
-        private long value = 0;
+        private int value = 0;
         @Override
         public void onSurfaceCreated(GL10 gl,
                                      javax.microedition.khronos.egl.EGLConfig config) {
@@ -622,7 +622,10 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             //Log.i(TAG, "onDrawFrame");
             lock.lock();
             mMediaPlayer.onDrawFrame();
-            mMediaPlayer.setGlFilterParameter((value++)%100, 0);
+
+            int[] arr = new int[4];
+            arr[0] = (value++)%100;
+            mMediaPlayer.setGlFilterParameter(arr);
             lock.unlock();
         }
     }

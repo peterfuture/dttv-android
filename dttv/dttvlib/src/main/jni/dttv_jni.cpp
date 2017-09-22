@@ -629,6 +629,31 @@ int jni_dttv_set_parameter(JNIEnv *env, jobject thiz, int cmd, jlong arg1, jlong
     return 0;
 }
 
+int jni_dttv_set_gl_parameter(JNIEnv *env, jobject thiz, int cmd, jintArray j_array) {
+    DTPlayer *mp = getMediaPlayer(env, thiz);
+    if (mp == NULL) {
+        LOGV("set parameter failed.mp == null.");
+        return -1;
+    }
+
+    jint i, sum = 0;
+    jint *c_array;
+    jint arr_len;
+    //1. 获取数组长度
+    arr_len = env->GetArrayLength(j_array);
+    //2. 根据数组长度和数组元素的数据类型申请存放java数组元素的缓冲区
+    c_array = (jint*)malloc(sizeof(jint) * arr_len);
+    //3. 初始化缓冲区
+    memset(c_array,0,sizeof(jint)*arr_len);
+    printf("arr_len = %d ", arr_len);
+    //4. 拷贝Java数组中的所有元素到缓冲区中
+    env->GetIntArrayRegion(j_array,0,arr_len,c_array);
+    //5. Handle parameter
+    gl_set_parameter(KEY_PARAMETER_GLRENDER_SET_FILTER_PARAMETER, (unsigned long)c_array, 0);
+    free(c_array);  //6. 释放存储数组元素的缓冲区
+    return 0;
+}
+
 jstring jni_dttv_getMetaEncoding(JNIEnv *env, jobject thiz) {
     char msg[60] = "UTF-8";
     return env->NewStringUTF(msg);
@@ -720,6 +745,7 @@ static JNINativeMethod g_Methods[] = {
         {"selectOrDeselectTrack",       "(IZ)V",                                                       (void *) jni_dttv_selectOrDeselectTrack},
         {"native_get_parameter",        "(IJJ)I",                                                      (void *) jni_dttv_get_parameter},
         {"native_set_parameter",        "(IJJ)I",                                                      (void *) jni_dttv_set_parameter},
+        {"native_set_gl_parameter",     "(I[I)I",                                                      (void *) jni_dttv_set_gl_parameter},
         {"getMetaEncoding",             "()Ljava/lang/String;",                                        (void *) jni_dttv_getMetaEncoding},
         {"setMetaEncoding",             "(Ljava/lang/String;)V",                                       (void *) jni_dttv_setMetaEncoding},
         {"native_set_video_surface",    "(Landroid/view/Surface;)V",                                   (void *) jni_dttv_set_video_surface},

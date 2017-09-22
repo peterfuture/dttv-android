@@ -1123,6 +1123,11 @@ public class MediaPlayer {
         return 0;
     }
 
+    public int setGlFilterParameter(int[] arg) {
+        native_set_gl_parameter(KEY_PARAMETER_GLRENDER_SET_FILTER_PARAMETER, arg);
+        return 0;
+    }
+
     public native int native_setup(Object thiz);
 
     public native int native_is_playing();
@@ -1130,6 +1135,8 @@ public class MediaPlayer {
     public native int native_get_parameter(int cmd, long arg1, long arg2);
 
     public native int native_set_parameter(int cmd, long arg1, long arg2);
+
+    public native int native_set_gl_parameter(int cmd, int[] arg);
 
     //opengl esv2
     public native int native_surface_create();
@@ -1139,7 +1146,6 @@ public class MediaPlayer {
     public native int native_draw_frame();
 
     public native int native_set_audio_effect(int t);
-
 
     private class EventHandler extends Handler {
         private MediaPlayer mMediaPlayer;

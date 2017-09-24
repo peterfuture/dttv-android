@@ -184,7 +184,9 @@ namespace android {
         }
 
         // default avoptions
-        dtplayer_set_option(NULL, 0, "protocol_whitelist", "file,http,hls,udp,rtp,rtsp,tcp");
+        //dtplayer_set_option(NULL, OPTION_CATEGORY_FFMPEG, "protocol_whitelist", "file,http,hls,udp,rtp,rtsp,tcp");
+        //dtplayer_set_option(NULL, OPTION_CATEGORY_FFMPEG, "timeout", "5000000");
+        dtplayer_set_option(NULL, OPTION_CATEGORY_DTP, "player.live_timeout", "5000");
 
         //reset var
         DTPlayer::status = 0;

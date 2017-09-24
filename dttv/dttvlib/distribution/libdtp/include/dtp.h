@@ -11,6 +11,11 @@ extern "C" {
 
 typedef int (*dtp_update_cb)(void *cookie, dtp_state_t * sta);
 
+enum option_category {
+    OPTION_CATEGORY_FFMPEG = 0x0,
+    OPTION_CATEGORY_DTP = 0x100,
+};
+
 typedef struct dtplayer_para {
     char *file_name;
     int video_index;

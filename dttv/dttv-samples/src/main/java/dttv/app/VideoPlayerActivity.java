@@ -66,7 +66,7 @@ import dttv.app.widget.OnTouchMoveListener;
  * @author shihx1
  */
 
-public class VideoPlayerActivity extends Activity implements OnClickListener, OnTouchListener {
+public class VideoPlayerActivity extends Activity implements OnClickListener, OnTouchListener, MediaPlayer.OnErrorListener {
 
     private String TAG = "VideoPlayerActivity";
     private String SAMPLE;
@@ -120,7 +120,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private GlVideoView mGLSurfaceView;
 
     // GLFilter
-    private int mCurrentGlFilter = MediaPlayer.GL_FILTER_SATURATION;
+    private int mCurrentGlFilter = MediaPlayer.GL_FILTER_YUV;
 
     // contrl
     private int mPaused = 0;
@@ -256,6 +256,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         mMediaPlayer.setOnPreparedListener(new PrePareListener());
         mMediaPlayer.setOnFreshVideo(new FreshVideo());
         mMediaPlayer.setOnCompletionListener(new OnCompleteListener());
+        mMediaPlayer.setOnErrorListener(this);
 
         mSeekBarProgress.setOnSeekBarChangeListener(new OnSeekChangeListener());
         mButtonBack.setOnClickListener(this);
@@ -339,6 +340,15 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             mMediaPlayer.seekTo(mCurrentPosition);
             mMediaPlayer.start();
         }
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mp, int cmd, int extra) {
+        Log.i(TAG, "Error occured");
+        Toast.makeText(this, "media play failed.", Toast.LENGTH_LONG).show();
+        mMediaPlayer.stop();
+        this.finish();
+        return true;
     }
 
     Handler doActionHandler = new Handler(Looper.getMainLooper()) {
@@ -622,10 +632,10 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             //Log.i(TAG, "onDrawFrame");
             lock.lock();
             mMediaPlayer.onDrawFrame();
-
+/*
             int[] arr = new int[4];
             arr[0] = (value++)%100;
-            mMediaPlayer.setGlFilterParameter(arr);
+            mMediaPlayer.setGlFilterParameter(arr);*/
             lock.unlock();
         }
     }

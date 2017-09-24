@@ -1190,6 +1190,10 @@ public class MediaPlayer {
                         mOnFreshVideo.onFresh(mMediaPlayer);
                     break;
                 case MEDIA_ERROR:
+                    Log.e(TAG, "Error occured. Error ID = " + msg.what);
+                    if(mOnErrorListener != null) {
+                        mOnErrorListener.onError(mMediaPlayer, MEDIA_ERROR, 0);
+                    }
                     release();
                     break;
                 case MEDIA_HW_ERROR:

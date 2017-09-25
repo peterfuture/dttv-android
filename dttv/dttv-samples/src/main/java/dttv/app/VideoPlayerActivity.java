@@ -119,8 +119,21 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private ProgressBar mProgressBarBright, mProgressBarVolume;
     private GlVideoView mGLSurfaceView;
 
+    private LinearLayout mGlControPanel;
+    private SeekBar mSeekBarWidth;
+    private SeekBar mSeekBarDirection;
+    private SeekBar mSeekBarShift;
+    private SeekBar mSeekBarDepth;
+
     // GLFilter
     private int mCurrentGlFilter = MediaPlayer.GL_FILTER_YUV;
+    private int mFilterX = 0;
+    private int mFilterY = 0;
+    private int mFilterZ = 0;
+    private int mFilterWidth = 0;      // [0, 100] use: r = (v-50)/100
+    private int mFilterDirection = 0;  // [0, 100] use: r = (v-50)/100
+    private int mFilterShift = 0;      // [0, 100] use: r = (v-50)/100
+    private int mFilterDepth = 0;      // [0, 100] use: r = (v-50)/100
 
     // contrl
     private int mPaused = 0;
@@ -130,6 +143,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     private int mSeekCurPosition = -1;
     private int mRatio = 0; // 0 full 1 normal
     private int mResumePosition = -1;
+    private boolean mShown = false;
 
     private Timer mTimer;
 
@@ -163,7 +177,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
     private final int HANDLE_UP = 0x0110;
     private final int HANDLE_DOWN = HANDLE_UP + 1;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -238,6 +251,12 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         mVolumeUtil = new VolumeUtil(this);
         mProgressBarVolume.setMax(mVolumeUtil.getMaxVolume());
         mProgressBarVolume.setProgress(mVolumeUtil.getCurrentVolume());
+
+        mGlControPanel = (LinearLayout) findViewById(R.id.gl_control_panel);
+        mSeekBarWidth = (SeekBar) mGlControPanel.findViewById(R.id.seekbar_width);
+        mSeekBarDirection = (SeekBar) mGlControPanel.findViewById(R.id.seekbar_direction);
+        mSeekBarShift = (SeekBar) mGlControPanel.findViewById(R.id.seekbar_shift);
+        mSeekBarDepth = (SeekBar) mGlControPanel.findViewById(R.id.seekbar_depth);
     }
 
     private void initDisplay() {
@@ -266,9 +285,16 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
         mLinearLayoutControlPanel.setOnTouchListener(this);
         mLinearLayoutTopBar.setOnTouchListener(this);
+        mGlControPanel.setOnTouchListener(this);
 
         //mTextViewDecoderType.setOnClickListener(this);
         mRelativeLayoutRootView.setOnTouchListener(this);
+
+        mSeekBarWidth.setOnSeekBarChangeListener(new OnGlSeekBarChangeListener());
+        mSeekBarDirection.setOnSeekBarChangeListener(new OnGlSeekBarChangeListener());
+        mSeekBarShift.setOnSeekBarChangeListener(new OnGlSeekBarChangeListener());
+        mSeekBarDepth.setOnSeekBarChangeListener(new OnGlSeekBarChangeListener());
+
     }
 
     class PrePareListener implements OnPreparedListener {
@@ -302,6 +328,40 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             mState = PLAYER_EXIT;
             finish();
         }
+    }
+
+    class OnGlSeekBarChangeListener implements OnSeekBarChangeListener {
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress,
+                                      boolean fromUser) {
+
+            if(seekBar == mSeekBarWidth) {
+                mFilterWidth = progress;
+            }
+            if(seekBar == mSeekBarDirection) {
+                mFilterDirection = progress;
+            }
+            if(seekBar == mSeekBarShift) {
+                mFilterShift = progress;
+            }
+            if(seekBar == mSeekBarDepth) {
+                mFilterDepth = progress;
+            }
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+            showToolsBar(true);
+            doActionHandler.removeMessages(Constant.HIDE_OPREATE_BAR_MSG);
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            showToolsBar(true);
+            doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_OPREATE_BAR_MSG, 5 * Constant.REFRESH_TIME);
+        }
+
     }
 
     class OnSeekChangeListener implements OnSeekBarChangeListener {
@@ -477,7 +537,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
         } else if (i == R.id.videoplayer_button_ratio) {//setVideoScale(temp_flag);
             handleRatioChange();
-
         }
     }
 
@@ -552,6 +611,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         mLinearLayoutControlPanel.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
         mLinearLayoutTopBar.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
         //mButtonRotate.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
+        mGlControPanel.setVisibility(isNeed == true ? View.VISIBLE : View.GONE);
+        mShown = isNeed;
     }
 
     private void showProgressBar(boolean isShow) {
@@ -571,7 +632,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
 
         @Override
         public void onTouchMoveUp(float posX) {
-            // TODO Auto-generated method stub
             if (posX < (mScreenWidth / 2 - 10)) {//left up handle audiovolume
                 //Log.i(TAG, "left up handle audiovolume");
                 handleAudioVolume(HANDLE_UP);
@@ -597,9 +657,14 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         public void onTouch(MotionEvent event) {
             // TODO Auto-generated method stub
             Log.i(TAG, "Touched, show control panel");
-            showToolsBar(true);
-            doActionHandler.removeMessages(Constant.HIDE_OPREATE_BAR_MSG);
-            doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_OPREATE_BAR_MSG, 5 * Constant.REFRESH_TIME);
+            if(mShown == true) {
+                showToolsBar(false);
+                doActionHandler.removeMessages(Constant.HIDE_OPREATE_BAR_MSG);
+            } else {
+                showToolsBar(true);
+                doActionHandler.removeMessages(Constant.HIDE_OPREATE_BAR_MSG);
+                doActionHandler.sendEmptyMessageDelayed(Constant.HIDE_OPREATE_BAR_MSG, 5 * Constant.REFRESH_TIME);
+            }
         }
     }
 
@@ -632,10 +697,18 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             //Log.i(TAG, "onDrawFrame");
             lock.lock();
             mMediaPlayer.onDrawFrame();
-/*
-            int[] arr = new int[4];
-            arr[0] = (value++)%100;
-            mMediaPlayer.setGlFilterParameter(arr);*/
+
+            // prepare parameter
+            int[] arr = new int[7];
+            arr[0] = mFilterX;
+            arr[1] = mFilterY;
+            arr[2] = mFilterZ;
+            arr[3] = mFilterWidth;
+            arr[4] = mFilterDirection;
+            arr[5] = mFilterShift;
+            arr[6] = mFilterDepth;
+            mMediaPlayer.setGlFilterParameter(arr);
+
             lock.unlock();
         }
     }

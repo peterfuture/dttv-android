@@ -187,7 +187,6 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
         if (GLES2Support() == 0) {
             return;
         }
-
         Intent intent = getIntent();
         SAMPLE = intent.getStringExtra(Constant.FILE_MSG);
 
@@ -310,6 +309,10 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 mSeekBarProgress.setMax(duration);
             }
             startTimer();
+            if (mResumePosition > 0) {
+                mMediaPlayer.seekTo(mResumePosition);
+                mResumePosition = -1;
+            }
         }
     }
 
@@ -548,7 +551,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
                 return;
 
             mMediaPlayer.setDataSource(SAMPLE);
-            mMediaPlayer.prepare();
+            mMediaPlayer.prepareAsync();
+            /*
             if (mResumePosition > 0) {
                 mMediaPlayer.seekTo(mResumePosition);
                 mResumePosition = -1;
@@ -557,6 +561,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
             startTimer();
             mTextViewDuration.setText(TimesUtil.getTime(mMediaPlayer.getDuration()));
             mSeekBarProgress.setMax(mMediaPlayer.getDuration());
+            */
             mStopped = 0;
         } catch (IOException ex) {
         }
@@ -624,6 +629,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener, On
     protected void onDestroy() {
         Log.i(TAG, "enter onDestroy");
         super.onDestroy();
+        mMediaPlayer.release();
     }
 
     //--------------------------onMoveTouch-------------------------//

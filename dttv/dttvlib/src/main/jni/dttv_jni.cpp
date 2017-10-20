@@ -9,6 +9,9 @@
 #include "dttv_jni_surface.h"
 #include <dttv_jni_cmd.h>
 
+#include <dttv_jni.h>
+#include <pthread.h>
+
 #define TAG "DTTV-JNI"
 
 using namespace android;
@@ -21,7 +24,62 @@ struct fields_t {
 
 static fields_t fields;
 static lock_t mutex;
-static JavaVM *gvm = NULL;
+
+// JNI
+static JavaVM *java_vm;
+static pthread_key_t current_env;
+static pthread_once_t once = PTHREAD_ONCE_INIT;
+static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
+static void jni_detach_env(void *data)
+{
+    if (java_vm) {
+        java_vm->DetachCurrentThread();
+    }
+}
+
+static void jni_create_pthread_key(void)
+{
+    pthread_key_create(&current_env, jni_detach_env);
+}
+
+JNIEnv *ff_jni_get_env()
+{
+    int ret = 0;
+    JNIEnv *env = NULL;
+
+    pthread_mutex_lock(&lock);
+    if (!java_vm) {
+        goto done;
+    }
+
+    pthread_once(&once, jni_create_pthread_key);
+
+    if ((env = (JNIEnv *)pthread_getspecific(current_env)) != NULL) {
+        goto done;
+    }
+
+    ret = java_vm->GetEnv((void **)&env, JNI_VERSION_1_6);
+    switch(ret) {
+        case JNI_EDETACHED:
+            if (java_vm->AttachCurrentThread(&env, NULL) != 0) {
+                env = NULL;
+            } else {
+                pthread_setspecific(current_env, env);
+            }
+            break;
+        case JNI_OK:
+            break;
+        case JNI_EVERSION:
+            break;
+        default:
+            break;
+    }
+
+    done:
+    pthread_mutex_unlock(&lock);
+    return env;
+}
 
 // ------------------------------------------------------
 // CallBack Listenner Impl
@@ -38,49 +96,24 @@ dttvListenner::dttvListenner(JNIEnv *env, jobject thiz, jobject weak_thiz) {
 }
 
 dttvListenner::~dttvListenner() {
-    int isAttached = 0;
-    JNIEnv *env = NULL;
-    if (gvm->GetEnv((void **) &env, JNI_VERSION_1_4) != JNI_OK) {
-        LOGV("jvm getenv failed use AttachCurrentThread \n ");
-        if (gvm->AttachCurrentThread(&env, NULL) != JNI_OK) {
-            LOGV("jvm AttachCurrentThread failed \n ");
-            return;
-        }
-        isAttached = 1;
-    }
-
-    if (isAttached <= 0)
-        return;
-
+    LOGV("dttv listenner destruct. enter");
+    JNIEnv *env = ff_jni_get_env();
     env->DeleteGlobalRef(mObject);
     env->DeleteGlobalRef(mClass);
     LOGV("dttv listenner destruct.");
 }
 
 int dttvListenner::notify(int msg, int ext1, int ext2) {
-    JNIEnv *env = NULL;
-    int isAttached = 0;
-    if (gvm->GetEnv((void **) &env, JNI_VERSION_1_4) != JNI_OK) {
-        LOGV("jvm getenv failed use AttachCurrentThread \n ");
-        if (gvm->AttachCurrentThread(&env, NULL) != JNI_OK) {
-            LOGV("jvm AttachCurrentThread failed \n ");
-            return -1;
-        }
-        isAttached = 1;
-    }
-
+    JNIEnv *env = ff_jni_get_env();
     if (!fields.post_event || !mClass) {
         LOGV("updateState can not found ");
-        goto END;
+        return 0;
     }
-
     env->CallStaticVoidMethod(mClass, fields.post_event, mObject, msg, ext1, ext2, NULL);
-    LOGV("NOtify with listener \n ");
-    END:
-    if (isAttached) {
-        gvm->DetachCurrentThread();
+    if(env->ExceptionCheck()) {
+        LOGV("An exception occurered while nofifying an event.\n ");
     }
-
+    LOGV("NOtify with listener \n ");
     return 0;
 }
 
@@ -126,15 +159,13 @@ static void jni_dttv_init(JNIEnv *env) {
 
 static int jni_dttv_setup(JNIEnv *env, jobject obj, jobject weak_thiz) {
 
-    dttvListenner *listenner = new dttvListenner(env, obj, weak_thiz);
-    DTPlayer *mp = new DTPlayer(listenner);
+    DTPlayer *mp = new DTPlayer();
     if (mp == NULL) {
-        //jniThrowExcption(env, "java/lang/RuntimeException", "Out of memory");
         LOGV("Error: dtplayer create failed.");
-        delete listenner;
         return -1;
     }
-    //mp->setListenner(listenner);
+    dttvListenner *listenner = new dttvListenner(env, obj, weak_thiz);
+    mp->setListenner(listenner);
     setMediaPlayer(env, obj, mp);
     LOGV("native dttv setup ok");
     return 0;
@@ -142,7 +173,13 @@ static int jni_dttv_setup(JNIEnv *env, jobject obj, jobject weak_thiz) {
 
 static int jni_dttv_release(JNIEnv *env, jobject thiz) {
     DTPlayer *mp = setMediaPlayer(env, thiz, 0);
+    return 0;
     if (mp) {
+        dttvListenner *listenner = mp->getListenner();
+        mp->setListenner(NULL);
+        if(listenner) {
+            delete listenner;
+        }
         delete mp;
     }
     return 0;
@@ -642,14 +679,14 @@ int jni_dttv_set_gl_parameter(JNIEnv *env, jobject thiz, int cmd, jintArray j_ar
     //1. 获取数组长度
     arr_len = env->GetArrayLength(j_array);
     //2. 根据数组长度和数组元素的数据类型申请存放java数组元素的缓冲区
-    c_array = (jint*)malloc(sizeof(jint) * arr_len);
+    c_array = (jint *) malloc(sizeof(jint) * arr_len);
     //3. 初始化缓冲区
-    memset(c_array,0,sizeof(jint)*arr_len);
+    memset(c_array, 0, sizeof(jint) * arr_len);
     printf("arr_len = %d ", arr_len);
     //4. 拷贝Java数组中的所有元素到缓冲区中
-    env->GetIntArrayRegion(j_array,0,arr_len,c_array);
+    env->GetIntArrayRegion(j_array, 0, arr_len, c_array);
     //5. Handle parameter
-    gl_set_parameter(KEY_PARAMETER_GLRENDER_SET_FILTER_PARAMETER, (unsigned long)c_array, 0);
+    gl_set_parameter(KEY_PARAMETER_GLRENDER_SET_FILTER_PARAMETER, (unsigned long) c_array, 0);
     free(c_array);  //6. 释放存储数组元素的缓冲区
     return 0;
 }
@@ -778,9 +815,9 @@ static int register_natives(JNIEnv *env) {
 jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     JNIEnv *env = NULL;
     jint result = -1;
-    gvm = vm;
+    java_vm = vm;
 
-    if (vm->GetEnv((void **) &env, JNI_VERSION_1_4) != JNI_OK) {
+    if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         LOGV("ERROR: GetEnv failed\n");
         goto bail;
     }
@@ -791,10 +828,10 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
         goto bail;
     }
 
-    result = JNI_VERSION_1_4;
+    result = JNI_VERSION_1_6;
     lock_init(&mutex, NULL);
     av_jni_set_java_vm(vm, reserved);
-    dttv_setup_gvm(vm);
+    dttv_setup_gvm(java_vm);
     bail:
     return result;
 }

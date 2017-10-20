@@ -116,6 +116,7 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
 
     @Override
     protected void onDestroy() {
+        mMediaPlayer.release();
         mMediaPlayer = null;
         super.onDestroy();
     }

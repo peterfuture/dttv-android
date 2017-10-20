@@ -54,9 +54,15 @@ namespace android {
     DTPlayer::~DTPlayer() {
         status = 0;
         mCurrentPosition = mSeekPosition = -1;
-        mDtpHandle = NULL;
-        if (mListenner) {
+        if(mDtpHandle) {
+            free(mDtpHandle);
+            mDtpHandle = NULL;
+        }
+
+        if(mListenner != NULL) {
             delete mListenner;
+            mListenner = NULL;
+            LOGV("delete dttv listenner.");
         }
         LOGV("dtplayer destructor called \n");
     }
@@ -70,6 +76,10 @@ namespace android {
         LOGV("[%u:%p] [%u:%p]", sizeof(mListenner), this->mListenner, sizeof(listenner), listenner);
         this->mListenner = listenner;
         return 0;
+    }
+
+    dttvListenner *DTPlayer::getListenner() {
+        return mListenner;
     }
 
     // Remove Later - Never used
@@ -177,8 +187,9 @@ namespace android {
         para.width = -1;
         para.height = -1;
 
-        void *handle = mDtpHandle;
-        if (handle != NULL) {
+        void *handle = NULL;
+
+        if (mDtpHandle != NULL) {
             LOGV("last player is running\n");
             goto FAILED;
         }
@@ -216,27 +227,27 @@ namespace android {
         return 0;
 
         FAILED:
-        mListenner->notify(MEDIA_ERROR);
+        Notify(MEDIA_ERROR);
         return -1;
     }
 
     int DTPlayer::prePare() {
         if (status != PLAYER_INITED) {
-            mListenner->notify(MEDIA_INVALID_CMD);
+            Notify(MEDIA_INVALID_CMD);
             return -1;
         }
         status = PLAYER_PREPARED;
-        mListenner->notify(MEDIA_PREPARED);
+        Notify(MEDIA_PREPARED);
         return 0;
     }
 
     int DTPlayer::prePareAsync() {
         if (status != PLAYER_INITED) {
-            mListenner->notify(MEDIA_INVALID_CMD);
+            Notify(MEDIA_INVALID_CMD);
             return -1;
         }
         status = PLAYER_PREPARED;
-        mListenner->notify(MEDIA_PREPARED);
+        Notify(MEDIA_PREPARED);
         return 0;
     }
 
@@ -350,7 +361,6 @@ namespace android {
 
         status = PLAYER_STOPPED;
         ret = dtplayer_stop(handle);
-        mDtpHandle = NULL;
         END:
         return ret;
     }
@@ -500,7 +510,9 @@ namespace android {
     }
 
     int DTPlayer::Notify(int msg) {
-        mListenner->notify(msg);
+        if(mListenner) {
+            mListenner->notify(msg);
+        }
         return 0;
     }
 
@@ -513,7 +525,7 @@ namespace android {
         // Handle Error
         if (state->cur_status == PLAYER_STATUS_ERROR) {
             dtp->status = PLAYER_STOPPED;
-            dtp->mListenner->notify(MEDIA_ERROR);
+            dtp->Notify(MEDIA_ERROR);
             LOGV("Error \n");
             ret = -1;
             goto END;
@@ -548,11 +560,11 @@ namespace android {
         memcpy(&dtp->dtp_state, state, sizeof(dtp_state_t));
         if (state->cur_status == PLAYER_STATUS_EXIT) {
             LOGV("PLAYER EXIT OK\n");
-            dtp->mListenner->notify(MEDIA_PLAYBACK_COMPLETE);
+            dtp->Notify(MEDIA_PLAYBACK_COMPLETE);
             dtp->status = PLAYER_EXIT;
             goto END;
         } else if (state->cur_status == PLAYER_STATUS_SEEK_EXIT) {
-            dtp->mListenner->notify(MEDIA_SEEK_COMPLETE);
+            dtp->Notify(MEDIA_SEEK_COMPLETE);
             if (dtp->mCurrentPosition != dtp->mSeekPosition) {
                 //still have seek request
                 dtp->mSeekPosition = dtp->mCurrentPosition;
@@ -572,8 +584,8 @@ namespace android {
                 goto END;
             }
             LOGV("set status to running from seek complete \n");
-            dtp->status = PLAYER_RUNNING;
-            dtp->mListenner->notify(MEDIA_INFO);
+            dtp->status = PLAYER_RUNNING;;
+            dtp->Notify(MEDIA_INFO);
         }
 
         LOGV("UPDATECB CURSTATUS:%x status:%d \n", state->cur_status, dtp->status);

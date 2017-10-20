@@ -36,6 +36,8 @@ namespace android {
 
         int setListenner(dttvListenner *listenner);
 
+        dttvListenner *getListenner();
+
         void setNativeWindow(ANativeWindow *window);
 
         void setSurface(void *surface);

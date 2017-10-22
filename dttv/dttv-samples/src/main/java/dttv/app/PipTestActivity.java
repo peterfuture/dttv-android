@@ -81,9 +81,6 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
         Intent intent = getIntent();
         SAMPLE = intent.getStringExtra(Constant.FILE_MSG);
 
-        mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-        mSurfaceView.getHolder().addCallback(callback);
-
         mSettingUtil = new SettingUtil(this);
         mHWCodecEnable = mSettingUtil.isHWCodecEnable();
 
@@ -122,6 +119,9 @@ public class PipTestActivity extends Activity implements View.OnClickListener, V
     }
 
     private void setupView() {
+        mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+        mSurfaceView.getHolder().addCallback(callback);
+
         mCtlPanel = (LinearLayout) findViewById(R.id.control_panel);
         mCtlPanel.setVisibility(View.VISIBLE);
 

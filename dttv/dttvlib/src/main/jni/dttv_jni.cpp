@@ -165,18 +165,22 @@ static int jni_dttv_setup(JNIEnv *env, jobject obj, jobject weak_thiz) {
         return -1;
     }
     dttvListenner *listenner = new dttvListenner(env, obj, weak_thiz);
+    if (listenner == NULL) {
+        delete mp;
+        return -1;
+    }
     mp->setListenner(listenner);
     setMediaPlayer(env, obj, mp);
-    LOGV("native dttv setup ok");
+    LOGV("native dttv setup ok. lisenner addr:%p mp addr:%p", listenner, mp);
     return 0;
 }
 
 static int jni_dttv_release(JNIEnv *env, jobject thiz) {
     DTPlayer *mp = setMediaPlayer(env, thiz, 0);
-    return 0;
     if (mp) {
         dttvListenner *listenner = mp->getListenner();
         mp->setListenner(NULL);
+        LOGV("jni_dttv_release. lisenner addr:%p mp addr:%p", listenner, mp);
         if(listenner) {
             delete listenner;
         }

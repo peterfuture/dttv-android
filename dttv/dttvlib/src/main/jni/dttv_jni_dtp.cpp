@@ -54,16 +54,8 @@ namespace android {
     DTPlayer::~DTPlayer() {
         status = 0;
         mCurrentPosition = mSeekPosition = -1;
-        if(mDtpHandle) {
-            free(mDtpHandle);
-            mDtpHandle = NULL;
-        }
-
-        if(mListenner != NULL) {
-            delete mListenner;
-            mListenner = NULL;
-            LOGV("delete dttv listenner.");
-        }
+        mDtpHandle = NULL; // free in dtplayer
+        mListenner = NULL; // free in jni
         LOGV("dtplayer destructor called \n");
     }
 

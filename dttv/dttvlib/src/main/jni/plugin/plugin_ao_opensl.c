@@ -526,7 +526,7 @@ static int ao_opensl_write(ao_context_t *aoc, uint8_t *buf, int size) {
         LOGI(TAG, "Opensl empty. not render");
         return 0;
     }
-    LOGI(TAG, "[%s:%d] start to write pcm: %d \n", __FUNCTION__, __LINE__, size);
+    //LOGI(TAG, "[%s:%d] start to write pcm: %d \n", __FUNCTION__, __LINE__, size);
 #ifdef ENABLE_DTAP
     audio_effect_t *ae = (audio_effect_t *)wrapper->ao_priv;
     lock(&ae->lock);

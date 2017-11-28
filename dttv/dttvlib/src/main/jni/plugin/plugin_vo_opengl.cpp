@@ -67,9 +67,9 @@ static int vo_android_render(vo_context_t *voc, dt_av_frame_t *frame) {
         vf->para.s_height = frame->height;
         vf->para.s_pixfmt = frame->pixfmt;
         vf->para.d_pixfmt = pix_fmt;
-        LOGV("Need to Update Video Filter Parameter. w:%d->%d h:%d->%d pixfmt:%d->%d \n",
-             vf->para.s_width, vf->para.d_width, vf->para.s_height, vf->para.d_height,
-             vf->para.s_pixfmt, vf->para.d_pixfmt);
+        //LOGV("Need to Update Video Filter Parameter. w:%d->%d h:%d->%d pixfmt:%d->%d \n",
+        //     vf->para.s_width, vf->para.d_width, vf->para.s_height, vf->para.d_height,
+        //     vf->para.s_pixfmt, vf->para.d_pixfmt);
         video_filter_update(vf);
     }
     video_filter_process(vf, frame);

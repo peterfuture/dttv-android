@@ -190,6 +190,11 @@ namespace android {
         //dtplayer_set_option(NULL, OPTION_CATEGORY_FFMPEG, "protocol_whitelist", "file,http,hls,udp,rtp,rtsp,tcp");
         //dtplayer_set_option(NULL, OPTION_CATEGORY_FFMPEG, "timeout", "5000000");
         dtplayer_set_option(NULL, OPTION_CATEGORY_DTP, "player.live_timeout", "5000");
+        dtplayer_set_option(NULL, OPTION_CATEGORY_DTP, "player.log_level", "2");
+        dtplayer_set_option(NULL, OPTION_CATEGORY_DTP, "port.audio_max_num", "8");
+        dtplayer_set_option(NULL, OPTION_CATEGORY_DTP, "port.audio_max_size", "10000000"); // 10M
+        dtplayer_set_option(NULL, OPTION_CATEGORY_DTP, "port.video_max_num", "8");
+        dtplayer_set_option(NULL, OPTION_CATEGORY_DTP, "port.video_max_size", "50000000"); // 50M
 
         //reset var
         DTPlayer::status = 0;

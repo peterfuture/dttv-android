@@ -197,7 +197,7 @@ static int yuv_update_frame(dt_av_frame_t *frame) {
     unlock(&mutex);
 
     gl_notify();
-    LOGV("yuv update frame\n");
+    //LOGV("yuv update frame\n");
     return 0;
 }
 

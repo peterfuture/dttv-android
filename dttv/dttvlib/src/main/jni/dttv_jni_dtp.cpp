@@ -8,7 +8,6 @@
 
 #define TAG "NATIVE-DTP"
 
-extern vo_wrapper_t vo_android_opengl;
 extern vo_wrapper_t vo_android_surface;
 extern ao_wrapper_t ao_opensl_ops;
 extern so_wrapper_t so_android_ops;
@@ -74,11 +73,6 @@ namespace android {
         return mListenner;
     }
 
-    // Remove Later - Never used
-    void DTPlayer::setNativeWindow(ANativeWindow *window) {
-        mNativeWindow = (unsigned long) window;
-        mRenderType = 0;
-    }
 
     void DTPlayer::setSurface(void *surface) {
         mSurface = (unsigned long) surface;
@@ -87,7 +81,7 @@ namespace android {
 
     void DTPlayer::setGLSurfaceView() {
         LOGV("Use GLSurfaceView. Register gl render \n");
-        mRenderType = 1;
+        mRenderType = 0;
     }
 
     int DTPlayer::supportMediaCodec() {
@@ -132,14 +126,8 @@ namespace android {
 
         // video render setup
         if (info.has_video) {
-            if (mRenderType == 0) {
-                dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
-                dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mSurface);
-            } else if (mRenderType == 1) {
-                dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_opengl);
-                dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, 0);
-            }
-
+            dtplayer_register_plugin(DTP_PLUGIN_TYPE_VO, &vo_android_surface);
+            dtplayer_set_parameter(mDtpHandle, DTP_CMD_SET_VODEVICE, mSurface);
             LOGI("setup render. use %s.\n", (mRenderType == 0) ? "surfaceview" : "opengl");
         }
 

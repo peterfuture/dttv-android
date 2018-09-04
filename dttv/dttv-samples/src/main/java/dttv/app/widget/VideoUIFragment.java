@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dttv.app.R;
-import dttv.app.VideoPlayerActivity;
 import dttv.app.impl.I_OnMyKey;
 import dttv.app.utils.Constant;
 import dttv.app.utils.PlayerUtil;

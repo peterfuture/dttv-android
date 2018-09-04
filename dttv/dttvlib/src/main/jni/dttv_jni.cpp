@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <unistd.h>
 
-#include <gl_render.h>
 #include <dtp_state.h>
 #include "dttv_jni_dtp.h"
 #include "dttv_jni_surface.h"
@@ -658,40 +657,9 @@ int jni_dttv_set_parameter(JNIEnv *env, jobject thiz, int cmd, jlong arg1, jlong
         case KEY_PARAMETER_USEHWCODEC:
             mp->setHWEnable(arg1);
             break;
-        case KEY_PARAMETER_SET_GLFILTER:
-            gl_set_parameter(KEY_PARAMETER_SET_GLFILTER, arg1, arg2);
-            break;
-        case KEY_PARAMETER_GLRENDER_SET_FILTER_PARAMETER:
-            gl_set_parameter(KEY_PARAMETER_GLRENDER_SET_FILTER_PARAMETER, arg1, arg2);
-            break;
         default:
             break;
     }
-    return 0;
-}
-
-int jni_dttv_set_gl_parameter(JNIEnv *env, jobject thiz, int cmd, jintArray j_array) {
-    DTPlayer *mp = getMediaPlayer(env, thiz);
-    if (mp == NULL) {
-        LOGV("set parameter failed.mp == null.");
-        return -1;
-    }
-
-    jint i, sum = 0;
-    jint *c_array;
-    jint arr_len;
-    //1. 获取数组长度
-    arr_len = env->GetArrayLength(j_array);
-    //2. 根据数组长度和数组元素的数据类型申请存放java数组元素的缓冲区
-    c_array = (jint *) malloc(sizeof(jint) * arr_len);
-    //3. 初始化缓冲区
-    memset(c_array, 0, sizeof(jint) * arr_len);
-    printf("arr_len = %d ", arr_len);
-    //4. 拷贝Java数组中的所有元素到缓冲区中
-    env->GetIntArrayRegion(j_array, 0, arr_len, c_array);
-    //5. Handle parameter
-    gl_set_parameter(KEY_PARAMETER_GLRENDER_SET_FILTER_PARAMETER, (unsigned long) c_array, 0);
-    free(c_array);  //6. 释放存储数组元素的缓冲区
     return 0;
 }
 
@@ -715,35 +683,6 @@ static void jni_dttv_set_video_surface(JNIEnv *env, jobject thiz, jobject jsurfa
     //mp->setNativeWindow(window);
     jobject ref = env->NewGlobalRef(jsurface);
     mp->setSurface(ref);
-}
-
-int jni_gl_surface_create(JNIEnv *env, jobject thiz) {
-
-    DTPlayer *mp = getMediaPlayer(env, thiz);
-    if (mp == NULL) {
-        LOGV("set parameter failed.mp == null.");
-        return 0;
-    }
-    gl_create((void *) getMediaPlayer(env, thiz));
-    mp->setGLSurfaceView();
-    return 0;
-}
-
-int jni_gl_surface_change(JNIEnv *env, jobject thiz, int w, int h) {
-    DTPlayer *mp = getMediaPlayer(env, thiz);
-    if (mp == NULL) {
-        LOGV("set parameter failed.mp == null.");
-        return 0;
-    }
-    gl_setup(w, h);
-    LOGV("on surface changed, w:%d h:%d \n", w, h);
-    return 0;
-}
-
-
-int jni_gl_draw_frame(JNIEnv *env, jobject thiz) {
-    gl_render();
-    return 0;
 }
 
 static int jni_dttv_set_audio_effect(JNIEnv *env, jobject thiz, jint id) {
@@ -786,13 +725,9 @@ static JNINativeMethod g_Methods[] = {
         {"selectOrDeselectTrack",       "(IZ)V",                                                       (void *) jni_dttv_selectOrDeselectTrack},
         {"native_get_parameter",        "(IJJ)I",                                                      (void *) jni_dttv_get_parameter},
         {"native_set_parameter",        "(IJJ)I",                                                      (void *) jni_dttv_set_parameter},
-        {"native_set_gl_parameter",     "(I[I)I",                                                      (void *) jni_dttv_set_gl_parameter},
         {"getMetaEncoding",             "()Ljava/lang/String;",                                        (void *) jni_dttv_getMetaEncoding},
         {"setMetaEncoding",             "(Ljava/lang/String;)V",                                       (void *) jni_dttv_setMetaEncoding},
         {"native_set_video_surface",    "(Landroid/view/Surface;)V",                                   (void *) jni_dttv_set_video_surface},
-        {"native_surface_create",       "()I",                                                         (void *) jni_gl_surface_create},
-        {"native_surface_change",       "(II)I",                                                       (void *) jni_gl_surface_change},
-        {"native_draw_frame",           "()I",                                                         (void *) jni_gl_draw_frame},
 
         {"native_set_audio_effect",     "(I)I",                                                        (void *) jni_dttv_set_audio_effect},
 };

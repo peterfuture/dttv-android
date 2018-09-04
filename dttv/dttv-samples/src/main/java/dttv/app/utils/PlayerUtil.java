@@ -1,7 +1,6 @@
 package dttv.app.utils;
 
 import dttv.app.PipTestActivity;
-import dttv.app.VideoPlayerActivity;
 
 import android.app.Activity;
 import android.content.Context;
@@ -28,13 +27,8 @@ public class PlayerUtil {
         intent.putExtra(Constant.MEIDA_NAME_STR, name);
 
         // Fixme: select videoplayer - Android MediaPlayer | dtplayer(with glsurfaceview) | dtplayer(with surfaceview)
-
-        // use VideoPlayerActivity
-        intent.setClass(cr, VideoPlayerActivity.class);
-        cr.startActivity(intent);
-
         // use PipTestActivity
-        //intent.setClass(cr, PipTestActivity.class);
-        //cr.startActivity(intent);
+        intent.setClass(cr, PipTestActivity.class);
+        cr.startActivity(intent);
     }
 }

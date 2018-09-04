@@ -48,7 +48,6 @@ add_library(dttv_jni SHARED
 target_include_directories(dttv_jni PRIVATE
                            ${CMAKE_SOURCE_DIR}/
                            ${CMAKE_SOURCE_DIR}/plugin/
-                           ${CMAKE_SOURCE_DIR}/plugin/filter
                            ${distribution_DIR}/libdtp/include)
 
 target_link_libraries(dttv_jni

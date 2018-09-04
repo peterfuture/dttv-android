@@ -20,7 +20,6 @@ import java.io.File;
 
 import butterknife.BindView;
 import dttv.app.R;
-import dttv.app.VideoPlayerActivity;
 import dttv.app.base.SimpleFragment;
 import dttv.app.utils.DateUtils;
 import dttv.app.utils.FileNewUtils;
@@ -151,9 +150,6 @@ public class LocalVideoFragment extends SimpleFragment {
                 e.printStackTrace();
             }
 
-            /*Intent intent = new Intent(VideoPlayerActivity.class);
-                  intent.putExtra("videofilename", filename);
-                  startActivity(intent);*/
             PlayerUtil.getInstance().beginToPlayer(getActivity(),filePathName,fileName,1);
             //Toast.makeText(getActivity().getApplicationContext(), filePathName, Toast.LENGTH_SHORT).show();
         }

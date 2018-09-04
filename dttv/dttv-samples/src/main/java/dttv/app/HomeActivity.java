@@ -1,10 +1,14 @@
 package dttv.app;
 
 
+import android.Manifest;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +19,7 @@ import dttv.app.base.SimpleActivity;
 import dttv.app.frament.BiliVideoFragment;
 import dttv.app.frament.LocalVideoFragment;
 import dttv.app.utils.ActivityUtils;
+import dttv.app.utils.PermissionUtils;
 import dttv.app.widget.FloatingActionMenu;
 
 
@@ -33,12 +38,33 @@ public class HomeActivity extends SimpleActivity {
 
     HomeAdapter mAdapter;
 
-    /*@Override
+    String[] mustPermissions = new String[]{
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.INTERNET,
+            Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.READ_EXTERNAL_STORAGE};
+    int mustRequestCode  = 0x1000;
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
-        initEventAndData();
-    }*/
+        /*setContentView(R.layout.activity_home);
+        initEventAndData();*/
+        PermissionUtils.requestPermissionsResult(this, mustRequestCode, mustPermissions,
+                new PermissionUtils.OnPermissionListener() {
+                    @Override
+                    public void onPermissionGranted() {
+
+                    }
+
+                    @Override
+                    public void onPermissionDenied() {
+                        Toast.makeText(mContext, "需要允许相关权限", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                });
+
+    }
 
 
 
@@ -82,6 +108,12 @@ public class HomeActivity extends SimpleActivity {
                 }
             }
         });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        PermissionUtils.onRequestPermissionsResult(requestCode,permissions,grantResults);
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override

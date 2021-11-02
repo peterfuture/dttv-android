@@ -7,7 +7,7 @@ This program is free software: you can redistribute it and/or modify it under th
 ## Introduction
 
 dttv-android is a videoplayer for android platform.
-based on [dtplayer](https://github.com/peterfuture/dtplayer_c).
+based on [dtplayer].
 
 ## How to use
 ```
@@ -30,11 +30,9 @@ dependencies {
 * apk: dttv/dttv-samples/build/outputs/apk/dttv-samples-debug.apk.
 * Get prebuild [here](https://sourceforge.net/projects/dttv/files/dttv-samples-debug.apk/download)
 
-More [details](https://github.com/peterfuture/dttv-android/wiki/2-%E7%BC%96%E8%AF%91dttv-android)
-
 
 ## Deps
 
 >
-* [dtplayer](https://github.com/peterfuture/dtplayer_c)
-* [ffmpeg](https://github.com/peterfuture/ffmpeg_android)
+* [dtplayer]
+* [ffmpeg]

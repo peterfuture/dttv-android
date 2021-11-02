@@ -38,13 +38,3 @@ More [details](https://github.com/peterfuture/dttv-android/wiki/2-%E7%BC%96%E8%A
 >
 * [dtplayer](https://github.com/peterfuture/dtplayer_c)
 * [ffmpeg](https://github.com/peterfuture/ffmpeg_android)
-
-
-## Author
-
->
-Email: peter_future@outlook.com  shihuaxian001@126.com
->
-QQ Group: 229224768
->
-blog: http://blog.csdn.net/dtplayer
